@@ -27,7 +27,7 @@ LORE must:
 4. Prevent maintainers from directly rewriting accepted semantic history.
 5. Ground factual and architectural claims in repository evidence.
 6. Generate useful human documentation from authoritative inputs.
-7. generate bounded, explainable task context using progressive disclosure.
+7. Generate bounded, explainable task context using progressive disclosure.
 8. Explain semantic changes between repository revisions.
 9. Bootstrap another repository without requiring a specific agent system.
 10. Describe, maintain, and verify itself using its own mechanisms.
@@ -487,7 +487,7 @@ Common statuses:
 - `resolved`
 - `withdrawn`
 
-Legal status combinations depend on record kind. A record cannot transition by editing its accepted file. A new revision or accepted transaction records the change.
+Legal status combinations depend on record kind. The status stored in an accepted revision is immutable. Current or effective status is resolved from the revision graph: when a later revision supersedes an earlier revision, the earlier revision is treated as effectively `superseded` without editing its file. Other transitions append a new revision with the requested status and a `supersedes` reference.
 
 ## 13. Extracted facts
 
@@ -536,7 +536,8 @@ Validation rules:
 - `path` must exist at that revision.
 - A line range must be valid for the referenced blob.
 - A symbol is advisory in the first release but must be nonempty when provided.
-- Evidence may refer to source, configuration, tests, schemas, skills, or accepted records.
+- Evidence may refer to source, configuration, tests, schemas, skills, approved design specifications, or accepted records.
+- Bootstrap component records may cite the approved design specification before implementation exists; later revisions should add implementation evidence.
 - A record cannot cite generated prose as its sole evidence.
 - Evidence from a different repository is not supported in the first release.
 
@@ -706,27 +707,28 @@ LORE validates proposals in this order:
 2. Validate proposal protocol version.
 3. Validate proposal schema.
 4. Confirm the repository is clean unless `--allow-dirty` is explicitly supplied for validation-only commands.
-5. Confirm `base_revision` equals the current target revision for application.
-6. Confirm the referenced skill exists.
-7. Confirm the skill digest matches the repository file.
-8. Validate each proposed record schema.
-9. Validate stable identity and next revision number.
-10. Validate supersession references.
-11. Validate status transitions.
-12. Validate evidence references.
-13. Validate cross-record references.
-14. Check for conflicts with active decisions or constraints.
-15. Construct the complete post-transaction state in memory.
-16. Regenerate affected projections in memory.
-17. Run semantic validation on the complete candidate state.
-18. Report an application plan.
-19. Write accepted record files and transaction receipt.
-20. Write regenerated projections.
-21. Verify the resulting working tree matches the candidate state.
+5. Load validation evidence and the referenced skill from `base_revision`; validation-only commands may inspect a historical proposal.
+6. For transaction planning or application, confirm `base_revision` equals the current `HEAD`.
+7. Confirm the referenced skill exists at `base_revision`.
+8. Confirm the skill digest matches the skill bytes at `base_revision`.
+9. Validate each proposed record schema.
+10. Validate stable identity and next revision number.
+11. Validate supersession references.
+12. Validate status transitions.
+13. Validate evidence references.
+14. Validate cross-record references.
+15. Check for conflicts with active decisions or constraints.
+16. Construct the complete post-transaction state in memory.
+17. Regenerate affected projections in memory.
+18. Run semantic validation on the complete candidate state.
+19. Report an application plan.
+20. Write accepted record files and transaction receipt.
+21. Write regenerated projections.
+22. Verify the resulting working tree matches the candidate state.
 
-Any failure before step 19 writes nothing.
+Any failure before step 20 writes nothing.
 
-A failure during steps 19–21 triggers rollback from a temporary backup. The command exits nonzero and records no accepted transaction.
+A failure during steps 20–22 triggers rollback from a temporary backup. The command exits nonzero and records no accepted transaction.
 
 ### 17.2 Transaction receipt
 
