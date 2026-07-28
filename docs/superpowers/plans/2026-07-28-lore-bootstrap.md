@@ -330,6 +330,7 @@ Use these scripts:
   "name": "lore",
   "version": "0.0.0",
   "private": true,
+  "packageManager": "pnpm@10.14.0",
   "type": "module",
   "bin": {
     "lore": "./dist/cli/main.js"
@@ -694,7 +695,7 @@ it("rejects duplicate record revisions");
 it("rejects non-monotonic revisions");
 it("rejects a supersession target that does not exist");
 it("rejects supersession cycles");
-it("rejects an active revision superseding a record without marking the prior revision superseded");
+it("derives the prior revision effective status as superseded without editing its file");
 it("sorts all reported problems deterministically");
 ```
 
@@ -738,7 +739,7 @@ Validate:
 - monotonic revisions
 - legal `supersedes`
 - no cycles
-- legal current statuses
+- legal declared statuses and derived effective statuses
 - referenced components exist
 - active decision conflicts when two active decisions use the same `payload.exclusivity_key`
 
@@ -866,7 +867,7 @@ Copy the root proposal schema byte-for-byte into the skill schema path in this t
 
 - [ ] **Step 6: Add the initial self-description records**
 
-Create one revision for every record listed in design section 30. Evidence must refer to the exact bootstrap commit that introduces the relevant source or trust-root artifact.
+Create one revision for every record listed in design section 30. Evidence must refer to the exact bootstrap commit that introduces the relevant source or trust-root artifact. Component records for not-yet-implemented modules cite the approved design specification initially; later self-hosting transactions supersede them with implementation evidence.
 
 Because the commit SHA is unknown before commit, perform this task in two commits:
 
@@ -1262,10 +1263,11 @@ export async function applyTransaction(
 
 Cover:
 
-- valid `changes_proposed`
+- valid current `changes_proposed`
+- valid historical `changes_proposed` in validation-only mode
 - valid `no_documentation_change`
-- stale base revision
-- skill digest mismatch
+- stale base revision rejected by transaction planning and application
+- skill digest mismatch against the skill bytes at the proposal base revision
 - wrong next revision
 - missing supersession target
 - evidence failure
@@ -1287,7 +1289,7 @@ In a temporary Git repository:
 
 - [ ] **Step 3: Implement skill digest validation**
 
-Compute SHA-256 over raw skill bytes. Require proposal digest syntax:
+Compute SHA-256 over the raw skill bytes at the proposal’s `base_revision`. Require proposal digest syntax:
 
 ```text
 sha256:<64 lowercase hexadecimal characters>
@@ -1295,7 +1297,7 @@ sha256:<64 lowercase hexadecimal characters>
 
 - [ ] **Step 4: Implement candidate-state planning**
 
-Build the complete record set in memory. Convert `transition_record` operations into a new immutable record revision with:
+First require the current `HEAD` to equal the proposal’s `base_revision`. Build the complete record set in memory. Convert `transition_record` operations into a new immutable record revision with:
 
 - next revision
 - requested status
@@ -1585,7 +1587,7 @@ Run, without modifying files:
 2. extraction comparison
 3. record and evidence validation
 4. skill completeness and schema identity
-5. proposal fixture validation
+5. proposal fixture validation against each fixture’s recorded base revision
 6. projection comparison
 7. hydration snapshot comparison
 8. accepted-history immutability checks
@@ -1628,7 +1630,7 @@ extract --check
 validate
 project --check
 hydrate the checked-in task
-validate the checked-in proposal
+validate the checked-in historical proposal against its recorded base revision
 show semantic diff for the self-hosting transaction
 verify-self
 rerun extract and project
