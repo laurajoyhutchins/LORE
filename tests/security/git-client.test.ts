@@ -37,6 +37,13 @@ describe("Git revision handling", () => {
     await expect(git.resolveCommit("--help")).rejects.toThrow("Invalid Git revision");
   });
 
+  it("rejects revisions containing control characters", async () => {
+    const root = await repositoryFixture();
+    const git = createGitClient(root);
+    await expect(git.resolveCommit("HEAD\n--help")).rejects.toThrow("Invalid Git revision");
+    await expect(git.resolveCommit("HEAD\0suffix")).rejects.toThrow("Invalid Git revision");
+  });
+
   it("rejects repository paths that can alter object expressions", async () => {
     const root = await repositoryFixture();
     const git = createGitClient(root);
