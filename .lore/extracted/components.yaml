@@ -88,8 +88,10 @@ components:
       - createGitClient
     path: src/git/git-client.ts
   - exports:
+      - HYDRATION_SNAPSHOT_REVISION
       - hydrateTask
       - hydrationMarkdown
+      - normalizeHydrationPacketForSnapshot
     path: src/hydration/hydrate.ts
   - exports:
       - scoreRecord
@@ -161,7 +163,11 @@ components:
   - exports: []
     path: tests/unit/extraction/extract.test.ts
   - exports: []
+    path: tests/unit/hydration/hydrate.test.ts
+  - exports: []
     path: tests/unit/init/initialize.test.ts
+  - exports: []
+    path: tests/unit/projection/templates.test.ts
   - exports: []
     path: tests/unit/schemas/schema-registry.test.ts
   - exports: []
