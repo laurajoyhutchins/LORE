@@ -48,7 +48,7 @@ export async function verifySelf(
   root: string,
 ): Promise<ValidationResult<SelfVerificationReport>> {
   const repositoryResult = await validateRepository(root);
-  if (!repositoryResult.ok) return repositoryResult as ValidationResult<SelfVerificationReport>;
+  if (!repositoryResult.ok) return repositoryResult;
   const repository = repositoryResult.value;
   const problems: ValidationProblem[] = [];
 
