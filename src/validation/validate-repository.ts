@@ -10,7 +10,10 @@ import type {
   ValidationResult,
 } from "../domain/types.js";
 import { validateEvidence } from "../evidence/validate-evidence.js";
-import { resolveInsideRoot } from "../filesystem/repository-paths.js";
+import {
+  resolveExistingInsideRoot,
+  resolvePotentialInsideRoot,
+} from "../filesystem/repository-paths.js";
 import { createGitClient } from "../git/git-client.js";
 import { loadRecords } from "../records/load-records.js";
 import { deriveEffectiveStatuses, validateRecordSet } from "../records/validate-records.js";
@@ -32,6 +35,23 @@ function generatedOnlyEvidence(record: SemanticRecord, generatedDocs: string): b
   });
 }
 
+async function readContained(
+  root: string,
+  candidate: string,
+): Promise<ValidationResult<string>> {
+  const resolved = await resolveExistingInsideRoot(root, candidate);
+  if (!resolved.ok) return resolved;
+  try {
+    return ok(await readFile(resolved.value, "utf8"));
+  } catch (error) {
+    return fail({
+      code: "PATH_NOT_READABLE",
+      message: error instanceof Error ? error.message : String(error),
+      location: candidate,
+    });
+  }
+}
+
 export async function validateRepository(
   root: string,
 ): Promise<ValidationResult<ValidatedRepository>> {
@@ -51,7 +71,7 @@ export async function validateRepository(
     manifest.maintenance.proposal_schema,
     ...manifest.projections.map(({ output }) => output),
   ]) {
-    const resolved = resolveInsideRoot(root, candidate);
+    const resolved = await resolvePotentialInsideRoot(root, candidate);
     if (!resolved.ok) problems.push(...resolved.errors);
   }
   if (problems.length > 0) return fail(...problems);
@@ -92,19 +112,18 @@ export async function validateRepository(
 
   const extracted: ExtractedFacts = {};
   for (const [fileName, key] of EXTRACTED_FILES) {
-    const extractedPath = path.join(root, manifest.paths.extracted, fileName);
-    let text: string;
-    try {
-      text = await readFile(extractedPath, "utf8");
-    } catch {
-      problems.push({
-        code: "EXTRACTED_FACTS_MISSING",
-        message: `Missing ${extractedPath}`,
-        location: extractedPath,
-      });
+    const relativePath = path.posix.join(manifest.paths.extracted, fileName);
+    const extractedFile = await readContained(root, relativePath);
+    if (!extractedFile.ok) {
+      problems.push(
+        ...extractedFile.errors.map((problem) => ({
+          ...problem,
+          code: problem.code === "PATH_NOT_FOUND" ? "EXTRACTED_FACTS_MISSING" : problem.code,
+        })),
+      );
       continue;
     }
-    const parsed = parseYamlDocument<unknown>(text, extractedPath);
+    const parsed = parseYamlDocument<unknown>(extractedFile.value, relativePath);
     if (!parsed.ok) {
       problems.push(...parsed.errors);
       continue;
@@ -123,22 +142,18 @@ export async function validateRepository(
     else extracted.tests = schema.value.tests as unknown[];
   }
 
-  try {
-    const [rootSchema, skillSchema] = await Promise.all([
-      readFile(path.join(root, "schemas", "proposal.schema.json"), "utf8"),
-      readFile(path.join(root, manifest.maintenance.proposal_schema), "utf8"),
-    ]);
-    if (rootSchema !== skillSchema) {
-      problems.push({
-        code: ERROR_CODES.SKILL_SCHEMA_DRIFT,
-        message: "Root and skill proposal schemas differ",
-      });
-    }
-    await readFile(path.join(root, manifest.maintenance.skill), "utf8");
-  } catch {
+  const [rootSchema, skillSchema, skill] = await Promise.all([
+    readContained(root, "schemas/proposal.schema.json"),
+    readContained(root, manifest.maintenance.proposal_schema),
+    readContained(root, manifest.maintenance.skill),
+  ]);
+  for (const result of [rootSchema, skillSchema, skill]) {
+    if (!result.ok) problems.push(...result.errors);
+  }
+  if (rootSchema.ok && skillSchema.ok && rootSchema.value !== skillSchema.value) {
     problems.push({
-      code: "SKILL_MISSING",
-      message: "Maintenance skill or schema missing",
+      code: ERROR_CODES.SKILL_SCHEMA_DRIFT,
+      message: "Root and skill proposal schemas differ",
     });
   }
 
