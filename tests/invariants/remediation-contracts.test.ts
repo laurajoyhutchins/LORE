@@ -1,11 +1,10 @@
-import { describe, expect, it } from "vitest";
 import { mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { validateProposal } from "../../src/proposals/validate-proposal.js";
-import { planTransaction } from "../../src/transactions/plan-transaction.js";
-import { verifySelf } from "../../src/verification/verify-self.js";
+import { describe, expect, it } from "vitest";
 import type { ValidatedRepository } from "../../src/domain/types.js";
+import { validateProposal } from "../../src/proposals/validate-proposal.js";
+import { verifySelf } from "../../src/verification/verify-self.js";
 
 describe("remediation contracts", () => {
   it("does not report self-verification categories without checking required artifacts", async () => {
