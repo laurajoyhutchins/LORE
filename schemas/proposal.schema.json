@@ -80,11 +80,17 @@
   "allOf": [
     {
       "if": { "properties": { "result": { "const": "changes_proposed" } }, "required": ["result"] },
-      "then": { "properties": { "operations": { "minItems": 1 } } }
+      "then": { "properties": { "operations": { "type": "array", "minItems": 1 } } }
     },
     {
       "if": { "properties": { "result": { "const": "no_documentation_change" } }, "required": ["result"] },
-      "then": { "required": ["reason"], "properties": { "operations": { "maxItems": 0 } } }
+      "then": {
+        "required": ["reason"],
+        "properties": {
+          "reason": { "type": "string", "minLength": 1 },
+          "operations": { "type": "array", "maxItems": 0 }
+        }
+      }
     }
   ]
 }
