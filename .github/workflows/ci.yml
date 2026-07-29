@@ -15,21 +15,12 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: pnpm
-      - run: corepack enable
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm typecheck
-      - run: pnpm lint
-      - run: pnpm test
-      - run: pnpm build
-      - run: pnpm lore extract --check
-      - run: pnpm lore validate
-      - run: pnpm lore project --check
-      - run: pnpm lore verify-self
-      - run: git diff --exit-code
+      - run: node scripts/public-release-gate.mjs
