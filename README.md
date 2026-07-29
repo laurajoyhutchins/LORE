@@ -74,3 +74,7 @@ Generated prose is useful but non-authoritative. The source of truth is the comb
 Contributions are welcome within the repository's evidence, determinism, and append-only-history contracts. Read [CONTRIBUTING.md](CONTRIBUTING.md) before changing source, schemas, semantic records, or generated documentation.
 
 Report suspected vulnerabilities privately as described in [SECURITY.md](SECURITY.md). Do not disclose exploit details in a public issue.
+
+## License
+
+LORE is licensed under the [Apache License 2.0](LICENSE).
