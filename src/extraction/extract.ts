@@ -139,7 +139,7 @@ export async function extractRepository(
       true,
     );
     const exports: string[] = [];
-    sourceFile.forEachChild((node) => {
+    const visit = (node: ts.Node): void => {
       if (
         (ts.getCombinedModifierFlags(node as ts.Declaration) & ts.ModifierFlags.Export) !== 0 &&
         "name" in node &&
@@ -171,7 +171,9 @@ export async function extractRepository(
           });
         }
       }
-    });
+      ts.forEachChild(node, visit);
+    };
+    visit(sourceFile);
     modules.push({ path: file, exports: exports.sort() });
     for (const diagnostic of (sourceFile as ParsedSourceFile).parseDiagnostics ?? []) {
       warnings.push({
