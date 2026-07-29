@@ -80,4 +80,6 @@ A pull request is not considered verified merely because its author reports succ
 
 ## Licensing
 
-By submitting a contribution, you agree that it may be distributed under the repository's license once that license is adopted. Until then, do not submit third-party code or content unless its provenance and redistribution terms are explicit and compatible with the proposed project license.
+LORE is distributed under the Apache License 2.0. By intentionally submitting a contribution for inclusion in LORE, you agree that it may be distributed under the terms in `LICENSE`, unless you conspicuously mark the submission as "Not a Contribution" or a separate written agreement applies.
+
+Do not submit third-party code, documentation, data, or other material unless its provenance and redistribution terms are explicit and compatible with Apache-2.0. Identify any required attribution or notice obligations in the pull request.
