@@ -82,3 +82,6 @@ tests:
   - file: tests/unit/init/initialize.test.ts
     kind: it
     name: rejects a symbolic-link destination
+  - file: tests/unit/schemas/schema-registry.test.ts
+    kind: it
+    name: compiles strict schemas and validates the repository manifest and task fixture
