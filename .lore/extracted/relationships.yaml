@@ -570,6 +570,15 @@ relationships:
   - from: tests/unit/extraction/extract.test.ts
     to: vitest
     type: imports
+  - from: tests/unit/hydration/hydrate.test.ts
+    to: ../../../src/domain/types.js
+    type: imports
+  - from: tests/unit/hydration/hydrate.test.ts
+    to: ../../../src/hydration/hydrate.js
+    type: imports
+  - from: tests/unit/hydration/hydrate.test.ts
+    to: vitest
+    type: imports
   - from: tests/unit/init/initialize.test.ts
     to: ../../../src/init/initialize.js
     type: imports
@@ -583,6 +592,15 @@ relationships:
     to: node:path
     type: imports
   - from: tests/unit/init/initialize.test.ts
+    to: vitest
+    type: imports
+  - from: tests/unit/projection/templates.test.ts
+    to: ../../../src/domain/types.js
+    type: imports
+  - from: tests/unit/projection/templates.test.ts
+    to: ../../../src/projection/templates.js
+    type: imports
+  - from: tests/unit/projection/templates.test.ts
     to: vitest
     type: imports
   - from: tests/unit/schemas/schema-registry.test.ts
