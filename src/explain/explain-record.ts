@@ -1,2 +1,106 @@
-import {parseRecordReference,recordReference} from '../domain/references.js';import {fail,ok} from '../domain/errors.js';import type {RecordExplanation,TransactionReceipt,ValidatedRepository,ValidationResult} from '../domain/types.js';
-export function explainRecord(reference:string,repo:ValidatedRepository,transactions:TransactionReceipt[]):ValidationResult<RecordExplanation>{let p;try{p=parseRecordReference(reference)}catch(e){return fail({code:'INVALID_RECORD_REFERENCE',message:e instanceof Error?e.message:String(e)})}const r=repo.records.find(x=>x.id===p.id&&x.kind===p.kind&&x.revision===p.revision);if(!r)return fail({code:'RECORD_NOT_FOUND',message:`Record not found: ${reference}`});const successors=repo.records.filter(x=>x.supersedes===reference).map(x=>recordReference(repo.manifest.repository.id,x));const predecessors=[] as string[];let cur=r;while(cur.supersedes){predecessors.unshift(cur.supersedes);const q=parseRecordReference(cur.supersedes);const prior=repo.records.find(x=>x.id===q.id&&x.revision===q.revision&&x.kind===q.kind);if(!prior)break;cur=prior}const related=repo.records.filter(x=>x!==r&&x.scope.components.some(c=>r.scope.components.includes(c))).map(x=>recordReference(repo.manifest.repository.id,x)).sort();const introducing=transactions.find(t=>t.records.includes(`${r.kind}/${r.id}/${r.revision}.yaml`))?.transaction_id??r.provenance.transaction;return ok({reference,record:r,current_status:repo.effectiveStatus.get(reference)??r.status,predecessors,successors,related,introducing_transaction:introducing,superseding_transaction:null});}
+import { fail, ok } from "../domain/errors.js";
+import { parseRecordReference, recordReference } from "../domain/references.js";
+import type {
+  RecordExplanation,
+  TransactionReceipt,
+  ValidatedRepository,
+  ValidationResult,
+} from "../domain/types.js";
+
+function receiptForRecord(
+  receipts: TransactionReceipt[],
+  kind: string,
+  id: string,
+  revision: number,
+): string | null {
+  const suffix = `/${kind}/${id}/${revision}.yaml`;
+  return (
+    receipts.find((receipt) =>
+      receipt.records.some(
+        (recordPath) => recordPath === `${kind}/${id}/${revision}.yaml` || recordPath.endsWith(suffix),
+      ),
+    )?.transaction_id ?? null
+  );
+}
+
+export function explainRecord(
+  reference: string,
+  repository: ValidatedRepository,
+  transactions: TransactionReceipt[],
+): ValidationResult<RecordExplanation> {
+  let parsed;
+  try {
+    parsed = parseRecordReference(reference);
+  } catch (error) {
+    return fail({
+      code: "INVALID_RECORD_REFERENCE",
+      message: error instanceof Error ? error.message : String(error),
+    });
+  }
+
+  const record = repository.records.find(
+    (candidate) =>
+      candidate.id === parsed.id &&
+      candidate.kind === parsed.kind &&
+      candidate.revision === parsed.revision,
+  );
+  if (!record) {
+    return fail({ code: "RECORD_NOT_FOUND", message: `Record not found: ${reference}` });
+  }
+
+  const successors = repository.records
+    .filter((candidate) => candidate.supersedes === reference)
+    .map((candidate) => recordReference(repository.manifest.repository.id, candidate))
+    .sort();
+
+  const predecessors: string[] = [];
+  let current = record;
+  while (current.supersedes) {
+    predecessors.unshift(current.supersedes);
+    const priorReference = parseRecordReference(current.supersedes);
+    const prior = repository.records.find(
+      (candidate) =>
+        candidate.id === priorReference.id &&
+        candidate.revision === priorReference.revision &&
+        candidate.kind === priorReference.kind,
+    );
+    if (!prior) break;
+    current = prior;
+  }
+
+  const related = repository.records
+    .filter(
+      (candidate) =>
+        candidate !== record &&
+        candidate.scope.components.some((component) => record.scope.components.includes(component)),
+    )
+    .map((candidate) => recordReference(repository.manifest.repository.id, candidate))
+    .sort();
+
+  const introducingTransaction =
+    record.provenance.transaction ??
+    receiptForRecord(transactions, record.kind, record.id, record.revision);
+  const successorRecord = repository.records
+    .filter((candidate) => candidate.supersedes === reference)
+    .sort((left, right) => left.revision - right.revision)[0];
+  const supersedingTransaction = successorRecord
+    ? successorRecord.provenance.transaction ??
+      receiptForRecord(
+        transactions,
+        successorRecord.kind,
+        successorRecord.id,
+        successorRecord.revision,
+      )
+    : null;
+
+  return ok({
+    reference,
+    record,
+    current_status: repository.effectiveStatus.get(reference) ?? record.status,
+    predecessors,
+    successors,
+    related,
+    introducing_transaction: introducingTransaction,
+    superseding_transaction: supersedingTransaction,
+  });
+}
