@@ -97,7 +97,6 @@ export function renderRepositoryCard(repository: ValidatedRepository) {
 # Repository card
 
 - ID: \`${repository.manifest.repository.id}\`
-- Revision: \`${repository.revision}\`
 - Records: ${repository.records.length}
 `;
 }
