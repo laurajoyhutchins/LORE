@@ -31,6 +31,43 @@ function repositoryRelative(root: string, absolutePath: string): string {
   return path.relative(path.resolve(root), absolutePath).replace(/\\/g, "/");
 }
 
+async function normalizeTargets(
+  root: string,
+  targets: string[],
+): Promise<ValidationResult<string[]>> {
+  const normalized: string[] = [];
+  for (const target of targets) {
+    const resolved = await resolvePotentialInsideRoot(root, target);
+    if (!resolved.ok) return resolved;
+    normalized.push(repositoryRelative(root, resolved.value));
+  }
+
+  const sorted = [...normalized].sort();
+  for (let index = 0; index < sorted.length; index += 1) {
+    const current = sorted[index] as string;
+    const next = sorted[index + 1];
+    if (next !== undefined && (next === current || next.startsWith(`${current}/`))) {
+      return fail({
+        code: "TRANSACTION_TARGET_COLLISION",
+        message: `Transaction targets overlap: ${current} and ${next}`,
+      });
+    }
+  }
+
+  const reservedRoot = ".lore/.transaction-backup";
+  const reservedTarget = normalized.find(
+    (target) => target === reservedRoot || target.startsWith(`${reservedRoot}/`),
+  );
+  if (reservedTarget !== undefined) {
+    return fail({
+      code: "TRANSACTION_TARGET_RESERVED",
+      message: `Transaction target uses LORE's reserved backup namespace: ${reservedTarget}`,
+    });
+  }
+
+  return ok(normalized);
+}
+
 async function backupTarget(
   root: string,
   backupRootRelative: string,
@@ -122,12 +159,8 @@ export async function applyTransaction(
     ...plan.generatedOutputs.keys(),
     receiptPath,
   ];
-  if (new Set(targets).size !== targets.length) {
-    return fail({
-      code: "TRANSACTION_TARGET_COLLISION",
-      message: "Transaction plan contains duplicate target paths",
-    });
-  }
+  const normalizedTargets = await normalizeTargets(root, targets);
+  if (!normalizedTargets.ok) return normalizedTargets;
 
   const backupRootRelative = path.posix.join(".lore", ".transaction-backup", id);
   const preparedBackupRoot = await prepareDirectoryInsideRoot(root, backupRootRelative);
