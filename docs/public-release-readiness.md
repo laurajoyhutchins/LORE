@@ -10,7 +10,7 @@ The public repository should expose only product source, tests, schemas, public 
 
 ## Completed preparation
 
-- The owner approved Apache License 2.0 for LORE on July 29, 2026.
+- The owner approved Apache License 2.0 for LORE on July 29, 2026. The authorization is recorded on publication PR #2 and is bound to implementation head `baae65f639ff0c0398fde8a5f2998c0b18e9bb56`.
 - The complete Apache License 2.0 text is committed in `LICENSE`, `package.json` declares the SPDX identifier `Apache-2.0`, and contribution terms and generated public documentation reference the adopted license.
 - Public-facing README generated from LORE's projection source.
 - Repository description, homepage, issue URL, keywords, and source URL recorded in `package.json`.
