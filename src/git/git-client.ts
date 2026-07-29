@@ -16,7 +16,9 @@ function validateRevisionArgument(revision: string): void {
   if (
     revision.length === 0 ||
     revision.startsWith("-") ||
-    /[\u0000\r\n]/.test(revision)
+    revision.includes("\0") ||
+    revision.includes("\r") ||
+    revision.includes("\n")
   ) {
     throw new Error("Invalid Git revision argument");
   }
@@ -28,7 +30,9 @@ function validateRepositoryPath(repositoryPath: string): void {
     repositoryPath.startsWith("/") ||
     repositoryPath.includes("\\") ||
     repositoryPath.split("/").includes("..") ||
-    /[\u0000\r\n]/.test(repositoryPath)
+    repositoryPath.includes("\0") ||
+    repositoryPath.includes("\r") ||
+    repositoryPath.includes("\n")
   ) {
     throw new Error("Invalid Git repository path");
   }
