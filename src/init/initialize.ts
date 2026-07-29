@@ -1,4 +1,4 @@
-import { access, copyFile } from "node:fs/promises";
+import { access, copyFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { fail, ok } from "../domain/errors.js";
@@ -36,7 +36,6 @@ async function locateTemplateRoot(): Promise<string> {
   const candidates = [
     path.resolve(moduleDirectory, "../.."),
     path.resolve(moduleDirectory, "../../.."),
-    process.cwd(),
   ];
 
   for (const candidate of candidates) {
@@ -49,10 +48,6 @@ async function locateTemplateRoot(): Promise<string> {
     }
   }
   throw new Error("LORE initialization templates are unavailable");
-}
-
-function resultMessage(result: { ok: false; errors: Array<{ message: string }> }): string {
-  return result.errors.map(({ message }) => message).join("; ");
 }
 
 export async function initializeRepository(
@@ -145,9 +140,7 @@ export async function initializeRepository(
     const target = await prepareWritePathInsideRoot(root, manifestPath);
     if (!target.ok) return target;
     try {
-      await import("node:fs/promises").then(({ writeFile }) =>
-        writeFile(target.value, stableYaml(manifest)),
-      );
+      await writeFile(target.value, stableYaml(manifest));
       created.push(manifestPath);
     } catch (error) {
       return fail({
