@@ -1,6 +1,5 @@
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
-import path from "node:path";
 import { ERROR_CODES, fail, ok } from "../domain/errors.js";
 import type {
   LoreProposal,
@@ -9,6 +8,7 @@ import type {
   ValidationProblem,
   ValidationResult,
 } from "../domain/types.js";
+import { resolveExistingInsideRoot } from "../filesystem/repository-paths.js";
 import { createGitClient } from "../git/git-client.js";
 import { validateRecordSet } from "../records/validate-records.js";
 import { createSchemaRegistry } from "../schemas/schema-registry.js";
@@ -21,9 +21,12 @@ export async function validateProposal(
   proposalPath: string,
   repository: ValidatedRepository,
 ): Promise<ValidationResult<LoreProposal>> {
+  const resolvedProposal = await resolveExistingInsideRoot(root, proposalPath);
+  if (!resolvedProposal.ok) return resolvedProposal;
+
   let content: string;
   try {
-    content = await readFile(path.resolve(root, proposalPath), "utf8");
+    content = await readFile(resolvedProposal.value, "utf8");
   } catch (error) {
     return fail({
       code: ERROR_CODES.INVALID_YAML,
