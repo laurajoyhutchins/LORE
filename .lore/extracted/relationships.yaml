@@ -1,3 +1,591 @@
 extractor: typescript-imports
-relationships: []
+relationships:
+  - from: src/cli/main.ts
+    to: ../config/load-manifest.js
+    type: imports
+  - from: src/cli/main.ts
+    to: ../context/create-context.js
+    type: imports
+  - from: src/cli/main.ts
+    to: ../demo/run-demo.js
+    type: imports
+  - from: src/cli/main.ts
+    to: ../diff/semantic-diff.js
+    type: imports
+  - from: src/cli/main.ts
+    to: ../domain/errors.js
+    type: imports
+  - from: src/cli/main.ts
+    to: ../domain/types.js
+    type: imports
+  - from: src/cli/main.ts
+    to: ../explain/explain-record.js
+    type: imports
+  - from: src/cli/main.ts
+    to: ../extraction/extract.js
+    type: imports
+  - from: src/cli/main.ts
+    to: ../filesystem/repository-paths.js
+    type: imports
+  - from: src/cli/main.ts
+    to: ../hydration/hydrate.js
+    type: imports
+  - from: src/cli/main.ts
+    to: ../init/initialize.js
+    type: imports
+  - from: src/cli/main.ts
+    to: ../projection/project.js
+    type: imports
+  - from: src/cli/main.ts
+    to: ../proposals/validate-proposal.js
+    type: imports
+  - from: src/cli/main.ts
+    to: ../schemas/schema-registry.js
+    type: imports
+  - from: src/cli/main.ts
+    to: ../serialization/yaml.js
+    type: imports
+  - from: src/cli/main.ts
+    to: ../transactions/apply-transaction.js
+    type: imports
+  - from: src/cli/main.ts
+    to: ../transactions/plan-transaction.js
+    type: imports
+  - from: src/cli/main.ts
+    to: ../validation/validate-repository.js
+    type: imports
+  - from: src/cli/main.ts
+    to: ../verification/verify-self.js
+    type: imports
+  - from: src/cli/main.ts
+    to: ./output.js
+    type: imports
+  - from: src/cli/main.ts
+    to: node:fs/promises
+    type: imports
+  - from: src/cli/main.ts
+    to: node:path
+    type: imports
+  - from: src/cli/main.ts
+    to: node:util
+    type: imports
+  - from: src/config/load-manifest.ts
+    to: ../domain/errors.js
+    type: imports
+  - from: src/config/load-manifest.ts
+    to: ../domain/types.js
+    type: imports
+  - from: src/config/load-manifest.ts
+    to: ../filesystem/repository-paths.js
+    type: imports
+  - from: src/config/load-manifest.ts
+    to: ../serialization/yaml.js
+    type: imports
+  - from: src/config/load-manifest.ts
+    to: node:fs/promises
+    type: imports
+  - from: src/context/create-context.ts
+    to: ../domain/types.js
+    type: imports
+  - from: src/demo/run-demo.ts
+    to: ../domain/errors.js
+    type: imports
+  - from: src/demo/run-demo.ts
+    to: ../domain/types.js
+    type: imports
+  - from: src/demo/run-demo.ts
+    to: ../verification/verify-self.js
+    type: imports
+  - from: src/demo/run-demo.ts
+    to: node:fs/promises
+    type: imports
+  - from: src/demo/run-demo.ts
+    to: node:os
+    type: imports
+  - from: src/demo/run-demo.ts
+    to: node:path
+    type: imports
+  - from: src/diff/semantic-diff.ts
+    to: ../domain/errors.js
+    type: imports
+  - from: src/diff/semantic-diff.ts
+    to: ../domain/references.js
+    type: imports
+  - from: src/diff/semantic-diff.ts
+    to: ../domain/types.js
+    type: imports
+  - from: src/diff/semantic-diff.ts
+    to: ../git/git-client.js
+    type: imports
+  - from: src/diff/semantic-diff.ts
+    to: ../serialization/yaml.js
+    type: imports
+  - from: src/diff/semantic-diff.ts
+    to: node:child_process
+    type: imports
+  - from: src/diff/semantic-diff.ts
+    to: node:path
+    type: imports
+  - from: src/diff/semantic-diff.ts
+    to: node:util
+    type: imports
+  - from: src/domain/errors.ts
+    to: ./types.js
+    type: imports
+  - from: src/domain/references.ts
+    to: ./errors.js
+    type: imports
+  - from: src/domain/references.ts
+    to: ./types.js
+    type: imports
+  - from: src/evidence/validate-evidence.ts
+    to: ../domain/errors.js
+    type: imports
+  - from: src/evidence/validate-evidence.ts
+    to: ../domain/types.js
+    type: imports
+  - from: src/evidence/validate-evidence.ts
+    to: ../git/git-client.js
+    type: imports
+  - from: src/explain/explain-record.ts
+    to: ../domain/errors.js
+    type: imports
+  - from: src/explain/explain-record.ts
+    to: ../domain/references.js
+    type: imports
+  - from: src/explain/explain-record.ts
+    to: ../domain/types.js
+    type: imports
+  - from: src/extraction/extract.ts
+    to: ../domain/errors.js
+    type: imports
+  - from: src/extraction/extract.ts
+    to: ../domain/types.js
+    type: imports
+  - from: src/extraction/extract.ts
+    to: ../filesystem/repository-paths.js
+    type: imports
+  - from: src/extraction/extract.ts
+    to: ../serialization/yaml.js
+    type: imports
+  - from: src/extraction/extract.ts
+    to: node:fs/promises
+    type: imports
+  - from: src/extraction/extract.ts
+    to: node:path
+    type: imports
+  - from: src/extraction/extract.ts
+    to: typescript
+    type: imports
+  - from: src/filesystem/repository-paths.ts
+    to: ../domain/errors.js
+    type: imports
+  - from: src/filesystem/repository-paths.ts
+    to: ../domain/types.js
+    type: imports
+  - from: src/filesystem/repository-paths.ts
+    to: node:fs
+    type: imports
+  - from: src/filesystem/repository-paths.ts
+    to: node:fs/promises
+    type: imports
+  - from: src/filesystem/repository-paths.ts
+    to: node:path
+    type: imports
+  - from: src/git/git-client.ts
+    to: node:child_process
+    type: imports
+  - from: src/git/git-client.ts
+    to: node:util
+    type: imports
+  - from: src/hydration/hydrate.ts
+    to: ../domain/references.js
+    type: imports
+  - from: src/hydration/hydrate.ts
+    to: ../domain/types.js
+    type: imports
+  - from: src/hydration/hydrate.ts
+    to: ../serialization/yaml.js
+    type: imports
+  - from: src/hydration/hydrate.ts
+    to: ./score.js
+    type: imports
+  - from: src/hydration/score.ts
+    to: ../domain/types.js
+    type: imports
+  - from: src/init/initialize.ts
+    to: ../domain/errors.js
+    type: imports
+  - from: src/init/initialize.ts
+    to: ../domain/types.js
+    type: imports
+  - from: src/init/initialize.ts
+    to: ../filesystem/repository-paths.js
+    type: imports
+  - from: src/init/initialize.ts
+    to: ../serialization/yaml.js
+    type: imports
+  - from: src/init/initialize.ts
+    to: node:fs/promises
+    type: imports
+  - from: src/init/initialize.ts
+    to: node:path
+    type: imports
+  - from: src/init/initialize.ts
+    to: node:url
+    type: imports
+  - from: src/projection/project.ts
+    to: ../domain/errors.js
+    type: imports
+  - from: src/projection/project.ts
+    to: ../domain/types.js
+    type: imports
+  - from: src/projection/project.ts
+    to: ./templates.js
+    type: imports
+  - from: src/projection/templates.ts
+    to: ../domain/references.js
+    type: imports
+  - from: src/projection/templates.ts
+    to: ../domain/types.js
+    type: imports
+  - from: src/proposals/validate-proposal.ts
+    to: ../domain/errors.js
+    type: imports
+  - from: src/proposals/validate-proposal.ts
+    to: ../domain/types.js
+    type: imports
+  - from: src/proposals/validate-proposal.ts
+    to: ../filesystem/repository-paths.js
+    type: imports
+  - from: src/proposals/validate-proposal.ts
+    to: ../git/git-client.js
+    type: imports
+  - from: src/proposals/validate-proposal.ts
+    to: ../records/validate-records.js
+    type: imports
+  - from: src/proposals/validate-proposal.ts
+    to: ../schemas/schema-registry.js
+    type: imports
+  - from: src/proposals/validate-proposal.ts
+    to: ../serialization/yaml.js
+    type: imports
+  - from: src/proposals/validate-proposal.ts
+    to: node:crypto
+    type: imports
+  - from: src/proposals/validate-proposal.ts
+    to: node:fs/promises
+    type: imports
+  - from: src/records/load-records.ts
+    to: ../domain/errors.js
+    type: imports
+  - from: src/records/load-records.ts
+    to: ../domain/types.js
+    type: imports
+  - from: src/records/load-records.ts
+    to: ../filesystem/repository-paths.js
+    type: imports
+  - from: src/records/load-records.ts
+    to: ../schemas/schema-registry.js
+    type: imports
+  - from: src/records/load-records.ts
+    to: ../serialization/yaml.js
+    type: imports
+  - from: src/records/load-records.ts
+    to: node:fs/promises
+    type: imports
+  - from: src/records/load-records.ts
+    to: node:path
+    type: imports
+  - from: src/records/validate-records.ts
+    to: ../domain/errors.js
+    type: imports
+  - from: src/records/validate-records.ts
+    to: ../domain/references.js
+    type: imports
+  - from: src/records/validate-records.ts
+    to: ../domain/types.js
+    type: imports
+  - from: src/schemas/schema-registry.ts
+    to: ../domain/errors.js
+    type: imports
+  - from: src/schemas/schema-registry.ts
+    to: ../domain/types.js
+    type: imports
+  - from: src/schemas/schema-registry.ts
+    to: ../filesystem/repository-paths.js
+    type: imports
+  - from: src/schemas/schema-registry.ts
+    to: ajv-formats
+    type: imports
+  - from: src/schemas/schema-registry.ts
+    to: ajv
+    type: imports
+  - from: src/schemas/schema-registry.ts
+    to: ajv/dist/2020.js
+    type: imports
+  - from: src/schemas/schema-registry.ts
+    to: node:fs
+    type: imports
+  - from: src/schemas/schema-registry.ts
+    to: node:module
+    type: imports
+  - from: src/schemas/schema-registry.ts
+    to: node:path
+    type: imports
+  - from: src/serialization/yaml.ts
+    to: ../domain/errors.js
+    type: imports
+  - from: src/serialization/yaml.ts
+    to: ../domain/types.js
+    type: imports
+  - from: src/serialization/yaml.ts
+    to: yaml
+    type: imports
+  - from: src/transactions/apply-transaction.ts
+    to: ../domain/errors.js
+    type: imports
+  - from: src/transactions/apply-transaction.ts
+    to: ../domain/types.js
+    type: imports
+  - from: src/transactions/apply-transaction.ts
+    to: ../filesystem/repository-paths.js
+    type: imports
+  - from: src/transactions/apply-transaction.ts
+    to: ../git/git-client.js
+    type: imports
+  - from: src/transactions/apply-transaction.ts
+    to: ../serialization/yaml.js
+    type: imports
+  - from: src/transactions/apply-transaction.ts
+    to: ./receipt.js
+    type: imports
+  - from: src/transactions/apply-transaction.ts
+    to: node:fs/promises
+    type: imports
+  - from: src/transactions/apply-transaction.ts
+    to: node:path
+    type: imports
+  - from: src/transactions/plan-transaction.ts
+    to: ../domain/errors.js
+    type: imports
+  - from: src/transactions/plan-transaction.ts
+    to: ../domain/references.js
+    type: imports
+  - from: src/transactions/plan-transaction.ts
+    to: ../domain/types.js
+    type: imports
+  - from: src/transactions/plan-transaction.ts
+    to: ../evidence/validate-evidence.js
+    type: imports
+  - from: src/transactions/plan-transaction.ts
+    to: ../git/git-client.js
+    type: imports
+  - from: src/transactions/plan-transaction.ts
+    to: ../projection/project.js
+    type: imports
+  - from: src/transactions/plan-transaction.ts
+    to: ../records/validate-records.js
+    type: imports
+  - from: src/transactions/plan-transaction.ts
+    to: ./receipt.js
+    type: imports
+  - from: src/transactions/plan-transaction.ts
+    to: node:path
+    type: imports
+  - from: src/transactions/receipt.ts
+    to: ../domain/types.js
+    type: imports
+  - from: src/transactions/receipt.ts
+    to: ../serialization/yaml.js
+    type: imports
+  - from: src/transactions/receipt.ts
+    to: node:crypto
+    type: imports
+  - from: src/validation/validate-repository.ts
+    to: ../config/load-manifest.js
+    type: imports
+  - from: src/validation/validate-repository.ts
+    to: ../domain/errors.js
+    type: imports
+  - from: src/validation/validate-repository.ts
+    to: ../domain/types.js
+    type: imports
+  - from: src/validation/validate-repository.ts
+    to: ../evidence/validate-evidence.js
+    type: imports
+  - from: src/validation/validate-repository.ts
+    to: ../filesystem/repository-paths.js
+    type: imports
+  - from: src/validation/validate-repository.ts
+    to: ../git/git-client.js
+    type: imports
+  - from: src/validation/validate-repository.ts
+    to: ../records/load-records.js
+    type: imports
+  - from: src/validation/validate-repository.ts
+    to: ../records/validate-records.js
+    type: imports
+  - from: src/validation/validate-repository.ts
+    to: ../schemas/schema-registry.js
+    type: imports
+  - from: src/validation/validate-repository.ts
+    to: ../serialization/yaml.js
+    type: imports
+  - from: src/validation/validate-repository.ts
+    to: node:fs/promises
+    type: imports
+  - from: src/validation/validate-repository.ts
+    to: node:path
+    type: imports
+  - from: src/verification/verify-self.ts
+    to: ../domain/errors.js
+    type: imports
+  - from: src/verification/verify-self.ts
+    to: ../domain/types.js
+    type: imports
+  - from: src/verification/verify-self.ts
+    to: ../extraction/extract.js
+    type: imports
+  - from: src/verification/verify-self.ts
+    to: ../filesystem/repository-paths.js
+    type: imports
+  - from: src/verification/verify-self.ts
+    to: ../hydration/hydrate.js
+    type: imports
+  - from: src/verification/verify-self.ts
+    to: ../projection/project.js
+    type: imports
+  - from: src/verification/verify-self.ts
+    to: ../proposals/validate-proposal.js
+    type: imports
+  - from: src/verification/verify-self.ts
+    to: ../schemas/schema-registry.js
+    type: imports
+  - from: src/verification/verify-self.ts
+    to: ../serialization/yaml.js
+    type: imports
+  - from: src/verification/verify-self.ts
+    to: ../validation/validate-repository.js
+    type: imports
+  - from: src/verification/verify-self.ts
+    to: node:fs/promises
+    type: imports
+  - from: src/verification/verify-self.ts
+    to: node:path
+    type: imports
+  - from: tests/invariants/remediation-contracts.test.ts
+    to: ../../src/domain/types.js
+    type: imports
+  - from: tests/invariants/remediation-contracts.test.ts
+    to: ../../src/proposals/validate-proposal.js
+    type: imports
+  - from: tests/invariants/remediation-contracts.test.ts
+    to: ../../src/verification/verify-self.js
+    type: imports
+  - from: tests/invariants/remediation-contracts.test.ts
+    to: node:fs/promises
+    type: imports
+  - from: tests/invariants/remediation-contracts.test.ts
+    to: node:os
+    type: imports
+  - from: tests/invariants/remediation-contracts.test.ts
+    to: node:path
+    type: imports
+  - from: tests/invariants/remediation-contracts.test.ts
+    to: vitest
+    type: imports
+  - from: tests/security/git-client.test.ts
+    to: ../../src/diff/semantic-diff.js
+    type: imports
+  - from: tests/security/git-client.test.ts
+    to: ../../src/git/git-client.js
+    type: imports
+  - from: tests/security/git-client.test.ts
+    to: node:child_process
+    type: imports
+  - from: tests/security/git-client.test.ts
+    to: node:fs/promises
+    type: imports
+  - from: tests/security/git-client.test.ts
+    to: node:os
+    type: imports
+  - from: tests/security/git-client.test.ts
+    to: node:path
+    type: imports
+  - from: tests/security/git-client.test.ts
+    to: node:util
+    type: imports
+  - from: tests/security/git-client.test.ts
+    to: vitest
+    type: imports
+  - from: tests/security/repository-paths.test.ts
+    to: ../../src/config/load-manifest.js
+    type: imports
+  - from: tests/security/repository-paths.test.ts
+    to: ../../src/domain/types.js
+    type: imports
+  - from: tests/security/repository-paths.test.ts
+    to: ../../src/extraction/extract.js
+    type: imports
+  - from: tests/security/repository-paths.test.ts
+    to: ../../src/filesystem/repository-paths.js
+    type: imports
+  - from: tests/security/repository-paths.test.ts
+    to: ../../src/proposals/validate-proposal.js
+    type: imports
+  - from: tests/security/repository-paths.test.ts
+    to: node:fs/promises
+    type: imports
+  - from: tests/security/repository-paths.test.ts
+    to: node:os
+    type: imports
+  - from: tests/security/repository-paths.test.ts
+    to: node:path
+    type: imports
+  - from: tests/security/repository-paths.test.ts
+    to: vitest
+    type: imports
+  - from: tests/unit/cli/main.test.ts
+    to: ../../../src/cli/main.js
+    type: imports
+  - from: tests/unit/cli/main.test.ts
+    to: vitest
+    type: imports
+  - from: tests/unit/extraction/extract.test.ts
+    to: ../../../src/domain/types.js
+    type: imports
+  - from: tests/unit/extraction/extract.test.ts
+    to: ../../../src/extraction/extract.js
+    type: imports
+  - from: tests/unit/extraction/extract.test.ts
+    to: node:fs/promises
+    type: imports
+  - from: tests/unit/extraction/extract.test.ts
+    to: node:os
+    type: imports
+  - from: tests/unit/extraction/extract.test.ts
+    to: node:path
+    type: imports
+  - from: tests/unit/extraction/extract.test.ts
+    to: vitest
+    type: imports
+  - from: tests/unit/init/initialize.test.ts
+    to: ../../../src/init/initialize.js
+    type: imports
+  - from: tests/unit/init/initialize.test.ts
+    to: node:fs/promises
+    type: imports
+  - from: tests/unit/init/initialize.test.ts
+    to: node:os
+    type: imports
+  - from: tests/unit/init/initialize.test.ts
+    to: node:path
+    type: imports
+  - from: tests/unit/init/initialize.test.ts
+    to: vitest
+    type: imports
+  - from: vitest.config.ts
+    to: vitest/config
+    type: imports
 schema_version: 1
