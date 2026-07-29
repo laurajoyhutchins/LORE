@@ -4,7 +4,7 @@ Document transaction recovery
 
 # Repository revision
 
-2e5a15e8243f920ebca89946133625d482de8e68
+<repository-revision>
 
 # Selected context
 
