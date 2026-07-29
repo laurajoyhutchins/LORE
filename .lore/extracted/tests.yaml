@@ -21,6 +21,9 @@ tests:
     name: Git revision handling
   - file: tests/security/git-client.test.ts
     kind: it
+    name: preserves exact file bytes when reading historical evidence
+  - file: tests/security/git-client.test.ts
+    kind: it
     name: rejects option-shaped revisions
   - file: tests/security/git-client.test.ts
     kind: it
