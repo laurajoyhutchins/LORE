@@ -3,7 +3,6 @@ import path from "node:path";
 import { fail, ok } from "../domain/errors.js";
 import type {
   LoreTask,
-  SelfVerificationReport as _Unused,
   ValidationProblem,
   ValidationResult,
 } from "../domain/types.js";
