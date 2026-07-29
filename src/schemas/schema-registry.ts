@@ -6,6 +6,7 @@ import type * as Ajv2020Module from "ajv/dist/2020.js";
 import type { FormatsPlugin } from "ajv-formats";
 import { ERROR_CODES, fail, ok } from "../domain/errors.js";
 import type { ValidationProblem, ValidationResult } from "../domain/types.js";
+import { resolveExistingInsideRootSync } from "../filesystem/repository-paths.js";
 
 const require = createRequire(import.meta.url);
 const Ajv2020 = (
@@ -58,8 +59,15 @@ export function createSchemaRegistry(root = process.cwd()): SchemaRegistry {
   const declaredIds = new Map<string, string>();
 
   for (const name of SCHEMA_NAMES) {
-    const schemaPath = path.join(resolvedRoot, "schemas", `${name}.schema.json`);
-    const schema = JSON.parse(readFileSync(schemaPath, "utf8")) as Record<string, unknown>;
+    const relativePath = path.posix.join("schemas", `${name}.schema.json`);
+    const schemaPath = resolveExistingInsideRootSync(resolvedRoot, relativePath);
+    if (!schemaPath.ok) {
+      throw new Error(schemaPath.errors.map(({ message }) => message).join("; "));
+    }
+    const schema = JSON.parse(readFileSync(schemaPath.value, "utf8")) as Record<
+      string,
+      unknown
+    >;
     ajv.addSchema(schema, name);
     const declaredId = schema.$id;
     if (typeof declaredId === "string") declaredIds.set(declaredId, name);
