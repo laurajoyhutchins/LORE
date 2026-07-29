@@ -7,6 +7,10 @@ import type {
   ValidationProblem,
   ValidationResult,
 } from "../domain/types.js";
+import {
+  resolveExistingInsideRoot,
+  resolvePotentialInsideRoot,
+} from "../filesystem/repository-paths.js";
 import { createSchemaRegistry } from "../schemas/schema-registry.js";
 import { parseYamlDocument } from "../serialization/yaml.js";
 
@@ -44,7 +48,9 @@ export async function loadRecords(
   root: string,
   manifest: LoreManifest,
 ): Promise<ValidationResult<SemanticRecord[]>> {
-  const base = path.join(root, manifest.paths.records);
+  const baseResult = await resolvePotentialInsideRoot(root, manifest.paths.records);
+  if (!baseResult.ok) return baseResult;
+  const base = baseResult.value;
   const walked = await walk(base, base);
   const problems = [...walked.problems];
   const records: SemanticRecord[] = [];
@@ -62,7 +68,13 @@ export async function loadRecords(
       continue;
     }
 
-    const parsed = parseYamlDocument<unknown>(await readFile(file, "utf8"), relative);
+    const repositoryRelative = path.relative(path.resolve(root), file).replace(/\\/g, "/");
+    const safeFile = await resolveExistingInsideRoot(root, repositoryRelative);
+    if (!safeFile.ok) {
+      problems.push(...safeFile.errors);
+      continue;
+    }
+    const parsed = parseYamlDocument<unknown>(await readFile(safeFile.value, "utf8"), relative);
     if (!parsed.ok) {
       problems.push(...parsed.errors);
       continue;
