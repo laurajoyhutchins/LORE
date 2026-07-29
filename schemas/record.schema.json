@@ -60,7 +60,12 @@
       "required": ["source", "transaction", "producer"],
       "properties": {
         "source": { "enum": ["bootstrap", "proposal"] },
-        "transaction": { "type": ["string", "null"], "pattern": "^tx-[0-9a-f]{24}$" },
+        "transaction": {
+          "oneOf": [
+            { "type": "null" },
+            { "type": "string", "pattern": "^tx-[0-9a-f]{24}$" }
+          ]
+        },
         "producer": { "type": "string", "minLength": 1 }
       }
     },
