@@ -39,14 +39,16 @@ function validateRepositoryPath(repositoryPath: string): void {
 }
 
 export function createGitClient(root: string): GitClient {
-  const run = async (args: string[]) => {
+  const execute = async (args: string[]) => {
     const result = await exec("git", args, {
       cwd: root,
       timeout: 10_000,
       maxBuffer: 10 * 1024 * 1024,
     });
-    return result.stdout.trimEnd();
+    return result.stdout;
   };
+
+  const run = async (args: string[]) => (await execute(args)).trimEnd();
 
   const resolveCommit = async (revision: string): Promise<string> => {
     validateRevisionArgument(revision);
@@ -79,7 +81,7 @@ export function createGitClient(root: string): GitClient {
     readFileAtRevision: async (revision, repositoryPath) => {
       validateRepositoryPath(repositoryPath);
       const commit = await resolveCommit(revision);
-      return run(["show", `${commit}:${repositoryPath}`]);
+      return execute(["show", `${commit}:${repositoryPath}`]);
     },
     commitTimestamp: async (revision) => {
       const commit = await resolveCommit(revision);
