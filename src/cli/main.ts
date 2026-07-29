@@ -3,7 +3,9 @@
 import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { parseArgs } from "node:util";
+import { loadManifest } from "../config/load-manifest.js";
 import { createMaintainerContext } from "../context/create-context.js";
+import { runDemo } from "../demo/run-demo.js";
 import { semanticDiff } from "../diff/semantic-diff.js";
 import type {
   LoreTask,
@@ -23,8 +25,6 @@ import { applyTransaction } from "../transactions/apply-transaction.js";
 import { planTransaction } from "../transactions/plan-transaction.js";
 import { validateRepository } from "../validation/validate-repository.js";
 import { verifySelf } from "../verification/verify-self.js";
-import { runDemo } from "../demo/run-demo.js";
-import { loadManifest } from "../config/load-manifest.js";
 import { HELP_TEXT, isLoreCommand } from "./output.js";
 
 export interface CliIo {
@@ -260,7 +260,7 @@ export async function runCli(argv: string[], io: CliIo = DEFAULT_IO): Promise<nu
       return 0;
     }
 
-    io.stderr(`NOT_IMPLEMENTED: ${command}`);
+    io.stderr(`NOT_IMPLEMENTED: ${String(command)}`);
     return 1;
   } catch (error) {
     io.stderr(`INTERNAL_ERROR: ${error instanceof Error ? error.message : String(error)}`);
