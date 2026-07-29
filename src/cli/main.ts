@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 
-import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
+import { readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { parseArgs } from "node:util";
 import { loadManifest } from "../config/load-manifest.js";
 import { createMaintainerContext } from "../context/create-context.js";
 import { runDemo } from "../demo/run-demo.js";
 import { semanticDiff } from "../diff/semantic-diff.js";
+import { fail, ok } from "../domain/errors.js";
 import type {
   LoreTask,
   TransactionReceipt,
@@ -15,6 +16,11 @@ import type {
 } from "../domain/types.js";
 import { explainRecord } from "../explain/explain-record.js";
 import { extractRepository, writeExtraction } from "../extraction/extract.js";
+import {
+  prepareWritePathInsideRoot,
+  resolveExistingInsideRoot,
+  resolvePotentialInsideRoot,
+} from "../filesystem/repository-paths.js";
 import { hydrateTask } from "../hydration/hydrate.js";
 import { initializeRepository } from "../init/initialize.js";
 import { projectRepository } from "../projection/project.js";
@@ -37,11 +43,28 @@ const DEFAULT_IO: CliIo = {
   stderr: (message) => process.stderr.write(`${message}\n`),
 };
 
+async function readContainedText(
+  root: string,
+  candidate: string,
+): Promise<ValidationResult<string>> {
+  const resolved = await resolveExistingInsideRoot(root, candidate);
+  if (!resolved.ok) return resolved;
+  try {
+    return ok(await readFile(resolved.value, "utf8"));
+  } catch (error) {
+    return fail({
+      code: "PATH_NOT_READABLE",
+      message: error instanceof Error ? error.message : String(error),
+      location: candidate,
+    });
+  }
+}
+
 async function writeMap(root: string, files: Map<string, string>): Promise<void> {
   for (const [relativePath, content] of files) {
-    const target = path.join(root, relativePath);
-    await mkdir(path.dirname(target), { recursive: true });
-    await writeFile(target, content);
+    const target = await prepareWritePathInsideRoot(root, relativePath);
+    if (!target.ok) throw new Error(target.errors.map(({ message }) => message).join("; "));
+    await writeFile(target.value, content);
   }
 }
 
@@ -72,19 +95,37 @@ function requirePositionals(
 }
 
 async function loadReceipts(root: string, directory: string): Promise<TransactionReceipt[]> {
-  const fullDirectory = path.join(root, directory);
-  const names = await readdir(fullDirectory).catch(() => []);
+  const safeDirectory = await resolvePotentialInsideRoot(root, directory);
+  if (!safeDirectory.ok) {
+    throw new Error(safeDirectory.errors.map(({ message }) => message).join("; "));
+  }
+  const names = await readdir(safeDirectory.value).catch(() => []);
   const registry = createSchemaRegistry(root);
   const receipts: TransactionReceipt[] = [];
   for (const name of names.filter((value) => value.endsWith(".yaml")).sort()) {
-    const file = path.join(fullDirectory, name);
-    const parsed = parseYamlDocument<unknown>(await readFile(file, "utf8"), file);
+    const relativePath = path.posix.join(directory.replace(/\\/g, "/"), name);
+    const file = await readContainedText(root, relativePath);
+    if (!file.ok) throw new Error(file.errors.map(({ message }) => message).join("; "));
+    const parsed = parseYamlDocument<unknown>(file.value, relativePath);
     if (!parsed.ok) throw new Error(parsed.errors.map(({ message }) => message).join("; "));
     const validated = registry.validateWithSchema<TransactionReceipt>("transaction", parsed.value);
     if (!validated.ok) throw new Error(validated.errors.map(({ message }) => message).join("; "));
     receipts.push(validated.value);
   }
   return receipts;
+}
+
+async function generatedMatches(
+  root: string,
+  relativePath: string,
+  expected: string,
+): Promise<ValidationResult<boolean>> {
+  const current = await readContainedText(root, relativePath);
+  if (!current.ok) {
+    if (current.errors.every(({ code }) => code === "PATH_NOT_FOUND")) return ok(false);
+    return current;
+  }
+  return ok(current.value === expected);
 }
 
 export async function runCli(argv: string[], io: CliIo = DEFAULT_IO): Promise<number> {
@@ -142,7 +183,9 @@ export async function runCli(argv: string[], io: CliIo = DEFAULT_IO): Promise<nu
       if (!extraction.ok) return printProblems(io, extraction);
       if (parsed.values.check === true) {
         for (const [relativePath, expected] of extraction.value.files) {
-          if ((await readFile(path.join(root, relativePath), "utf8").catch(() => null)) !== expected) {
+          const matches = await generatedMatches(root, relativePath, expected);
+          if (!matches.ok) return printProblems(io, matches);
+          if (!matches.value) {
             io.stderr(`GENERATED_OUTPUT_STALE: ${relativePath}`);
             return 14;
           }
@@ -170,7 +213,9 @@ export async function runCli(argv: string[], io: CliIo = DEFAULT_IO): Promise<nu
       if (!projections.ok) return printProblems(io, projections);
       if (parsed.values.check === true) {
         for (const [relativePath, expected] of projections.value) {
-          if ((await readFile(path.join(root, relativePath), "utf8").catch(() => null)) !== expected) {
+          const matches = await generatedMatches(root, relativePath, expected);
+          if (!matches.ok) return printProblems(io, matches);
+          if (!matches.value) {
             io.stderr(`GENERATED_OUTPUT_STALE: ${relativePath}`);
             return 14;
           }
@@ -185,10 +230,9 @@ export async function runCli(argv: string[], io: CliIo = DEFAULT_IO): Promise<nu
       const args = requirePositionals(command, positionals, 1);
       if (!args.ok) return printProblems(io, args);
       const taskPath = args.value[0] as string;
-      const parsedTask = parseYamlDocument<unknown>(
-        await readFile(path.resolve(root, taskPath), "utf8"),
-        taskPath,
-      );
+      const task = await readContainedText(root, taskPath);
+      if (!task.ok) return printProblems(io, task);
+      const parsedTask = parseYamlDocument<unknown>(task.value, taskPath);
       if (!parsedTask.ok) return printProblems(io, parsedTask);
       const validatedTask = createSchemaRegistry(root).validateWithSchema<LoreTask>(
         "task",
