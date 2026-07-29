@@ -33,7 +33,7 @@ export async function validateProposal(
   }
 
   const parsed = parseYamlDocument<unknown>(content, proposalPath);
-  if (!parsed.ok) return parsed as ValidationResult<LoreProposal>;
+  if (!parsed.ok) return parsed;
 
   let registry;
   try {
