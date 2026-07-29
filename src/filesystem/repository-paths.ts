@@ -17,28 +17,77 @@ function relativeParts(root: string, target: string): string[] {
   return relative === "" ? [] : relative.split(path.sep).filter(Boolean);
 }
 
+async function validateRoot(
+  root: string,
+  candidate: string,
+): Promise<ValidationResult<string>> {
+  try {
+    const stat = await lstat(root);
+    if (stat.isSymbolicLink()) {
+      return pathFailure(
+        "SYMLINK_PATH_REJECTED",
+        "The selected repository root cannot be a symbolic link",
+        candidate,
+      );
+    }
+    if (!stat.isDirectory()) {
+      return pathFailure(
+        "INVALID_REPOSITORY_ROOT",
+        "The selected repository root is not a directory",
+        candidate,
+      );
+    }
+    return ok(root);
+  } catch (error) {
+    return pathFailure(
+      "PATH_NOT_FOUND",
+      error instanceof Error ? error.message : String(error),
+      candidate,
+    );
+  }
+}
+
+function validateRootSync(
+  root: string,
+  candidate: string,
+): ValidationResult<string> {
+  try {
+    const stat = lstatSync(root);
+    if (stat.isSymbolicLink()) {
+      return pathFailure(
+        "SYMLINK_PATH_REJECTED",
+        "The selected repository root cannot be a symbolic link",
+        candidate,
+      );
+    }
+    if (!stat.isDirectory()) {
+      return pathFailure(
+        "INVALID_REPOSITORY_ROOT",
+        "The selected repository root is not a directory",
+        candidate,
+      );
+    }
+    return ok(root);
+  } catch (error) {
+    return pathFailure(
+      "PATH_NOT_FOUND",
+      error instanceof Error ? error.message : String(error),
+      candidate,
+    );
+  }
+}
+
 async function rejectLinkedComponents(
   root: string,
   target: string,
   candidate: string,
   allowMissing: boolean,
 ): Promise<ValidationResult<string>> {
+  const rootResult = await validateRoot(root, candidate);
+  if (!rootResult.ok) return rootResult;
+
   const parts = relativeParts(root, target);
   let current = root;
-
-  if (parts.length === 0) {
-    try {
-      await lstat(current);
-      return ok(target);
-    } catch (error) {
-      return pathFailure(
-        "PATH_NOT_FOUND",
-        error instanceof Error ? error.message : String(error),
-        candidate,
-      );
-    }
-  }
-
   for (const part of parts) {
     current = path.join(current, part);
     try {
@@ -59,7 +108,6 @@ async function rejectLinkedComponents(
       );
     }
   }
-
   return ok(target);
 }
 
@@ -68,22 +116,11 @@ function rejectLinkedComponentsSync(
   target: string,
   candidate: string,
 ): ValidationResult<string> {
+  const rootResult = validateRootSync(root, candidate);
+  if (!rootResult.ok) return rootResult;
+
   const parts = relativeParts(root, target);
   let current = root;
-
-  if (parts.length === 0) {
-    try {
-      lstatSync(current);
-      return ok(target);
-    } catch (error) {
-      return pathFailure(
-        "PATH_NOT_FOUND",
-        error instanceof Error ? error.message : String(error),
-        candidate,
-      );
-    }
-  }
-
   for (const part of parts) {
     current = path.join(current, part);
     try {
@@ -102,7 +139,6 @@ function rejectLinkedComponentsSync(
       );
     }
   }
-
   return ok(target);
 }
 
@@ -130,12 +166,7 @@ export async function resolveExistingInsideRoot(
 ): Promise<ValidationResult<string>> {
   const lexical = resolveInsideRoot(root, candidate);
   if (!lexical.ok) return lexical;
-  return rejectLinkedComponents(
-    path.resolve(root),
-    lexical.value,
-    candidate,
-    false,
-  );
+  return rejectLinkedComponents(path.resolve(root), lexical.value, candidate, false);
 }
 
 export function resolveExistingInsideRootSync(
@@ -153,12 +184,7 @@ export async function resolvePotentialInsideRoot(
 ): Promise<ValidationResult<string>> {
   const lexical = resolveInsideRoot(root, candidate);
   if (!lexical.ok) return lexical;
-  return rejectLinkedComponents(
-    path.resolve(root),
-    lexical.value,
-    candidate,
-    true,
-  );
+  return rejectLinkedComponents(path.resolve(root), lexical.value, candidate, true);
 }
 
 export async function prepareDirectoryInsideRoot(
@@ -169,9 +195,10 @@ export async function prepareDirectoryInsideRoot(
   if (!lexical.ok) return lexical;
 
   const rootPath = path.resolve(root);
-  const parts = relativeParts(rootPath, lexical.value);
-  if (parts.length === 0) return resolveExistingInsideRoot(root, candidate);
+  const rootResult = await validateRoot(rootPath, candidate);
+  if (!rootResult.ok) return rootResult;
 
+  const parts = relativeParts(rootPath, lexical.value);
   let current = rootPath;
   for (const part of parts) {
     current = path.join(current, part);
