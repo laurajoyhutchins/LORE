@@ -18,6 +18,9 @@ The public repository should expose only product source, tests, schemas, public 
 - CI restricted to read-only repository permissions, bounded by a timeout, protected from redundant concurrent runs, and expanded to include the production build.
 - Dependabot configured for npm and GitHub Actions updates.
 - Project status identified as pre-1.0; compatibility is not promised before the first stable release.
+- The source fixes from the successful clean-room verification patch have been promoted into the publication branch.
+- YAML alias expansion remains bounded during document conversion.
+- Lint exceptions are limited to intentionally empty catch clauses rather than disabling the rule globally.
 
 ## Blocking gates
 
@@ -41,11 +44,13 @@ e5e1747bac45b623c375226759fce20857b50ee615926dce1aefd282104ee57d
 
 The exact lockfile must be committed, or a new lockfile must be generated and independently verified against the final package manifest. Once committed, CI must demonstrate that `pnpm install --frozen-lockfile` succeeds.
 
-### 3. Promote the clean-room verification fixes
+The verified lockfile is retained in the private offline capsule. The available GitHub connector cannot copy a blob between repositories, and the current execution environment cannot reach the npm registry. The lockfile must therefore be promoted from a trusted local checkout or another environment capable of preserving and checking its exact bytes.
 
-The successful clean-room verification applied a recorded patch to the exact source archive before running typecheck, lint, tests, and build. That patch contained source-quality fixes needed to make the gates pass. The fixes must be reviewed and promoted into the repository, or replaced by equivalent verified changes.
+### 3. Verify filesystem containment
 
-A clean-room pass on a patched working tree is not proof that the unpatched repository head passes.
+Before publication, add real-filesystem tests that exercise symbolic links and other path indirections at repository read and write boundaries. Extraction, validation, hydration, proposal processing, projection, and transaction application must fail closed rather than read or mutate content outside the selected repository root.
+
+The tests must fail against the vulnerable behavior before containment changes are implemented, then pass together with the complete regression suite. Avoid publishing exploit-oriented reproduction details before the fix is merged.
 
 ### 4. Regenerate LORE outputs
 
