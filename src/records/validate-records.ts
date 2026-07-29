@@ -112,7 +112,15 @@ export function validateRecordSet(
     }
   }
 
-  const activeDecisions = records.filter(({ kind, status }) => kind === "decision" && status === "active");
+  const supersededReferences = new Set(
+    records.map(({ supersedes }) => supersedes).filter((value): value is string => value !== null),
+  );
+  const activeDecisions = records.filter(
+    (record) =>
+      record.kind === "decision" &&
+      record.status === "active" &&
+      !supersededReferences.has(recordReference(repositoryId, record)),
+  );
   const exclusivity = new Map<string, SemanticRecord>();
   for (const decision of activeDecisions) {
     const key = decision.payload.exclusivity_key;
