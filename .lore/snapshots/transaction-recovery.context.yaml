@@ -20,7 +20,7 @@ evidence:
   - path: docs/superpowers/specs/2026-07-28-lore-design.md
     revision: f663e319ff85a24b2e67b29d55cf897785ce4dea
 omitted_record_count: 0
-repository_revision: 2e5a15e8243f920ebca89946133625d482de8e68
+repository_revision: <repository-revision>
 schema_version: 1
 selected:
   - reasons:
