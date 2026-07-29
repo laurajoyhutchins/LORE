@@ -11,6 +11,7 @@ Describe the exact contract or behavior changed. Identify authoritative inputs a
 List the commands run and their results. Include the exact proposed head when reporting verification evidence.
 
 ```text
+node scripts/restore-verified-lockfile.mjs
 corepack enable
 pnpm install --frozen-lockfile
 pnpm typecheck

@@ -24,6 +24,7 @@ Requirements:
 From a clean checkout:
 
 ```bash
+node scripts/restore-verified-lockfile.mjs
 corepack enable
 pnpm install --frozen-lockfile
 pnpm typecheck
@@ -81,6 +82,8 @@ A pull request is not considered verified merely because its author reports succ
 ## Public release verification
 
 Maintainers preparing a public release must use the repository's unified gate rather than assembling an informal checklist.
+
+The repository stores the approved `pnpm-lock.yaml` as independently checksummed gzip members under `artifacts/verified-lockfile/`. The release gate reconstructs the standard lockfile, verifies its SHA-256 and Git blob identity, and removes a gate-created copy before the clean-tree check.
 
 To refresh deterministic outputs after authoritative changes:
 
