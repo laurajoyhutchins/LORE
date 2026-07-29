@@ -1,9 +1,17 @@
-import Ajv2020, { type ErrorObject, type ValidateFunction } from "ajv/dist/2020.js";
-import addFormats from "ajv-formats";
 import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import path from "node:path";
+import type { ErrorObject, ValidateFunction } from "ajv";
+import type * as Ajv2020Module from "ajv/dist/2020.js";
+import type { FormatsPlugin } from "ajv-formats";
 import { ERROR_CODES, fail, ok } from "../domain/errors.js";
 import type { ValidationProblem, ValidationResult } from "../domain/types.js";
+
+const require = createRequire(import.meta.url);
+const Ajv2020 = (
+  require("ajv/dist/2020.js") as { default: typeof Ajv2020Module.Ajv2020 }
+).default;
+const addFormats = (require("ajv-formats") as { default: FormatsPlugin }).default;
 
 export interface SchemaRegistry {
   validateWithSchema<T>(id: string, value: unknown): ValidationResult<T>;
@@ -78,7 +86,9 @@ export function createSchemaRegistry(root = process.cwd()): SchemaRegistry {
         });
       }
       if (validator(value)) return ok(value as T);
-      const errors = [...(validator.errors ?? [])].sort(compareAjvErrors).map(problemFromAjv);
+      const errors = [...(validator.errors ?? [])]
+        .sort(compareAjvErrors)
+        .map(problemFromAjv);
       return fail(...errors);
     },
   };
