@@ -78,8 +78,27 @@ Pull requests should state:
 
 A pull request is not considered verified merely because its author reports success. Review evidence must correspond to the exact proposed head.
 
+## Public release verification
+
+Maintainers preparing a public release must use the repository's unified gate rather than assembling an informal checklist.
+
+To refresh deterministic outputs after authoritative changes:
+
+```bash
+corepack pnpm release:refresh
+```
+
+Review and commit the resulting generated changes. Then fetch all refs and run the exact-head gate from a clean checkout:
+
+```bash
+git fetch --all --tags --prune
+corepack pnpm release:verify
+```
+
+The gate verifies the approved lockfile identity, scans reachable history for high-confidence disclosures, reports public commit emails, rejects unreviewed tracked links and binaries, restores the frozen dependency graph, and runs every code and LORE verification command. Publication evidence is valid only when it emits `VERIFIED_PUBLICATION_READY` for the unchanged exact head.
+
 ## Licensing
 
-LORE is distributed under the Apache License 2.0. By intentionally submitting a contribution for inclusion in LORE, you agree that it may be distributed under the terms in `LICENSE`, unless you conspicuously mark the submission as "Not a Contribution" or a separate written agreement applies.
+LORE is licensed under the Apache License 2.0. Unless you explicitly state otherwise, a contribution intentionally submitted for inclusion in LORE is provided under the same license without additional terms or conditions.
 
-Do not submit third-party code, documentation, data, or other material unless its provenance and redistribution terms are explicit and compatible with Apache-2.0. Identify any required attribution or notice obligations in the pull request.
+Do not submit third-party code, documentation, data, images, or generated assets unless their provenance is explicit and their redistribution terms are compatible with Apache-2.0.
