@@ -26,7 +26,7 @@ function gitBlobId(bytes) {
 const sourceArgument = process.argv[2] ?? process.env.LORE_VERIFIED_LOCKFILE;
 if (!sourceArgument) {
   fail(
-    "provide the private capsule lockfile path: corepack pnpm release:import-lock -- <path-to-pnpm-lock.yaml>",
+    "provide the private capsule lockfile path: node scripts/import-verified-lockfile.mjs <path-to-pnpm-lock.yaml>",
   );
 }
 
