@@ -36,7 +36,7 @@ export async function validateRepository(
   root: string,
 ): Promise<ValidationResult<ValidatedRepository>> {
   const manifestResult = await loadManifest(root);
-  if (!manifestResult.ok) return manifestResult as ValidationResult<ValidatedRepository>;
+  if (!manifestResult.ok) return manifestResult;
   const manifest = manifestResult.value;
   const problems: ValidationProblem[] = [];
 
@@ -57,10 +57,10 @@ export async function validateRepository(
   if (problems.length > 0) return fail(...problems);
 
   const recordsResult = await loadRecords(root, manifest);
-  if (!recordsResult.ok) return recordsResult as ValidationResult<ValidatedRepository>;
+  if (!recordsResult.ok) return recordsResult;
   const records = recordsResult.value;
   const semanticResult = validateRecordSet(records, manifest.repository.id);
-  if (!semanticResult.ok) return semanticResult as ValidationResult<ValidatedRepository>;
+  if (!semanticResult.ok) return semanticResult;
 
   for (const record of records) {
     if (generatedOnlyEvidence(record, manifest.paths.generated_docs)) {
