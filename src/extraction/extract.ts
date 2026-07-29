@@ -1,12 +1,16 @@
-import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
+import { readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import ts from "typescript";
-import { ok } from "../domain/errors.js";
+import { fail, ok } from "../domain/errors.js";
 import type {
   LoreManifest,
   ValidationProblem,
   ValidationResult,
 } from "../domain/types.js";
+import {
+  prepareWritePathInsideRoot,
+  resolveExistingInsideRoot,
+} from "../filesystem/repository-paths.js";
 import { stableYaml } from "../serialization/yaml.js";
 
 export interface ExtractionResult {
@@ -35,29 +39,75 @@ interface ExtractedTest {
   kind: string;
 }
 
+interface WalkResult {
+  files: string[];
+  problems: ValidationProblem[];
+}
+
 type ParsedSourceFile = ts.SourceFile & {
   parseDiagnostics?: readonly ts.Diagnostic[];
 };
 
-async function walk(root: string, directory = root): Promise<string[]> {
+async function walk(root: string, directory = root): Promise<WalkResult> {
   const files: string[] = [];
-  for (const entry of await readdir(directory, { withFileTypes: true }).catch(() => [])) {
+  const problems: ValidationProblem[] = [];
+  const entries = await readdir(directory, { withFileTypes: true }).catch(() => []);
+
+  for (const entry of entries) {
     if ([".git", "node_modules", "dist"].includes(entry.name)) continue;
     const filePath = path.join(directory, entry.name);
-    if (entry.isDirectory()) files.push(...(await walk(root, filePath)));
-    else files.push(path.relative(root, filePath).replace(/\\/g, "/"));
+    const relativePath = path.relative(root, filePath).replace(/\\/g, "/");
+
+    if (entry.isSymbolicLink()) {
+      problems.push({
+        code: "SYMLINK_PATH_REJECTED",
+        message: `Symbolic links are not allowed during extraction: ${relativePath}`,
+        location: relativePath,
+      });
+      continue;
+    }
+    if (entry.isDirectory()) {
+      const nested = await walk(root, filePath);
+      files.push(...nested.files);
+      problems.push(...nested.problems);
+    } else if (entry.isFile()) {
+      files.push(relativePath);
+    }
   }
-  return files.sort();
+
+  return { files: files.sort(), problems };
+}
+
+async function loadPackageJson(root: string): Promise<ValidationResult<PackageJson>> {
+  const packagePath = await resolveExistingInsideRoot(root, "package.json");
+  if (!packagePath.ok) {
+    if (packagePath.errors.every(({ code }) => code === "PATH_NOT_FOUND")) return ok({ scripts: {} });
+    return packagePath;
+  }
+
+  try {
+    return ok(JSON.parse(await readFile(packagePath.value, "utf8")) as PackageJson);
+  } catch (error) {
+    return fail({
+      code: "INVALID_PACKAGE_JSON",
+      message: error instanceof Error ? error.message : String(error),
+      location: "package.json",
+    });
+  }
 }
 
 export async function extractRepository(
   root: string,
   manifest: LoreManifest,
 ): Promise<ValidationResult<ExtractionResult>> {
-  const allFiles = await walk(root);
-  const packageJson = JSON.parse(
-    await readFile(path.join(root, "package.json"), "utf8").catch(() => '{"scripts":{}}'),
-  ) as PackageJson;
+  const walked = await walk(root);
+  if (walked.problems.length > 0) return fail(...walked.problems);
+  const allFiles = walked.files;
+
+  const packageResult = await loadPackageJson(root);
+  if (!packageResult.ok) return packageResult;
+  const packageJson = packageResult.value;
+
   const languages = [
     ...new Set(
       allFiles
@@ -79,7 +129,9 @@ export async function extractRepository(
   const warnings: ValidationProblem[] = [];
 
   for (const file of allFiles.filter((candidate) => candidate.endsWith(".ts"))) {
-    const sourceText = await readFile(path.join(root, file), "utf8");
+    const sourcePath = await resolveExistingInsideRoot(root, file);
+    if (!sourcePath.ok) return sourcePath;
+    const sourceText = await readFile(sourcePath.value, "utf8");
     const sourceFile = ts.createSourceFile(
       file,
       sourceText,
@@ -182,7 +234,8 @@ export async function writeExtraction(
   result: ExtractionResult,
 ): Promise<void> {
   for (const [filePath, content] of result.files) {
-    await mkdir(path.dirname(path.join(root, filePath)), { recursive: true });
-    await writeFile(path.join(root, filePath), content);
+    const target = await prepareWritePathInsideRoot(root, filePath);
+    if (!target.ok) throw new Error(target.errors.map(({ message }) => message).join("; "));
+    await writeFile(target.value, content);
   }
 }
