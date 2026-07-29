@@ -129,9 +129,6 @@ export async function semanticDiff(
     ]);
     const repositoryId = "lore";
     const baseReferences = new Set(baseRecords.map((record) => recordReference(repositoryId, record)));
-    const targetReferences = new Set(
-      targetRecords.map((record) => recordReference(repositoryId, record)),
-    );
     const addedRecords = targetRecords
       .filter((record) => !baseReferences.has(recordReference(repositoryId, record)))
       .sort((left, right) => recordReference(repositoryId, left).localeCompare(recordReference(repositoryId, right)));
