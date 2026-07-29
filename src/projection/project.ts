@@ -1,2 +1,32 @@
-import type {ValidatedRepository,ValidationResult} from '../domain/types.js';import {ok} from '../domain/errors.js';import {renderArchitecture,renderCatalog,renderDecisions,renderGuide,renderReadme,renderRepositoryCard} from './templates.js';
-export async function projectRepository(r:ValidatedRepository):Promise<ValidationResult<Map<string,string>>>{const f=new Map<string,string>();for(const p of r.manifest.projections){const content={readme:renderReadme,'repository-card':renderRepositoryCard,architecture:renderArchitecture,'component-catalog':renderCatalog,'current-decisions':renderDecisions,'maintainer-guide':renderGuide}[p.id](r);f.set(p.output,content.replace(/\r\n/g,'\n').replace(/\n*$/,'\n'));}return ok(f)}
+import { ok } from "../domain/errors.js";
+import type { ValidatedRepository, ValidationResult } from "../domain/types.js";
+import {
+  renderArchitecture,
+  renderCatalog,
+  renderDecisions,
+  renderGuide,
+  renderReadme,
+  renderRepositoryCard,
+} from "./templates.js";
+
+export function projectRepository(
+  repository: ValidatedRepository,
+): Promise<ValidationResult<Map<string, string>>> {
+  const files = new Map<string, string>();
+  for (const projection of repository.manifest.projections) {
+    const renderers = {
+      readme: renderReadme,
+      "repository-card": renderRepositoryCard,
+      architecture: renderArchitecture,
+      "component-catalog": renderCatalog,
+      "current-decisions": renderDecisions,
+      "maintainer-guide": renderGuide,
+    };
+    const content = renderers[projection.id](repository);
+    files.set(
+      projection.output,
+      content.replace(/\r\n/g, "\n").replace(/\n*$/, "\n"),
+    );
+  }
+  return Promise.resolve(ok(files));
+}
