@@ -37,6 +37,7 @@ LORE does not host an LLM, require a model provider, run autonomous schedules, u
 ## Quick start
 
 \`\`\`bash
+node scripts/restore-verified-lockfile.mjs
 corepack enable
 pnpm install --frozen-lockfile
 pnpm typecheck
@@ -46,6 +47,8 @@ pnpm build
 pnpm lore --help
 pnpm lore verify-self
 \`\`\`
+
+The standard \`pnpm-lock.yaml\` is restored byte-for-byte from the content-addressed members under \`artifacts/verified-lockfile/\`. The release gate verifies every member, the reconstructed SHA-256, and the Git blob identity before installation, then removes a gate-created lockfile before checking for a clean tree.
 
 The repository currently keeps \`"private": true\` in \`package.json\` to prevent accidental npm publication. That does not prevent the GitHub repository itself from being public.
 

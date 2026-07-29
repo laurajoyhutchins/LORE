@@ -1,21 +1,23 @@
 #!/usr/bin/env node
 
-import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
-import { existsSync, lstatSync, readFileSync } from "node:fs";
+import { lstatSync, readFileSync } from "node:fs";
 import os from "node:os";
-import path from "node:path";
 import process from "node:process";
+import {
+  committedLockArtifactPaths,
+  ensureVerifiedLockfile,
+  removeRestoredLockfile,
+} from "./verified-lockfile.mjs";
 
-const EXPECTED_LOCKFILE_SHA256 =
-  "e5e1747bac45b623c375226759fce20857b50ee615926dce1aefd282104ee57d";
-const EXPECTED_LOCKFILE_GIT_BLOB = "7aec11b06bef06188262e0ca8ae44b8e35f158c9";
 const refreshGenerated = process.argv.includes("--refresh-generated");
 const skipInstall = process.argv.includes("--skip-install");
+const pnpmExecutable = process.env.LORE_PNPM_EXECUTABLE;
+const offlineStore = process.env.LORE_PNPM_OFFLINE_STORE;
+let restoredLockfile;
 
 function fail(message) {
-  process.stderr.write(`PUBLIC_RELEASE_GATE_FAILED: ${message}\n`);
-  process.exit(1);
+  throw new Error(message);
 }
 
 function run(command, args, options = {}) {
@@ -36,31 +38,6 @@ function run(command, args, options = {}) {
     fail(`${command} exited ${String(result.status)}${detail ? `\n${detail}` : ""}`);
   }
   return capture ? result.stdout.trimEnd() : "";
-}
-
-function sha256(filePath) {
-  return createHash("sha256").update(readFileSync(filePath)).digest("hex");
-}
-
-function verifyLockfile() {
-  const lockfile = path.join(process.cwd(), "pnpm-lock.yaml");
-  if (!existsSync(lockfile)) {
-    fail(
-      "pnpm-lock.yaml is missing. Copy the exact verified artifact from the private offline capsule before continuing.",
-    );
-  }
-
-  const digest = sha256(lockfile);
-  if (digest !== EXPECTED_LOCKFILE_SHA256) {
-    fail(
-      `pnpm-lock.yaml SHA-256 is ${digest}; expected ${EXPECTED_LOCKFILE_SHA256}`,
-    );
-  }
-
-  const blob = run("git", ["hash-object", "pnpm-lock.yaml"], { capture: true });
-  if (blob !== EXPECTED_LOCKFILE_GIT_BLOB) {
-    fail(`pnpm-lock.yaml Git blob is ${blob}; expected ${EXPECTED_LOCKFILE_GIT_BLOB}`);
-  }
 }
 
 function scanSensitiveFilenames() {
@@ -118,7 +95,7 @@ function scanHistoryContent() {
   }
 }
 
-function scanCurrentTree() {
+function scanCurrentTree(allowedBinaryPaths) {
   const tracked = run("git", ["ls-files", "-z"], { capture: true })
     .split("\0")
     .filter(Boolean);
@@ -132,7 +109,9 @@ function scanCurrentTree() {
       continue;
     }
     const content = readFileSync(repositoryPath);
-    if (content.includes(0)) binary.push(repositoryPath);
+    if (content.includes(0) && !allowedBinaryPaths.has(repositoryPath)) {
+      binary.push(repositoryPath);
+    }
   }
 
   if (links.length > 0) {
@@ -146,11 +125,9 @@ function scanCurrentTree() {
 }
 
 function reportPublicEmails() {
-  const emails = run(
-    "git",
-    ["log", "--all", "--format=%ae%n%ce"],
-    { capture: true },
-  )
+  const emails = run("git", ["log", "--all", "--format=%ae%n%ce"], {
+    capture: true,
+  })
     .split("\n")
     .map((email) => email.trim())
     .filter(Boolean);
@@ -165,58 +142,107 @@ function verifyCleanTree() {
 }
 
 function pnpm(args) {
-  run("corepack", ["pnpm", ...args]);
+  if (pnpmExecutable) run(pnpmExecutable, args);
+  else run("corepack", ["pnpm", ...args]);
 }
 
-const repositoryRoot = run("git", ["rev-parse", "--show-toplevel"], {
-  capture: true,
-});
-process.chdir(repositoryRoot);
-verifyCleanTree();
+function pnpmVersion() {
+  return pnpmExecutable
+    ? run(pnpmExecutable, ["--version"], { capture: true })
+    : run("corepack", ["pnpm", "--version"], { capture: true });
+}
 
-const head = run("git", ["rev-parse", "--verify", "HEAD^{commit}"], {
-  capture: true,
-});
-if (!/^[0-9a-f]{40}$/i.test(head)) fail("HEAD did not resolve to a full commit ID");
+function cleanupRestoredLockfile() {
+  if (!restoredLockfile?.created) return;
+  removeRestoredLockfile(restoredLockfile.destination);
+  restoredLockfile = undefined;
+}
 
-process.stdout.write("LORE public release gate\n");
-process.stdout.write(`HEAD: ${head}\n`);
-process.stdout.write(`Platform: ${os.platform()} ${os.release()} ${os.arch()}\n`);
-process.stdout.write(`Node: ${process.version}\n`);
-process.stdout.write(`Git: ${run("git", ["--version"], { capture: true })}\n`);
-process.stdout.write(`Corepack: ${run("corepack", ["--version"], { capture: true })}\n`);
+function main() {
+  const repositoryRoot = run("git", ["rev-parse", "--show-toplevel"], {
+    capture: true,
+  });
+  process.chdir(repositoryRoot);
+  verifyCleanTree();
 
-verifyLockfile();
-scanSensitiveFilenames();
-scanHistoryContent();
-scanCurrentTree();
-reportPublicEmails();
+  const head = run("git", ["rev-parse", "--verify", "HEAD^{commit}"], {
+    capture: true,
+  });
+  if (!/^[0-9a-f]{40}$/i.test(head)) fail("HEAD did not resolve to a full commit ID");
 
-if (!skipInstall) pnpm(["install", "--frozen-lockfile"]);
-process.stdout.write(
-  `pnpm: ${run("corepack", ["pnpm", "--version"], { capture: true })}\n`,
-);
+  process.stdout.write("LORE public release gate\n");
+  process.stdout.write(`HEAD: ${head}\n`);
+  process.stdout.write(`Platform: ${os.platform()} ${os.release()} ${os.arch()}\n`);
+  process.stdout.write(`Node: ${process.version}\n`);
+  process.stdout.write(`Git: ${run("git", ["--version"], { capture: true })}\n`);
+  process.stdout.write(`Corepack: ${run("corepack", ["--version"], { capture: true })}\n`);
+  if (pnpmExecutable) process.stdout.write(`pnpm executable: ${pnpmExecutable}\n`);
 
-if (refreshGenerated) {
-  pnpm(["lore", "extract"]);
-  pnpm(["lore", "project"]);
-  const status = run("git", ["status", "--short"], { capture: true });
+  const allowedBinaryPaths = committedLockArtifactPaths();
+  restoredLockfile = ensureVerifiedLockfile();
   process.stdout.write(
-    status === ""
-      ? "Generated state was already current.\n"
-      : `Generated state refreshed. Review and commit these files, then run the gate again without --refresh-generated:\n${status}\n`,
+    restoredLockfile.created
+      ? "Restored pnpm-lock.yaml from the committed verified artifact.\n"
+      : "Existing pnpm-lock.yaml matches the committed verified artifact.\n",
   );
-  process.exit(0);
+
+  scanSensitiveFilenames();
+  scanHistoryContent();
+  scanCurrentTree(allowedBinaryPaths);
+  reportPublicEmails();
+
+  if (!skipInstall) {
+    const installArgs = ["install", "--frozen-lockfile"];
+    if (offlineStore) installArgs.push("--offline", "--store-dir", offlineStore);
+    pnpm(installArgs);
+  }
+  const resolvedPnpmVersion = pnpmVersion();
+  if (resolvedPnpmVersion !== "10.14.0") {
+    fail(`pnpm version is ${resolvedPnpmVersion}; expected 10.14.0`);
+  }
+  process.stdout.write(`pnpm: ${resolvedPnpmVersion}\n`);
+
+  if (refreshGenerated) {
+    pnpm(["lore", "extract"]);
+    pnpm(["lore", "project"]);
+    cleanupRestoredLockfile();
+    const status = run("git", ["status", "--short"], { capture: true });
+    process.stdout.write(
+      status === ""
+        ? "Generated state was already current.\n"
+        : `Generated state refreshed. Review and commit these files, then run the gate again without --refresh-generated:\n${status}\n`,
+    );
+    return;
+  }
+
+  pnpm(["typecheck"]);
+  pnpm(["lint"]);
+  pnpm(["test"]);
+  pnpm(["build"]);
+  pnpm(["lore", "extract", "--check"]);
+  pnpm(["lore", "validate"]);
+  pnpm(["lore", "project", "--check"]);
+  pnpm(["lore", "verify-self"]);
+  cleanupRestoredLockfile();
+  verifyCleanTree();
+
+  process.stdout.write(`VERIFIED_PUBLICATION_READY ${head}\n`);
 }
 
-pnpm(["typecheck"]);
-pnpm(["lint"]);
-pnpm(["test"]);
-pnpm(["build"]);
-pnpm(["lore", "extract", "--check"]);
-pnpm(["lore", "validate"]);
-pnpm(["lore", "project", "--check"]);
-pnpm(["lore", "verify-self"]);
-verifyCleanTree();
-
-process.stdout.write(`VERIFIED_PUBLICATION_READY ${head}\n`);
+try {
+  main();
+} catch (error) {
+  try {
+    cleanupRestoredLockfile();
+  } catch (cleanupError) {
+    process.stderr.write(
+      `PUBLIC_RELEASE_GATE_CLEANUP_FAILED: ${
+        cleanupError instanceof Error ? cleanupError.message : String(cleanupError)
+      }\n`,
+    );
+  }
+  process.stderr.write(
+    `PUBLIC_RELEASE_GATE_FAILED: ${error instanceof Error ? error.message : String(error)}\n`,
+  );
+  process.exitCode = 1;
+}
