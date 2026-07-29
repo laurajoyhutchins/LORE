@@ -11,7 +11,11 @@ import {
   resolveExistingInsideRoot,
   resolvePotentialInsideRoot,
 } from "../filesystem/repository-paths.js";
-import { hydrateTask, hydrationMarkdown } from "../hydration/hydrate.js";
+import {
+  hydrateTask,
+  hydrationMarkdown,
+  normalizeHydrationPacketForSnapshot,
+} from "../hydration/hydrate.js";
 import { projectRepository } from "../projection/project.js";
 import { validateProposal } from "../proposals/validate-proposal.js";
 import { createSchemaRegistry } from "../schemas/schema-registry.js";
@@ -207,7 +211,9 @@ export async function verifySelf(
       if (validated && !validated.ok) problems.push(...validated.errors);
       continue;
     }
-    const packet = hydrateTask(validated.value, repository);
+    const packet = normalizeHydrationPacketForSnapshot(
+      hydrateTask(validated.value, repository),
+    );
     const stem = path.basename(taskFile).replace(/\.ya?ml$/, "");
     const yamlPath = path.posix.join(".lore", "snapshots", `${stem}.context.yaml`);
     const markdownPath = path.posix.join(".lore", "snapshots", `${stem}.context.md`);
