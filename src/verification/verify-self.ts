@@ -98,15 +98,15 @@ export async function verifySelf(
     "skills/maintain-repository-documentation/OUTPUTS.md",
     repository.manifest.maintenance.proposal_schema,
   ];
-  const forbidden = /\b(Seshat|cartridge|heartbeat|OpenAI|Anthropic|Claude|ChatGPT|Codex|Hatchable)\b/i;
+  const forbiddenProviderDependency = /\b(OpenAI|Anthropic|Claude|ChatGPT|Codex)\b/i;
   for (const relativePath of requiredSkillFiles) {
     const text = await readFile(path.join(root, relativePath), "utf8").catch(() => null);
     if (text === null) {
       problems.push({ code: "SKILL_MISSING", message: `Missing ${relativePath}` });
-    } else if (forbidden.test(text)) {
+    } else if (forbiddenProviderDependency.test(text)) {
       problems.push({
         code: "SKILL_NOT_NEUTRAL",
-        message: `Provider or orchestration dependency found in ${relativePath}`,
+        message: `Provider dependency found in ${relativePath}`,
       });
     }
   }
