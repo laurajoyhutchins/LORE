@@ -2,6 +2,23 @@
   "name": "lore",
   "version": "0.0.0",
   "private": true,
+  "description": "Agent-neutral, Git-backed repository evidence and documentation system.",
+  "keywords": [
+    "documentation",
+    "git",
+    "repository",
+    "provenance",
+    "architecture",
+    "agents"
+  ],
+  "homepage": "https://github.com/laurajoyhutchins/LORE#readme",
+  "bugs": {
+    "url": "https://github.com/laurajoyhutchins/LORE/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/laurajoyhutchins/LORE.git"
+  },
   "packageManager": "pnpm@10.14.0",
   "type": "module",
   "bin": {
