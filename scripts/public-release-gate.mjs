@@ -2,7 +2,7 @@
 
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, lstatSync, readFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
@@ -67,7 +67,7 @@ function scanSensitiveFilenames() {
   const objects = run("git", ["rev-list", "--objects", "--all"], { capture: true });
   const suspicious = [];
   const sensitivePath =
-    /(^|\/)(\.env(?:\.|$)|id_rsa(?:\.|$)|id_ed25519(?:\.|$)|credentials?(?:\.|\/|$)|secrets?(?:\.|\/|$)|[^/]+\.(?:pem|p12|pfx|key|keystore))$/i;
+    /(^|\/)(\.env(?:\.[^/]*)?|id_rsa(?:\.[^/]*)?|id_ed25519(?:\.[^/]*)?|credentials?(?:\.[^/]*)?|secrets?(?:\.[^/]*)?|[^/]+\.(?:pem|p12|pfx|key|keystore))$/i;
 
   for (const line of objects.split("\n")) {
     const separator = line.indexOf(" ");
@@ -123,12 +123,21 @@ function scanCurrentTree() {
     .split("\0")
     .filter(Boolean);
   const binary = [];
+  const links = [];
 
   for (const repositoryPath of tracked) {
+    const stat = lstatSync(repositoryPath);
+    if (stat.isSymbolicLink()) {
+      links.push(repositoryPath);
+      continue;
+    }
     const content = readFileSync(repositoryPath);
     if (content.includes(0)) binary.push(repositoryPath);
   }
 
+  if (links.length > 0) {
+    fail(`tracked symbolic links require explicit review:\n${links.join("\n")}`);
+  }
   if (binary.length > 0) {
     fail(
       `tracked binary files require an explicit redistribution review:\n${binary.join("\n")}`,
@@ -170,7 +179,7 @@ const head = run("git", ["rev-parse", "--verify", "HEAD^{commit}"], {
 });
 if (!/^[0-9a-f]{40}$/i.test(head)) fail("HEAD did not resolve to a full commit ID");
 
-process.stdout.write(`LORE public release gate\n`);
+process.stdout.write("LORE public release gate\n");
 process.stdout.write(`HEAD: ${head}\n`);
 process.stdout.write(`Platform: ${os.platform()} ${os.release()} ${os.arch()}\n`);
 process.stdout.write(`Node: ${process.version}\n`);
