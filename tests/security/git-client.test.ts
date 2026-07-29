@@ -31,6 +31,12 @@ describe("Git revision handling", () => {
     await expect(git.resolveCommit("HEAD")).resolves.toMatch(/^[0-9a-f]{40}$/);
   });
 
+  it("preserves exact file bytes when reading historical evidence", async () => {
+    const root = await repositoryFixture();
+    const git = createGitClient(root);
+    await expect(git.readFileAtRevision("HEAD", "lore.yaml")).resolves.toMatch(/\n$/);
+  });
+
   it("rejects option-shaped revisions", async () => {
     const root = await repositoryFixture();
     const git = createGitClient(root);
