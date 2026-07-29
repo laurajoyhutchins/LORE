@@ -1,61 +1,6 @@
 #!/usr/bin/env node
-
-import { parseArgs } from "node:util";
-import { HELP_TEXT, isLoreCommand } from "./output.js";
-
-export interface CliIo {
-  stdout(message: string): void;
-  stderr(message: string): void;
-}
-
-const DEFAULT_IO: CliIo = {
-  stdout: (message) => process.stdout.write(`${message}\n`),
-  stderr: (message) => process.stderr.write(`${message}\n`),
-};
-
-export async function runCli(
-  argv: string[],
-  io: CliIo = DEFAULT_IO,
-): Promise<number> {
-  let parsed: ReturnType<typeof parseArgs>;
-
-  try {
-    parsed = parseArgs({
-      args: argv,
-      allowPositionals: true,
-      strict: true,
-      options: {
-        help: { type: "boolean", short: "h" },
-      },
-    });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    io.stderr(`USAGE_ERROR: ${message}`);
-    return 2;
-  }
-
-  const [command, ...extraPositionals] = parsed.positionals;
-
-  if (parsed.values.help === true || command === undefined || command === "help") {
-    io.stdout(HELP_TEXT);
-    return 0;
-  }
-
-  if (!isLoreCommand(command)) {
-    io.stderr(`Unknown command: ${command}`);
-    return 2;
-  }
-
-  if (extraPositionals.length > 0) {
-    io.stderr(`USAGE_ERROR: Unexpected arguments: ${extraPositionals.join(" ")}`);
-    return 2;
-  }
-
-  io.stderr(`NOT_IMPLEMENTED: ${command}`);
-  return 1;
-}
-
-const invokedPath = process.argv[1];
-if (invokedPath !== undefined && import.meta.url === new URL(invokedPath, "file:").href) {
-  process.exitCode = await runCli(process.argv.slice(2));
-}
+import {parseArgs} from 'node:util';import {readFile,writeFile,mkdir} from 'node:fs/promises';import path from 'node:path';import {HELP_TEXT,isLoreCommand} from './output.js';import {loadManifest} from '../config/load-manifest.js';import {extractRepository,writeExtraction} from '../extraction/extract.js';import {validateRepository} from '../validation/validate-repository.js';import {projectRepository} from '../projection/project.js';import {parseYamlDocument,stableYaml} from '../serialization/yaml.js';import type {LoreTask} from '../domain/types.js';import {hydrateTask} from '../hydration/hydrate.js';import {createMaintainerContext} from '../context/create-context.js';import {validateProposal} from '../proposals/validate-proposal.js';import {planTransaction} from '../transactions/plan-transaction.js';import {applyTransaction} from '../transactions/apply-transaction.js';import {verifySelf} from '../verification/verify-self.js';import {runDemo} from '../demo/run-demo.js';import {initializeRepository} from '../init/initialize.js';
+export interface CliIo{stdout(message:string):void;stderr(message:string):void}const DEFAULT_IO={stdout:(m:string)=>process.stdout.write(`${m}\n`),stderr:(m:string)=>process.stderr.write(`${m}\n`)};
+async function writeMap(root:string,m:Map<string,string>){for(const[p,c]of m){await mkdir(path.dirname(path.join(root,p)),{recursive:true});await writeFile(path.join(root,p),c)}}
+export async function runCli(argv:string[],io:CliIo=DEFAULT_IO):Promise<number>{const parsed=parseArgs({args:argv,allowPositionals:true,strict:false,options:{help:{type:'boolean',short:'h'},check:{type:'boolean'},force:{type:'boolean'},name:{type:'string'},id:{type:'string'}}});const[command,arg]=parsed.positionals;if(parsed.values.help||!command||command==='help'){io.stdout(HELP_TEXT);return 0}if(!isLoreCommand(command)){io.stderr(`Unknown command: ${command}`);return 2}const root=process.cwd();try{if(command==='init'){const r=await initializeRepository(root,{repositoryId:String(parsed.values.id??'repository'),repositoryName:String(parsed.values.name??'Repository'),force:Boolean(parsed.values.force)});if(!r.ok)throw new Error(r.errors.map(e=>e.message).join('; '));io.stdout(stableYaml(r.value));return 0}if(command==='extract'){const m=await loadManifest(root);if(!m.ok)throw new Error(m.errors[0]?.message);const x=await extractRepository(root,m.value);if(!x.ok)throw new Error(x.errors[0]?.message);if(parsed.values.check){for(const[p,c]of x.value.files)if(await readFile(path.join(root,p),'utf8').catch(()=>null)!==c){io.stderr(`GENERATED_OUTPUT_STALE: ${p}`);return 14}}else await writeExtraction(root,x.value);return 0}const repo=await validateRepository(root);if(!repo.ok)throw new Error(repo.errors.map(e=>e.message).join('; '));if(command==='validate')return 0;if(command==='project'){const p=await projectRepository(repo.value);if(!p.ok)throw new Error(p.errors[0]?.message);if(parsed.values.check){for(const[f,c]of p.value)if(await readFile(path.join(root,f),'utf8').catch(()=>null)!==c){io.stderr(`GENERATED_OUTPUT_STALE: ${f}`);return 14}}else await writeMap(root,p.value);return 0}if(command==='hydrate'||command==='context'){if(!arg)throw new Error('Task path required');const t=parseYamlDocument<LoreTask>(await readFile(path.resolve(root,arg),'utf8'),arg);if(!t.ok)throw new Error(t.errors[0]?.message);const packet=hydrateTask(t.value,repo.value);io.stdout(command==='hydrate'?stableYaml(packet):stableYaml(createMaintainerContext(t.value,packet,repo.value)));return 0}if(command==='validate-proposal'||command==='apply'){if(!arg)throw new Error('Proposal path required');const p=await validateProposal(root,arg,repo.value);if(!p.ok)throw new Error(p.errors[0]?.message);if(command==='validate-proposal')return 0;const plan=await planTransaction(root,p.value,repo.value);if(!plan.ok)throw new Error(plan.errors[0]?.message);const applied=await applyTransaction(root,plan.value);if(!applied.ok)throw new Error(applied.errors[0]?.message);io.stdout(stableYaml(applied.value));return 0}if(command==='verify-self'){const v=await verifySelf(root);if(!v.ok)throw new Error(v.errors.map(e=>e.message).join('; '));io.stdout(stableYaml(v.value));return 0}if(command==='demo'){const d=await runDemo(root);if(!d.ok)throw new Error(d.errors[0]?.message);io.stdout(stableYaml(d.value));return 0}io.stderr(`NOT_IMPLEMENTED: ${command}`);return 1}catch(e){io.stderr(e instanceof Error?e.message:String(e));return 1}}
+if(process.argv[1]&&import.meta.url===new URL(process.argv[1],'file:').href)process.exitCode=await runCli(process.argv.slice(2));

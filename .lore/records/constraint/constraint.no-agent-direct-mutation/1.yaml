@@ -1,0 +1,26 @@
+disclosure:
+  audiences:
+  - maintainer
+  tags:
+  - bootstrap
+  - constraint
+  weight: 90
+evidence:
+- path: docs/superpowers/specs/2026-07-28-lore-design.md
+  revision: f663e319ff85a24b2e67b29d55cf897785ce4dea
+id: constraint.no-agent-direct-mutation
+kind: constraint
+payload: {}
+provenance:
+  producer: human-reviewed
+  source: bootstrap
+  transaction: null
+revision: 1
+schema_version: 1
+scope:
+  components: []
+  repository: lore
+status: active
+summary: Maintainers cannot directly alter accepted history or generated outputs.
+supersedes: null
+title: No direct mutation

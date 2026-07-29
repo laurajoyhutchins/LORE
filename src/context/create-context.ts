@@ -1,0 +1,2 @@
+import type {LoreMaintainerContext,LoreTask,HydrationPacket,ValidatedRepository} from '../domain/types.js';
+export function createMaintainerContext(task:LoreTask,packet:HydrationPacket,repo:ValidatedRepository):LoreMaintainerContext{return{protocol:'lore-maintainer-context/v1',task,packet,skill_path:repo.manifest.maintenance.skill,output_schema_path:repo.manifest.maintenance.proposal_schema,proposal_destination:`${repo.manifest.paths.proposals}/${task.id}.yaml`};}

@@ -1,0 +1,25 @@
+evidence: []
+omitted_record_count: 0
+repository_revision: f663e319ff85a24b2e67b29d55cf897785ce4dea
+schema_version: 1
+selected: []
+task:
+  audiences:
+  - maintainer
+  components:
+  - component.transactions
+  description: Explain rollback and append-only transaction behavior.
+  history: false
+  id: transaction-recovery
+  paths:
+  - src/transactions/apply-transaction.ts
+  schema_version: 1
+  tags:
+  - transaction
+  - recovery
+  - bootstrap
+  title: Document transaction recovery
+validation_commands:
+- lore validate
+- lore project --check
+- lore verify-self

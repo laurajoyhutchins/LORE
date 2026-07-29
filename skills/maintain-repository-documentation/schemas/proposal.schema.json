@@ -1,0 +1,16 @@
+{
+  "$id": "proposal",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "properties": {
+    "base_revision": {"pattern": "^[0-9a-f]{40}$", "type": "string"},
+    "operations": {"type": "array"},
+    "proposal_id": {"type": "string"},
+    "protocol": {"const": "lore-proposal/v1"},
+    "result": {"enum": ["changes_proposed", "no_documentation_change"]},
+    "skill": {"additionalProperties": false, "properties": {"digest": {"pattern": "^sha256:[0-9a-f]{64}$", "type": "string"}, "path": {"type": "string"}}, "required": ["path", "digest"], "type": "object"},
+    "uncertainties": {"items": {"type": "string"}, "type": "array"}
+  },
+  "required": ["protocol","proposal_id","base_revision","skill","result","operations","uncertainties"],
+  "type": "object"
+}

@@ -1,0 +1,3 @@
+import path from 'node:path';import { fail,ok,ERROR_CODES } from '../domain/errors.js';import type { ValidationResult } from '../domain/types.js';
+export function resolveInsideRoot(root:string,candidate:string):ValidationResult<string>{const normalized=candidate.replace(/\\/g,'/');const resolved=path.resolve(root,normalized);const rel=path.relative(path.resolve(root),resolved);if(rel.startsWith('..')||path.isAbsolute(rel))return fail({code:ERROR_CODES.PATH_OUTSIDE_ROOT,message:`Path escapes repository root: ${candidate}`,location:candidate});return ok(resolved.replace(/\\/g,'/'));}
+export const toPosix=(p:string)=>p.replace(/\\/g,'/');

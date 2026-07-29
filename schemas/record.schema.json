@@ -1,0 +1,15 @@
+{
+  "$id": "record",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "properties": {
+    "evidence": {"type": "array"},
+    "id": {"pattern": "^[a-z0-9.-]+$", "type": "string"},
+    "kind": {"enum": ["repository","component","relationship","decision","finding","constraint","procedure"]},
+    "revision": {"minimum": 1, "type": "integer"},
+    "schema_version": {"const": 1},
+    "status": {"enum": ["draft","active","superseded","deprecated","resolved","withdrawn"]}
+  },
+  "required": ["schema_version","id","kind","revision","status","title","summary","scope","evidence","disclosure","provenance","supersedes","payload"],
+  "type": "object"
+}

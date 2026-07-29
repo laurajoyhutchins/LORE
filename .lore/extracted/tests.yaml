@@ -1,0 +1,3 @@
+extractor: vitest-tests
+schema_version: 1
+tests: []

@@ -1,0 +1,26 @@
+disclosure:
+  audiences:
+  - maintainer
+  tags:
+  - bootstrap
+  - finding
+  weight: 90
+evidence:
+- path: docs/superpowers/specs/2026-07-28-lore-design.md
+  revision: f663e319ff85a24b2e67b29d55cf897785ce4dea
+id: finding.bootstrap-kernel-is-hand-authored
+kind: finding
+payload: {}
+provenance:
+  producer: human-reviewed
+  source: bootstrap
+  transaction: null
+revision: 1
+schema_version: 1
+scope:
+  components: []
+  repository: lore
+status: active
+summary: The initial trust root must be reviewed before self-hosting begins.
+supersedes: null
+title: Hand-authored kernel
