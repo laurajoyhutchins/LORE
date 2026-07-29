@@ -1,3 +1,100 @@
-import {readdir,readFile,lstat} from 'node:fs/promises';import path from 'node:path';import type {LoreManifest,SemanticRecord,ValidationResult} from '../domain/types.js';import {parseYamlDocument} from '../serialization/yaml.js';import {fail,ok} from '../domain/errors.js';
-async function walk(dir:string):Promise<string[]>{const out:string[]=[];for(const ent of await readdir(dir,{withFileTypes:true}).catch(()=>[])){const p=path.join(dir,ent.name);if(ent.isSymbolicLink())continue;if(ent.isDirectory())out.push(...await walk(p));else if(ent.isFile()&&p.endsWith('.yaml'))out.push(p);}return out;}
-export async function loadRecords(root:string,manifest:LoreManifest):Promise<ValidationResult<SemanticRecord[]>>{const base=path.join(root,manifest.paths.records);const files=(await walk(base)).sort();const records:SemanticRecord[]=[];const errors=[] as {code:string;message:string;location?:string}[];for(const file of files){const rel=path.relative(base,file).replace(/\\/g,'/');const m=/^(repository|component|relationship|decision|finding|constraint|procedure)\/([a-z0-9.-]+)\/(\d+)\.yaml$/.exec(rel);if(!m){errors.push({code:'INVALID_RECORD_PATH',message:`Invalid record path: ${rel}`,location:rel});continue}const stat=await lstat(file);if(stat.isSymbolicLink()){errors.push({code:'INVALID_RECORD_PATH',message:`Symlink record rejected: ${rel}`,location:rel});continue}const parsed=parseYamlDocument<SemanticRecord>(await readFile(file,'utf8'),rel);if(!parsed.ok){errors.push(...parsed.errors);continue}const r=parsed.value;if(r.kind!==m[1]||r.id!==m[2]||r.revision!==Number(m[3]))errors.push({code:'RECORD_PATH_MISMATCH',message:`Envelope does not match ${rel}`,location:rel});else records.push(r)}if(errors.length)return fail(...errors);records.sort((a,b)=>a.kind.localeCompare(b.kind)||a.id.localeCompare(b.id)||a.revision-b.revision);return ok(records);}
+import { lstat, readFile, readdir } from "node:fs/promises";
+import path from "node:path";
+import { fail, ok } from "../domain/errors.js";
+import type {
+  LoreManifest,
+  SemanticRecord,
+  ValidationProblem,
+  ValidationResult,
+} from "../domain/types.js";
+import { createSchemaRegistry } from "../schemas/schema-registry.js";
+import { parseYamlDocument } from "../serialization/yaml.js";
+
+interface WalkResult {
+  files: string[];
+  problems: ValidationProblem[];
+}
+
+async function walk(directory: string, base: string): Promise<WalkResult> {
+  const files: string[] = [];
+  const problems: ValidationProblem[] = [];
+  const entries = await readdir(directory, { withFileTypes: true }).catch(() => []);
+  for (const entry of entries) {
+    const candidate = path.join(directory, entry.name);
+    const relative = path.relative(base, candidate).replace(/\\/g, "/");
+    const stat = await lstat(candidate);
+    if (stat.isSymbolicLink()) {
+      problems.push({
+        code: "INVALID_RECORD_PATH",
+        message: `Symlink record path rejected: ${relative}`,
+        location: relative,
+      });
+    } else if (stat.isDirectory()) {
+      const nested = await walk(candidate, base);
+      files.push(...nested.files);
+      problems.push(...nested.problems);
+    } else if (stat.isFile()) {
+      files.push(candidate);
+    }
+  }
+  return { files, problems };
+}
+
+export async function loadRecords(
+  root: string,
+  manifest: LoreManifest,
+): Promise<ValidationResult<SemanticRecord[]>> {
+  const base = path.join(root, manifest.paths.records);
+  const walked = await walk(base, base);
+  const problems = [...walked.problems];
+  const records: SemanticRecord[] = [];
+  const registry = createSchemaRegistry(root);
+
+  for (const file of walked.files.sort()) {
+    const relative = path.relative(base, file).replace(/\\/g, "/");
+    const match = /^(repository|component|relationship|decision|finding|constraint|procedure)\/([a-z0-9]+(?:[.-][a-z0-9]+)*)\/(\d+)\.yaml$/.exec(relative);
+    if (!match) {
+      problems.push({
+        code: "INVALID_RECORD_PATH",
+        message: `Invalid record path: ${relative}`,
+        location: relative,
+      });
+      continue;
+    }
+
+    const parsed = parseYamlDocument<unknown>(await readFile(file, "utf8"), relative);
+    if (!parsed.ok) {
+      problems.push(...parsed.errors);
+      continue;
+    }
+    const validated = registry.validateWithSchema<SemanticRecord>("record", parsed.value);
+    if (!validated.ok) {
+      problems.push(...validated.errors.map((problem) => ({ ...problem, location: relative })));
+      continue;
+    }
+
+    const record = validated.value;
+    if (
+      record.kind !== match[1] ||
+      record.id !== match[2] ||
+      record.revision !== Number(match[3])
+    ) {
+      problems.push({
+        code: "RECORD_PATH_MISMATCH",
+        message: `Envelope does not match ${relative}`,
+        location: relative,
+      });
+      continue;
+    }
+    records.push(record);
+  }
+
+  if (problems.length > 0) return fail(...problems);
+  records.sort(
+    (left, right) =>
+      left.kind.localeCompare(right.kind) ||
+      left.id.localeCompare(right.id) ||
+      left.revision - right.revision,
+  );
+  return ok(records);
+}
