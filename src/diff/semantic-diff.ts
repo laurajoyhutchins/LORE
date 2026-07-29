@@ -1,9 +1,10 @@
 import { execFile } from "node:child_process";
-import { promisify } from "node:util";
 import path from "node:path";
+import { promisify } from "node:util";
 import { fail, ok } from "../domain/errors.js";
 import { recordReference } from "../domain/references.js";
 import type { SemanticRecord, ValidationResult } from "../domain/types.js";
+import { createGitClient } from "../git/git-client.js";
 import { parseYamlDocument } from "../serialization/yaml.js";
 
 const exec = promisify(execFile);
@@ -119,19 +120,35 @@ export async function semanticDiff(
   target: string,
 ): Promise<ValidationResult<SemanticDiff>> {
   try {
+    const git = createGitClient(root);
     const [baseSha, targetSha] = await Promise.all([
-      run(root, ["rev-parse", base]),
-      run(root, ["rev-parse", target]),
+      git.resolveCommit(base),
+      git.resolveCommit(target),
     ]);
     const [baseRecords, targetRecords] = await Promise.all([
       loadRecordsAt(root, baseSha),
       loadRecordsAt(root, targetSha),
     ]);
-    const repositoryId = "lore";
+    const [baseManifest, targetManifest] = await Promise.all([
+      readYamlAt<{ repository?: { id?: string } }>(root, baseSha, "lore.yaml", {}),
+      readYamlAt<{ repository?: { id?: string } }>(root, targetSha, "lore.yaml", {}),
+    ]);
+    const baseRepositoryId = baseManifest.repository?.id;
+    const targetRepositoryId = targetManifest.repository?.id;
+    if (
+      typeof baseRepositoryId !== "string" ||
+      typeof targetRepositoryId !== "string" ||
+      baseRepositoryId !== targetRepositoryId
+    ) {
+      throw new Error("Semantic diff revisions do not identify the same repository");
+    }
+    const repositoryId = targetRepositoryId;
     const baseReferences = new Set(baseRecords.map((record) => recordReference(repositoryId, record)));
     const addedRecords = targetRecords
       .filter((record) => !baseReferences.has(recordReference(repositoryId, record)))
-      .sort((left, right) => recordReference(repositoryId, left).localeCompare(recordReference(repositoryId, right)));
+      .sort((left, right) =>
+        recordReference(repositoryId, left).localeCompare(recordReference(repositoryId, right)),
+      );
 
     const baseComponents = await readYamlAt<{ components?: unknown[] }>(
       root,
@@ -186,13 +203,14 @@ export async function semanticDiff(
           removedReferences: difference(before, after),
         };
       })
-      .filter(({ addedReferences, removedReferences }) =>
-        addedReferences.length > 0 || removedReferences.length > 0,
+      .filter(
+        ({ addedReferences, removedReferences }) =>
+          addedReferences.length > 0 || removedReferences.length > 0,
       );
 
     return ok({
-      base: baseSha.toLowerCase(),
-      target: targetSha.toLowerCase(),
+      base: baseSha,
+      target: targetSha,
       records: {
         added: addedRecords.map((record) => recordReference(repositoryId, record)),
         superseded: addedRecords
