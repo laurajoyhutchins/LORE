@@ -47,15 +47,25 @@ export function createSchemaRegistry(root = process.cwd()): SchemaRegistry {
 
   const ajv = new Ajv2020({ allErrors: true, strict: true });
   addFormats(ajv);
-  const validators = new Map<string, ValidateFunction>();
+  const declaredIds = new Map<string, string>();
 
   for (const name of SCHEMA_NAMES) {
     const schemaPath = path.join(resolvedRoot, "schemas", `${name}.schema.json`);
     const schema = JSON.parse(readFileSync(schemaPath, "utf8")) as Record<string, unknown>;
-    const validator = ajv.compile(schema);
-    validators.set(name, validator);
+    ajv.addSchema(schema, name);
     const declaredId = schema.$id;
-    if (typeof declaredId === "string") validators.set(declaredId, validator);
+    if (typeof declaredId === "string") declaredIds.set(declaredId, name);
+  }
+
+  const validators = new Map<string, ValidateFunction>();
+  for (const name of SCHEMA_NAMES) {
+    const validator = ajv.getSchema(name);
+    if (!validator) throw new Error(`Schema did not compile: ${name}`);
+    validators.set(name, validator);
+  }
+  for (const [declaredId, name] of declaredIds) {
+    const validator = validators.get(name);
+    if (validator) validators.set(declaredId, validator);
   }
 
   const registry: SchemaRegistry = {
