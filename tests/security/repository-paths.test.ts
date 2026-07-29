@@ -22,12 +22,22 @@ async function temporaryDirectories() {
   return { parent, root, outside };
 }
 
-async function linkOrSkip(target: string, linkPath: string): Promise<boolean> {
+async function linkOrSkip(
+  target: string,
+  linkPath: string,
+  kind: "file" | "directory",
+): Promise<boolean> {
   try {
-    await symlink(target, linkPath, process.platform === "win32" ? "junction" : undefined);
+    await symlink(
+      target,
+      linkPath,
+      process.platform === "win32" ? (kind === "directory" ? "junction" : "file") : undefined,
+    );
     return true;
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "EPERM") return false;
+    if (["EPERM", "EACCES", "EINVAL"].includes((error as NodeJS.ErrnoException).code ?? "")) {
+      return false;
+    }
     throw error;
   }
 }
@@ -39,10 +49,20 @@ describe("repository filesystem containment", () => {
     expect(result.ok).toBe(false);
   });
 
+  it("rejects a symbolic-link repository root", async () => {
+    const { parent, root } = await temporaryDirectories();
+    await writeFile(path.join(root, "inside.txt"), "inside\n");
+    const linkedRoot = path.join(parent, "linked-repository");
+    if (!(await linkOrSkip(root, linkedRoot, "directory"))) return;
+
+    const result = await resolveExistingInsideRoot(linkedRoot, "inside.txt");
+    expect(result.ok).toBe(false);
+  });
+
   it("rejects an existing file reached through a symbolic-link directory", async () => {
     const { root, outside } = await temporaryDirectories();
     await writeFile(path.join(outside, "secret.yaml"), "secret: true\n");
-    if (!(await linkOrSkip(outside, path.join(root, "linked")))) return;
+    if (!(await linkOrSkip(outside, path.join(root, "linked"), "directory"))) return;
 
     const result = await resolveExistingInsideRoot(root, "linked/secret.yaml");
     expect(result.ok).toBe(false);
@@ -51,7 +71,7 @@ describe("repository filesystem containment", () => {
   it("rejects the same symbolic-link escape in synchronous schema reads", async () => {
     const { root, outside } = await temporaryDirectories();
     await writeFile(path.join(outside, "schema.json"), "{}\n");
-    if (!(await linkOrSkip(outside, path.join(root, "linked")))) return;
+    if (!(await linkOrSkip(outside, path.join(root, "linked"), "directory"))) return;
 
     const result = resolveExistingInsideRootSync(root, "linked/schema.json");
     expect(result.ok).toBe(false);
@@ -67,7 +87,7 @@ describe("repository filesystem containment", () => {
       expect(await readFile(safe.value, "utf8")).toBe("safe\n");
     }
 
-    if (!(await linkOrSkip(outside, path.join(root, "linked")))) return;
+    if (!(await linkOrSkip(outside, path.join(root, "linked"), "directory"))) return;
     const unsafe = await prepareWritePathInsideRoot(root, "linked/output.md");
     expect(unsafe.ok).toBe(false);
   });
@@ -75,7 +95,13 @@ describe("repository filesystem containment", () => {
   it("rejects a symlinked manifest before parsing it", async () => {
     const { root, outside } = await temporaryDirectories();
     await writeFile(path.join(outside, "lore.yaml"), "schema_version: 1\n");
-    if (!(await linkOrSkip(path.join(outside, "lore.yaml"), path.join(root, "lore.yaml")))) {
+    if (
+      !(await linkOrSkip(
+        path.join(outside, "lore.yaml"),
+        path.join(root, "lore.yaml"),
+        "file",
+      ))
+    ) {
       return;
     }
 
@@ -87,7 +113,13 @@ describe("repository filesystem containment", () => {
     const { root, outside } = await temporaryDirectories();
     await writeFile(path.join(root, "package.json"), '{"scripts":{}}\n');
     await writeFile(path.join(outside, "external.ts"), "export const secret = true;\n");
-    if (!(await linkOrSkip(path.join(outside, "external.ts"), path.join(root, "external.ts")))) {
+    if (
+      !(await linkOrSkip(
+        path.join(outside, "external.ts"),
+        path.join(root, "external.ts"),
+        "file",
+      ))
+    ) {
       return;
     }
 
