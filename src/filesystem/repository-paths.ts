@@ -114,7 +114,7 @@ export function resolveInsideRoot(
   const normalized = candidate.replace(/\\/g, "/");
   const resolved = path.resolve(rootPath, normalized);
   const relative = path.relative(rootPath, resolved);
-  if (relative.startsWith("..") || path.isAbsolute(relative)) {
+  if (relative === ".." || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
     return pathFailure(
       ERROR_CODES.PATH_OUTSIDE_ROOT,
       `Path escapes repository root: ${candidate}`,
@@ -165,20 +165,61 @@ export async function prepareDirectoryInsideRoot(
   root: string,
   candidate: string,
 ): Promise<ValidationResult<string>> {
-  const potential = await resolvePotentialInsideRoot(root, candidate);
-  if (!potential.ok) return potential;
+  const lexical = resolveInsideRoot(root, candidate);
+  if (!lexical.ok) return lexical;
 
-  try {
-    await mkdir(potential.value, { recursive: true });
-  } catch (error) {
-    return pathFailure(
-      "PATH_PREPARATION_FAILED",
-      error instanceof Error ? error.message : String(error),
-      candidate,
-    );
+  const rootPath = path.resolve(root);
+  const parts = relativeParts(rootPath, lexical.value);
+  if (parts.length === 0) return resolveExistingInsideRoot(root, candidate);
+
+  let current = rootPath;
+  for (const part of parts) {
+    current = path.join(current, part);
+    try {
+      const stat = await lstat(current);
+      if (stat.isSymbolicLink()) {
+        return pathFailure(
+          "SYMLINK_PATH_REJECTED",
+          `Symbolic links are not allowed in repository paths: ${candidate}`,
+          candidate,
+        );
+      }
+      if (!stat.isDirectory()) {
+        return pathFailure(
+          "PATH_PREPARATION_FAILED",
+          `A non-directory path component blocks ${candidate}`,
+          candidate,
+        );
+      }
+    } catch (error) {
+      if (!isMissing(error)) {
+        return pathFailure(
+          "PATH_PREPARATION_FAILED",
+          error instanceof Error ? error.message : String(error),
+          candidate,
+        );
+      }
+      try {
+        await mkdir(current);
+        const created = await lstat(current);
+        if (created.isSymbolicLink() || !created.isDirectory()) {
+          return pathFailure(
+            "PATH_PREPARATION_FAILED",
+            `Directory creation was not stable for ${candidate}`,
+            candidate,
+          );
+        }
+      } catch (creationError) {
+        return pathFailure(
+          "PATH_PREPARATION_FAILED",
+          creationError instanceof Error ? creationError.message : String(creationError),
+          candidate,
+        );
+      }
+    }
   }
 
-  return resolveExistingInsideRoot(root, candidate);
+  return ok(lexical.value);
 }
 
 export async function prepareWritePathInsideRoot(
