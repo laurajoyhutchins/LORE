@@ -10,6 +10,8 @@ The public repository should expose only product source, tests, schemas, public 
 
 ## Completed preparation
 
+- The owner approved Apache License 2.0 for LORE on July 29, 2026.
+- The complete Apache License 2.0 text is committed in `LICENSE`, `package.json` declares the SPDX identifier `Apache-2.0`, and contribution terms and generated public documentation reference the adopted license.
 - Public-facing README generated from LORE's projection source.
 - Repository description, homepage, issue URL, keywords, and source URL recorded in `package.json`.
 - Security boundary and private vulnerability-reporting process documented in `SECURITY.md`.
@@ -29,13 +31,7 @@ The public repository should expose only product source, tests, schemas, public 
 
 Do not change repository visibility until every blocking gate below is closed with evidence tied to the exact proposed public head.
 
-### 1. Adopt a license
-
-No project license is currently committed. Public visibility without a license permits viewing and forking through GitHub's platform terms but does not grant ordinary rights to use, modify, or redistribute the project.
-
-The owner must choose and approve the license. Apache License 2.0 is a strong default for infrastructure tooling because it includes an explicit patent grant; MIT is a simpler permissive alternative. The selected license must be committed before inviting external reuse or contributions.
-
-### 2. Commit the verified lockfile
+### 1. Commit the verified lockfile
 
 CI uses `pnpm install --frozen-lockfile`, but `pnpm-lock.yaml` is absent from the repository.
 
@@ -49,13 +45,13 @@ The exact lockfile must be committed, or a new lockfile must be generated and in
 
 The verified lockfile is retained in the private offline capsule. The available GitHub connector cannot copy a blob between repositories, and the current execution environment cannot reach the npm registry. The lockfile must therefore be promoted from a trusted local checkout or another environment capable of preserving and checking its exact bytes.
 
-### 3. Verify filesystem containment
+### 2. Verify filesystem containment
 
 Semantic record loading already rejects symbolic-link entries. Before publication, extend real-filesystem containment tests across the remaining repository read and write boundaries, including extraction, validation, hydration, proposal processing, projection, and transaction application.
 
 Path indirection must fail closed rather than read or mutate content outside the selected repository root. The tests must fail against any vulnerable behavior before containment changes are implemented, then pass together with the complete regression suite. Avoid publishing exploit-oriented reproduction details before the fix is merged.
 
-### 4. Regenerate LORE outputs
+### 3. Regenerate LORE outputs
 
 After source, package metadata, governance files, records, or projection templates change, regenerate deterministic extracted facts and generated projections. The exact proposed public head must pass:
 
@@ -71,7 +67,7 @@ git diff --exit-code
 
 Generated files must correspond byte-for-byte to their authoritative inputs.
 
-### 5. Run the exact-head release gate
+### 4. Run the exact-head release gate
 
 The final proposed public head must pass, from a clean checkout:
 
@@ -91,7 +87,7 @@ git diff --exit-code
 
 Record the exact commit SHA, Node version, Corepack version, pnpm version, test count, operating system, and whether network isolation was used. A result from a different commit is supporting evidence, not exact-head verification.
 
-### 6. Complete the disclosure and provenance review
+### 5. Complete the disclosure and provenance review
 
 Before visibility changes, review the complete reachable Git history and every current file for:
 
@@ -120,7 +116,7 @@ Immediately before or after the visibility change, confirm:
 
 ## Publication decision
 
-Visibility should change only after the owner records the selected license and an exact-head reviewer records one of these outcomes:
+The owner-approved license gate is closed. Visibility should change only after an exact-head reviewer records one of these outcomes:
 
 - `VERIFIED_PUBLICATION_READY`
 - `REMEDIATION_REQUIRED`
