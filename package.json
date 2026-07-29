@@ -35,6 +35,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lore": "tsx src/cli/main.ts",
+    "release:import-lock": "node scripts/import-verified-lockfile.mjs",
     "release:refresh": "node scripts/public-release-gate.mjs --refresh-generated",
     "release:verify": "node scripts/public-release-gate.mjs"
   },
