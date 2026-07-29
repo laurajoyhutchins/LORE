@@ -21,6 +21,9 @@ The public repository should expose only product source, tests, schemas, public 
 - The source fixes from the successful clean-room verification patch have been promoted into the publication branch.
 - YAML alias expansion remains bounded during document conversion.
 - Lint exceptions are limited to intentionally empty catch clauses rather than disabling the rule globally.
+- Private orchestration names were removed from the public source while retaining a provider-neutrality check for the included maintenance skill.
+- Existing pull-request discussion was reviewed and internal execution speculation was replaced with evidence-only wording.
+- An initial indexed search found no obvious credentials, private keys, personal machine paths, or private-orchestration names in the searched current content and commit messages. This is preliminary negative evidence, not a substitute for the final historical scan.
 
 ## Blocking gates
 
@@ -48,9 +51,9 @@ The verified lockfile is retained in the private offline capsule. The available 
 
 ### 3. Verify filesystem containment
 
-Before publication, add real-filesystem tests that exercise symbolic links and other path indirections at repository read and write boundaries. Extraction, validation, hydration, proposal processing, projection, and transaction application must fail closed rather than read or mutate content outside the selected repository root.
+Semantic record loading already rejects symbolic-link entries. Before publication, extend real-filesystem containment tests across the remaining repository read and write boundaries, including extraction, validation, hydration, proposal processing, projection, and transaction application.
 
-The tests must fail against the vulnerable behavior before containment changes are implemented, then pass together with the complete regression suite. Avoid publishing exploit-oriented reproduction details before the fix is merged.
+Path indirection must fail closed rather than read or mutate content outside the selected repository root. The tests must fail against any vulnerable behavior before containment changes are implemented, then pass together with the complete regression suite. Avoid publishing exploit-oriented reproduction details before the fix is merged.
 
 ### 4. Regenerate LORE outputs
 
@@ -88,7 +91,7 @@ git diff --exit-code
 
 Record the exact commit SHA, Node version, Corepack version, pnpm version, test count, operating system, and whether network isolation was used. A result from a different commit is supporting evidence, not exact-head verification.
 
-### 6. Review current files and reachable history for disclosure
+### 6. Complete the disclosure and provenance review
 
 Before visibility changes, review the complete reachable Git history and every current file for:
 
@@ -96,9 +99,9 @@ Before visibility changes, review the complete reachable Git history and every c
 - personal data, private correspondence, internal-only business information, or machine-specific paths;
 - copied third-party source, documentation, images, generated assets, or datasets without compatible redistribution rights;
 - private repository snapshots, package stores, runtime binaries, or execution artifacts;
-- public commit messages, issues, and pull requests that expose non-product internal operations.
+- pull-request, issue, and commit text that exposes non-product internal operations.
 
-Do not rely only on current-tree secret scanning. Making a private repository public exposes reachable historical commits and existing pull-request discussions.
+Run a historical secret scanner against every reachable ref from a trusted local clone. Review positive matches manually and rotate any exposed credential before publication. Do not rely only on current-tree code search. Making a private repository public exposes reachable historical commits and existing pull-request discussions.
 
 ## Repository settings at publication
 
