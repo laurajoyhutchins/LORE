@@ -1,7 +1,12 @@
-import { access, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { ERROR_CODES, fail, ok } from "../domain/errors.js";
-import { resolveInsideRoot } from "../filesystem/repository-paths.js";
+import {
+  prepareDirectoryInsideRoot,
+  prepareWritePathInsideRoot,
+  resolveExistingInsideRoot,
+  resolvePotentialInsideRoot,
+} from "../filesystem/repository-paths.js";
 import { createGitClient } from "../git/git-client.js";
 import { stableYaml } from "../serialization/yaml.js";
 import type {
@@ -18,39 +23,105 @@ interface BackupEntry {
   backupPath: string;
 }
 
-function containedPath(root: string, relativePath: string): ValidationResult<string> {
-  return resolveInsideRoot(root, relativePath.replace(/\\/g, "/"));
+function resultMessage(result: { ok: false; errors: Array<{ message: string }> }): string {
+  return result.errors.map(({ message }) => message).join("; ");
+}
+
+function repositoryRelative(root: string, absolutePath: string): string {
+  return path.relative(path.resolve(root), absolutePath).replace(/\\/g, "/");
+}
+
+async function normalizeTargets(
+  root: string,
+  targets: string[],
+): Promise<ValidationResult<string[]>> {
+  const normalized: string[] = [];
+  for (const target of targets) {
+    const resolved = await resolvePotentialInsideRoot(root, target);
+    if (!resolved.ok) return resolved;
+    normalized.push(repositoryRelative(root, resolved.value));
+  }
+
+  const sorted = [...normalized].sort();
+  for (let index = 0; index < sorted.length; index += 1) {
+    const current = sorted[index] as string;
+    const next = sorted[index + 1];
+    if (next !== undefined && (next === current || next.startsWith(`${current}/`))) {
+      return fail({
+        code: "TRANSACTION_TARGET_COLLISION",
+        message: `Transaction targets overlap: ${current} and ${next}`,
+      });
+    }
+  }
+
+  const reservedRoot = ".lore/.transaction-backup";
+  const reservedTarget = normalized.find(
+    (target) => target === reservedRoot || target.startsWith(`${reservedRoot}/`),
+  );
+  if (reservedTarget !== undefined) {
+    return fail({
+      code: "TRANSACTION_TARGET_RESERVED",
+      message: `Transaction target uses LORE's reserved backup namespace: ${reservedTarget}`,
+    });
+  }
+
+  return ok(normalized);
 }
 
 async function backupTarget(
   root: string,
-  backupRoot: string,
+  backupRootRelative: string,
   relativePath: string,
 ): Promise<BackupEntry> {
-  const resolved = containedPath(root, relativePath);
-  if (!resolved.ok) throw new Error(resolved.errors[0]?.message ?? "Unsafe transaction path");
-  const absolutePath = resolved.value;
-  const backupPath = path.join(backupRoot, relativePath);
-  try {
-    await access(absolutePath);
-    await mkdir(path.dirname(backupPath), { recursive: true });
-    await writeFile(backupPath, await readFile(absolutePath));
-    return { relativePath, absolutePath, existed: true, backupPath };
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
-    return { relativePath, absolutePath, existed: false, backupPath };
+  const potential = await resolvePotentialInsideRoot(root, relativePath);
+  if (!potential.ok) throw new Error(resultMessage(potential));
+
+  const normalizedTarget = repositoryRelative(root, potential.value);
+  const backupRelative = path.posix.join(backupRootRelative, normalizedTarget);
+  const existing = await resolveExistingInsideRoot(root, relativePath);
+  if (!existing.ok) {
+    if (existing.errors.every(({ code }) => code === "PATH_NOT_FOUND")) {
+      return {
+        relativePath,
+        absolutePath: potential.value,
+        existed: false,
+        backupPath: backupRelative,
+      };
+    }
+    throw new Error(resultMessage(existing));
+  }
+
+  const backup = await prepareWritePathInsideRoot(root, backupRelative);
+  if (!backup.ok) throw new Error(resultMessage(backup));
+  await writeFile(backup.value, await readFile(existing.value));
+  return {
+    relativePath,
+    absolutePath: existing.value,
+    existed: true,
+    backupPath: backupRelative,
+  };
+}
+
+async function restore(root: string, entries: BackupEntry[]): Promise<void> {
+  for (const entry of [...entries].reverse()) {
+    if (entry.existed) {
+      const target = await prepareWritePathInsideRoot(root, entry.relativePath);
+      if (!target.ok) throw new Error(resultMessage(target));
+      const backup = await resolveExistingInsideRoot(root, entry.backupPath);
+      if (!backup.ok) throw new Error(resultMessage(backup));
+      await writeFile(target.value, await readFile(backup.value));
+    } else {
+      const target = await resolvePotentialInsideRoot(root, entry.relativePath);
+      if (!target.ok) throw new Error(resultMessage(target));
+      await rm(target.value, { force: true });
+    }
   }
 }
 
-async function restore(entries: BackupEntry[]): Promise<void> {
-  for (const entry of [...entries].reverse()) {
-    if (entry.existed) {
-      await mkdir(path.dirname(entry.absolutePath), { recursive: true });
-      await writeFile(entry.absolutePath, await readFile(entry.backupPath));
-    } else {
-      await rm(entry.absolutePath, { force: true });
-    }
-  }
+async function removeBackup(root: string, backupRootRelative: string): Promise<void> {
+  const backupRoot = await resolvePotentialInsideRoot(root, backupRootRelative);
+  if (!backupRoot.ok) throw new Error(resultMessage(backupRoot));
+  await rm(backupRoot.value, { recursive: true, force: true });
 }
 
 export async function applyTransaction(
@@ -88,63 +159,59 @@ export async function applyTransaction(
     ...plan.generatedOutputs.keys(),
     receiptPath,
   ];
-  if (new Set(targets).size !== targets.length) {
-    return fail({
-      code: "TRANSACTION_TARGET_COLLISION",
-      message: "Transaction plan contains duplicate target paths",
-    });
-  }
+  const normalizedTargets = await normalizeTargets(root, targets);
+  if (!normalizedTargets.ok) return normalizedTargets;
 
-  const backupRoot = path.join(root, ".lore", ".transaction-backup", id);
+  const backupRootRelative = path.posix.join(".lore", ".transaction-backup", id);
+  const preparedBackupRoot = await prepareDirectoryInsideRoot(root, backupRootRelative);
+  if (!preparedBackupRoot.ok) return preparedBackupRoot;
   const backups: BackupEntry[] = [];
 
   try {
     for (const relativePath of targets) {
-      backups.push(await backupTarget(root, backupRoot, relativePath));
+      backups.push(await backupTarget(root, backupRootRelative, relativePath));
     }
 
     for (const item of plan.recordsToCreate) {
-      const resolved = containedPath(root, item.path);
-      if (!resolved.ok) throw new Error(resolved.errors[0]?.message);
-      await mkdir(path.dirname(resolved.value), { recursive: true });
-      await writeFile(resolved.value, stableYaml(item.record));
+      const target = await prepareWritePathInsideRoot(root, item.path);
+      if (!target.ok) throw new Error(resultMessage(target));
+      await writeFile(target.value, stableYaml(item.record));
     }
 
     for (const [relativePath, content] of plan.generatedOutputs) {
-      const resolved = containedPath(root, relativePath);
-      if (!resolved.ok) throw new Error(resolved.errors[0]?.message);
-      await mkdir(path.dirname(resolved.value), { recursive: true });
-      await writeFile(resolved.value, content);
+      const target = await prepareWritePathInsideRoot(root, relativePath);
+      if (!target.ok) throw new Error(resultMessage(target));
+      await writeFile(target.value, content);
     }
 
-    const resolvedReceipt = containedPath(root, receiptPath);
-    if (!resolvedReceipt.ok) throw new Error(resolvedReceipt.errors[0]?.message);
-    await mkdir(path.dirname(resolvedReceipt.value), { recursive: true });
+    const resolvedReceipt = await prepareWritePathInsideRoot(root, receiptPath);
+    if (!resolvedReceipt.ok) throw new Error(resultMessage(resolvedReceipt));
     await writeFile(resolvedReceipt.value, stableYaml(receipt));
 
     for (const item of plan.recordsToCreate) {
-      const resolved = containedPath(root, item.path);
+      const resolved = await resolveExistingInsideRoot(root, item.path);
       if (!resolved.ok || (await readFile(resolved.value, "utf8")) !== stableYaml(item.record)) {
         throw new Error(`Post-write verification failed for ${item.path}`);
       }
     }
     for (const [relativePath, expected] of plan.generatedOutputs) {
-      const resolved = containedPath(root, relativePath);
+      const resolved = await resolveExistingInsideRoot(root, relativePath);
       if (!resolved.ok || (await readFile(resolved.value, "utf8")) !== expected) {
         throw new Error(`Post-write verification failed for ${relativePath}`);
       }
     }
-    if ((await readFile(resolvedReceipt.value, "utf8")) !== stableYaml(receipt)) {
+    const verifiedReceipt = await resolveExistingInsideRoot(root, receiptPath);
+    if (!verifiedReceipt.ok || (await readFile(verifiedReceipt.value, "utf8")) !== stableYaml(receipt)) {
       throw new Error(`Post-write verification failed for ${receiptPath}`);
     }
 
-    await rm(backupRoot, { recursive: true, force: true });
+    await removeBackup(root, backupRootRelative);
     return ok(receipt);
   } catch (error) {
     try {
-      await restore(backups);
+      await restore(root, backups);
     } finally {
-      await rm(backupRoot, { recursive: true, force: true });
+      await removeBackup(root, backupRootRelative);
     }
     return fail({
       code: ERROR_CODES.TRANSACTION_ROLLED_BACK,

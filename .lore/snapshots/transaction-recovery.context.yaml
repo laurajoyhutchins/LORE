@@ -1,25 +1,379 @@
-evidence: []
+evidence:
+  - path: docs/superpowers/specs/2026-07-28-lore-design.md
+    revision: f663e319ff85a24b2e67b29d55cf897785ce4dea
+  - path: docs/superpowers/specs/2026-07-28-lore-design.md
+    revision: f663e319ff85a24b2e67b29d55cf897785ce4dea
+  - path: docs/superpowers/specs/2026-07-28-lore-design.md
+    revision: f663e319ff85a24b2e67b29d55cf897785ce4dea
+  - path: docs/superpowers/specs/2026-07-28-lore-design.md
+    revision: f663e319ff85a24b2e67b29d55cf897785ce4dea
+  - path: docs/superpowers/specs/2026-07-28-lore-design.md
+    revision: f663e319ff85a24b2e67b29d55cf897785ce4dea
+  - path: docs/superpowers/specs/2026-07-28-lore-design.md
+    revision: f663e319ff85a24b2e67b29d55cf897785ce4dea
+  - path: docs/superpowers/specs/2026-07-28-lore-design.md
+    revision: f663e319ff85a24b2e67b29d55cf897785ce4dea
+  - path: docs/superpowers/specs/2026-07-28-lore-design.md
+    revision: f663e319ff85a24b2e67b29d55cf897785ce4dea
+  - path: docs/superpowers/specs/2026-07-28-lore-design.md
+    revision: f663e319ff85a24b2e67b29d55cf897785ce4dea
+  - path: docs/superpowers/specs/2026-07-28-lore-design.md
+    revision: f663e319ff85a24b2e67b29d55cf897785ce4dea
 omitted_record_count: 0
-repository_revision: f663e319ff85a24b2e67b29d55cf897785ce4dea
+repository_revision: <repository-revision>
 schema_version: 1
-selected: []
+selected:
+  - reasons:
+      - component match
+      - "tag match: bootstrap"
+      - audience match
+      - record weight
+    record:
+      disclosure:
+        audiences:
+          - maintainer
+        tags:
+          - bootstrap
+          - component
+        weight: 90
+      evidence:
+        - path: docs/superpowers/specs/2026-07-28-lore-design.md
+          revision: f663e319ff85a24b2e67b29d55cf897785ce4dea
+      id: component.transactions
+      kind: component
+      payload: {}
+      provenance:
+        producer: human-reviewed
+        source: bootstrap
+        transaction: null
+      revision: 1
+      schema_version: 1
+      scope:
+        components: []
+        repository: lore
+      status: active
+      summary: Append-only proposal planning and transactional application.
+      supersedes: null
+      title: Transactions
+    reference: lore://lore/component/component.transactions@1
+    score: 84
+  - reasons:
+      - "tag match: bootstrap"
+      - audience match
+      - active decision
+      - record weight
+    record:
+      disclosure:
+        audiences:
+          - maintainer
+        tags:
+          - bootstrap
+          - decision
+        weight: 90
+      evidence:
+        - path: docs/superpowers/specs/2026-07-28-lore-design.md
+          revision: f663e319ff85a24b2e67b29d55cf897785ce4dea
+      id: decision.agent-neutral-maintainer-contract
+      kind: decision
+      payload: {}
+      provenance:
+        producer: human-reviewed
+        source: bootstrap
+        transaction: null
+      revision: 1
+      schema_version: 1
+      scope:
+        components: []
+        repository: lore
+      status: active
+      summary: Maintainers communicate through public context and proposal protocols.
+      supersedes: null
+      title: Agent-neutral maintainer contract
+    reference: lore://lore/decision/decision.agent-neutral-maintainer-contract@1
+    score: 54
+  - reasons:
+      - "tag match: bootstrap"
+      - audience match
+      - active decision
+      - record weight
+    record:
+      disclosure:
+        audiences:
+          - maintainer
+        tags:
+          - bootstrap
+          - decision
+        weight: 90
+      evidence:
+        - path: docs/superpowers/specs/2026-07-28-lore-design.md
+          revision: f663e319ff85a24b2e67b29d55cf897785ce4dea
+      id: decision.git-backed-storage
+      kind: decision
+      payload: {}
+      provenance:
+        producer: human-reviewed
+        source: bootstrap
+        transaction: null
+      revision: 1
+      schema_version: 1
+      scope:
+        components: []
+        repository: lore
+      status: active
+      summary: Git is the durable store for facts, records, transactions, and projections.
+      supersedes: null
+      title: Git-backed storage
+    reference: lore://lore/decision/decision.git-backed-storage@1
+    score: 54
+  - reasons:
+      - "tag match: bootstrap"
+      - audience match
+      - active finding
+      - record weight
+    record:
+      disclosure:
+        audiences:
+          - maintainer
+        tags:
+          - bootstrap
+          - finding
+        weight: 90
+      evidence:
+        - path: docs/superpowers/specs/2026-07-28-lore-design.md
+          revision: f663e319ff85a24b2e67b29d55cf897785ce4dea
+      id: finding.bootstrap-kernel-is-hand-authored
+      kind: finding
+      payload: {}
+      provenance:
+        producer: human-reviewed
+        source: bootstrap
+        transaction: null
+      revision: 1
+      schema_version: 1
+      scope:
+        components: []
+        repository: lore
+      status: active
+      summary: The initial trust root must be reviewed before self-hosting begins.
+      supersedes: null
+      title: Hand-authored kernel
+    reference: lore://lore/finding/finding.bootstrap-kernel-is-hand-authored@1
+    score: 54
+  - reasons:
+      - "tag match: bootstrap"
+      - audience match
+      - record weight
+    record:
+      disclosure:
+        audiences:
+          - maintainer
+        tags:
+          - bootstrap
+          - component
+        weight: 90
+      evidence:
+        - path: docs/superpowers/specs/2026-07-28-lore-design.md
+          revision: f663e319ff85a24b2e67b29d55cf897785ce4dea
+      id: component.cli
+      kind: component
+      payload: {}
+      provenance:
+        producer: human-reviewed
+        source: bootstrap
+        transaction: null
+      revision: 1
+      schema_version: 1
+      scope:
+        components: []
+        repository: lore
+      status: active
+      summary: Command dispatcher for LORE workflows.
+      supersedes: null
+      title: CLI
+    reference: lore://lore/component/component.cli@1
+    score: 44
+  - reasons:
+      - "tag match: bootstrap"
+      - audience match
+      - record weight
+    record:
+      disclosure:
+        audiences:
+          - maintainer
+        tags:
+          - bootstrap
+          - component
+        weight: 90
+      evidence:
+        - path: docs/superpowers/specs/2026-07-28-lore-design.md
+          revision: f663e319ff85a24b2e67b29d55cf897785ce4dea
+      id: component.extraction
+      kind: component
+      payload: {}
+      provenance:
+        producer: human-reviewed
+        source: bootstrap
+        transaction: null
+      revision: 1
+      schema_version: 1
+      scope:
+        components: []
+        repository: lore
+      status: active
+      summary: Deterministic repository fact extraction.
+      supersedes: null
+      title: Extraction
+    reference: lore://lore/component/component.extraction@1
+    score: 44
+  - reasons:
+      - "tag match: bootstrap"
+      - audience match
+      - record weight
+    record:
+      disclosure:
+        audiences:
+          - maintainer
+        tags:
+          - bootstrap
+          - component
+        weight: 90
+      evidence:
+        - path: docs/superpowers/specs/2026-07-28-lore-design.md
+          revision: f663e319ff85a24b2e67b29d55cf897785ce4dea
+      id: component.validation
+      kind: component
+      payload: {}
+      provenance:
+        producer: human-reviewed
+        source: bootstrap
+        transaction: null
+      revision: 1
+      schema_version: 1
+      scope:
+        components: []
+        repository: lore
+      status: active
+      summary: Repository, record, evidence, and schema validation.
+      supersedes: null
+      title: Validation
+    reference: lore://lore/component/component.validation@1
+    score: 44
+  - reasons:
+      - "tag match: bootstrap"
+      - audience match
+      - record weight
+    record:
+      disclosure:
+        audiences:
+          - maintainer
+        tags:
+          - bootstrap
+          - constraint
+        weight: 90
+      evidence:
+        - path: docs/superpowers/specs/2026-07-28-lore-design.md
+          revision: f663e319ff85a24b2e67b29d55cf897785ce4dea
+      id: constraint.no-agent-direct-mutation
+      kind: constraint
+      payload: {}
+      provenance:
+        producer: human-reviewed
+        source: bootstrap
+        transaction: null
+      revision: 1
+      schema_version: 1
+      scope:
+        components: []
+        repository: lore
+      status: active
+      summary: Maintainers cannot directly alter accepted history or generated outputs.
+      supersedes: null
+      title: No direct mutation
+    reference: lore://lore/constraint/constraint.no-agent-direct-mutation@1
+    score: 44
+  - reasons:
+      - "tag match: bootstrap"
+      - audience match
+      - record weight
+    record:
+      disclosure:
+        audiences:
+          - maintainer
+        tags:
+          - bootstrap
+          - procedure
+        weight: 90
+      evidence:
+        - path: docs/superpowers/specs/2026-07-28-lore-design.md
+          revision: f663e319ff85a24b2e67b29d55cf897785ce4dea
+      id: procedure.bootstrap-repository
+      kind: procedure
+      payload: {}
+      provenance:
+        producer: human-reviewed
+        source: bootstrap
+        transaction: null
+      revision: 1
+      schema_version: 1
+      scope:
+        components: []
+        repository: lore
+      status: active
+      summary: Use lore init, extract, validate, project, and verify-self.
+      supersedes: null
+      title: Bootstrap repository
+    reference: lore://lore/procedure/procedure.bootstrap-repository@1
+    score: 44
+  - reasons:
+      - "tag match: bootstrap"
+      - audience match
+      - record weight
+    record:
+      disclosure:
+        audiences:
+          - maintainer
+        tags:
+          - bootstrap
+          - repository
+        weight: 90
+      evidence:
+        - path: docs/superpowers/specs/2026-07-28-lore-design.md
+          revision: f663e319ff85a24b2e67b29d55cf897785ce4dea
+      id: repository.lore
+      kind: repository
+      payload: {}
+      provenance:
+        producer: human-reviewed
+        source: bootstrap
+        transaction: null
+      revision: 1
+      schema_version: 1
+      scope:
+        components: []
+        repository: lore
+      status: active
+      summary: Agent-neutral Git-backed repository documentation system.
+      supersedes: null
+      title: LORE
+    reference: lore://lore/repository/repository.lore@1
+    score: 44
 task:
   audiences:
-  - maintainer
+    - maintainer
   components:
-  - component.transactions
+    - component.transactions
   description: Explain rollback and append-only transaction behavior.
   history: false
   id: transaction-recovery
   paths:
-  - src/transactions/apply-transaction.ts
+    - src/transactions/apply-transaction.ts
   schema_version: 1
   tags:
-  - transaction
-  - recovery
-  - bootstrap
+    - transaction
+    - recovery
+    - bootstrap
   title: Document transaction recovery
 validation_commands:
-- lore validate
-- lore project --check
-- lore verify-self
+  - lore validate
+  - lore project --check
+  - lore verify-self

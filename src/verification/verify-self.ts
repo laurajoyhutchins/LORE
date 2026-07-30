@@ -7,7 +7,15 @@ import type {
   ValidationResult,
 } from "../domain/types.js";
 import { extractRepository } from "../extraction/extract.js";
-import { hydrateTask, hydrationMarkdown } from "../hydration/hydrate.js";
+import {
+  resolveExistingInsideRoot,
+  resolvePotentialInsideRoot,
+} from "../filesystem/repository-paths.js";
+import {
+  hydrateTask,
+  hydrationMarkdown,
+  normalizeHydrationPacketForSnapshot,
+} from "../hydration/hydrate.js";
 import { projectRepository } from "../projection/project.js";
 import { validateProposal } from "../proposals/validate-proposal.js";
 import { createSchemaRegistry } from "../schemas/schema-registry.js";
@@ -27,15 +35,53 @@ export interface SelfVerificationReport {
   determinism: "passed";
 }
 
-async function walkFiles(directory: string): Promise<string[]> {
-  const entries = await readdir(directory, { withFileTypes: true }).catch(() => []);
-  const files: string[] = [];
-  for (const entry of entries) {
-    const candidate = path.join(directory, entry.name);
-    if (entry.isDirectory()) files.push(...(await walkFiles(candidate)));
-    else if (entry.isFile()) files.push(candidate);
+async function readContained(
+  root: string,
+  candidate: string,
+): Promise<ValidationResult<string>> {
+  const resolved = await resolveExistingInsideRoot(root, candidate);
+  if (!resolved.ok) return resolved;
+  try {
+    return ok(await readFile(resolved.value, "utf8"));
+  } catch (error) {
+    return fail({
+      code: "PATH_NOT_READABLE",
+      message: error instanceof Error ? error.message : String(error),
+      location: candidate,
+    });
   }
-  return files.sort();
+}
+
+async function walkFiles(
+  root: string,
+  directory: string,
+): Promise<ValidationResult<string[]>> {
+  const safeDirectory = await resolvePotentialInsideRoot(root, directory);
+  if (!safeDirectory.ok) return safeDirectory;
+  const entries = await readdir(safeDirectory.value, { withFileTypes: true }).catch(() => []);
+  const files: string[] = [];
+  const problems: ValidationProblem[] = [];
+
+  for (const entry of entries) {
+    const relative = path.posix.join(directory.replace(/\\/g, "/"), entry.name);
+    if (entry.isSymbolicLink()) {
+      problems.push({
+        code: "SYMLINK_PATH_REJECTED",
+        message: `Symbolic links are not allowed during self-verification: ${relative}`,
+        location: relative,
+      });
+    } else if (entry.isDirectory()) {
+      const nested = await walkFiles(root, relative);
+      if (nested.ok) files.push(...nested.value);
+      else problems.push(...nested.errors);
+    } else if (entry.isFile()) {
+      const safeFile = await resolveExistingInsideRoot(root, relative);
+      if (safeFile.ok) files.push(relative);
+      else problems.push(...safeFile.errors);
+    }
+  }
+
+  return problems.length > 0 ? fail(...problems) : ok(files.sort());
 }
 
 function equalMaps(left: Map<string, string>, right: Map<string, string>): boolean {
@@ -48,7 +94,7 @@ export async function verifySelf(
   root: string,
 ): Promise<ValidationResult<SelfVerificationReport>> {
   const repositoryResult = await validateRepository(root);
-  if (!repositoryResult.ok) return repositoryResult as ValidationResult<SelfVerificationReport>;
+  if (!repositoryResult.ok) return repositoryResult;
   const repository = repositoryResult.value;
   const problems: ValidationProblem[] = [];
 
@@ -61,8 +107,9 @@ export async function verifySelf(
       problems.push({ code: "DETERMINISM_FAILED", message: "Two extraction runs differ" });
     }
     for (const [relativePath, expected] of extractionA.value.files) {
-      const actual = await readFile(path.join(root, relativePath), "utf8").catch(() => null);
-      if (actual !== expected) {
+      const actual = await readContained(root, relativePath);
+      if (!actual.ok) problems.push(...actual.errors);
+      else if (actual.value !== expected) {
         problems.push({
           code: "GENERATED_OUTPUT_STALE",
           message: `Stale extracted facts: ${relativePath}`,
@@ -81,8 +128,9 @@ export async function verifySelf(
       problems.push({ code: "DETERMINISM_FAILED", message: "Two projection runs differ" });
     }
     for (const [relativePath, expected] of projectionA.value) {
-      const actual = await readFile(path.join(root, relativePath), "utf8").catch(() => null);
-      if (actual !== expected) {
+      const actual = await readContained(root, relativePath);
+      if (!actual.ok) problems.push(...actual.errors);
+      else if (actual.value !== expected) {
         problems.push({
           code: "GENERATED_OUTPUT_STALE",
           message: `Stale projection: ${relativePath}`,
@@ -98,28 +146,34 @@ export async function verifySelf(
     "skills/maintain-repository-documentation/OUTPUTS.md",
     repository.manifest.maintenance.proposal_schema,
   ];
-  const forbidden = /\b(Seshat|cartridge|heartbeat|OpenAI|Anthropic|Claude|ChatGPT|Codex|Hatchable)\b/i;
+  const forbiddenProviderDependency = /\b(OpenAI|Anthropic|Claude|ChatGPT|Codex)\b/i;
   for (const relativePath of requiredSkillFiles) {
-    const text = await readFile(path.join(root, relativePath), "utf8").catch(() => null);
-    if (text === null) {
-      problems.push({ code: "SKILL_MISSING", message: `Missing ${relativePath}` });
-    } else if (forbidden.test(text)) {
+    const text = await readContained(root, relativePath);
+    if (!text.ok) {
+      problems.push(
+        ...text.errors.map((problem) => ({
+          ...problem,
+          code: problem.code === "PATH_NOT_FOUND" ? "SKILL_MISSING" : problem.code,
+        })),
+      );
+    } else if (forbiddenProviderDependency.test(text.value)) {
       problems.push({
         code: "SKILL_NOT_NEUTRAL",
-        message: `Provider or orchestration dependency found in ${relativePath}`,
+        message: `Provider dependency found in ${relativePath}`,
       });
     }
   }
 
-  const proposalFiles = (await walkFiles(path.join(root, repository.manifest.paths.proposals))).filter(
-    (file) => file.endsWith(".yaml") || file.endsWith(".yml"),
-  );
+  const proposalWalk = await walkFiles(root, repository.manifest.paths.proposals);
+  if (!proposalWalk.ok) problems.push(...proposalWalk.errors);
+  const proposalFiles = proposalWalk.ok
+    ? proposalWalk.value.filter((file) => file.endsWith(".yaml") || file.endsWith(".yml"))
+    : [];
   if (proposalFiles.length === 0) {
     problems.push({ code: "PROPOSAL_FIXTURE_MISSING", message: "No proposal fixtures found" });
   }
   for (const proposalFile of proposalFiles) {
-    const relative = path.relative(root, proposalFile).replace(/\\/g, "/");
-    const proposal = await validateProposal(root, relative, repository);
+    const proposal = await validateProposal(root, proposalFile, repository);
     if (!proposal.ok) problems.push(...proposal.errors);
   }
 
@@ -132,15 +186,22 @@ export async function verifySelf(
       message: error instanceof Error ? error.message : String(error),
     });
   }
-  const taskFiles = (await walkFiles(path.join(root, "fixtures", "tasks"))).filter(
-    (file) => file.endsWith(".yaml") || file.endsWith(".yml"),
-  );
+
+  const taskWalk = await walkFiles(root, "fixtures/tasks");
+  if (!taskWalk.ok) problems.push(...taskWalk.errors);
+  const taskFiles = taskWalk.ok
+    ? taskWalk.value.filter((file) => file.endsWith(".yaml") || file.endsWith(".yml"))
+    : [];
   if (taskFiles.length === 0) {
     problems.push({ code: "HYDRATION_FIXTURE_MISSING", message: "No hydration task fixtures found" });
   }
   for (const taskFile of taskFiles) {
-    const relative = path.relative(root, taskFile).replace(/\\/g, "/");
-    const parsed = parseYamlDocument<unknown>(await readFile(taskFile, "utf8"), relative);
+    const task = await readContained(root, taskFile);
+    if (!task.ok) {
+      problems.push(...task.errors);
+      continue;
+    }
+    const parsed = parseYamlDocument<unknown>(task.value, taskFile);
     if (!parsed.ok) {
       problems.push(...parsed.errors);
       continue;
@@ -150,14 +211,20 @@ export async function verifySelf(
       if (validated && !validated.ok) problems.push(...validated.errors);
       continue;
     }
-    const packet = hydrateTask(validated.value, repository);
+    const packet = normalizeHydrationPacketForSnapshot(
+      hydrateTask(validated.value, repository),
+    );
     const stem = path.basename(taskFile).replace(/\.ya?ml$/, "");
-    const yamlPath = path.join(root, ".lore", "snapshots", `${stem}.context.yaml`);
-    const markdownPath = path.join(root, ".lore", "snapshots", `${stem}.context.md`);
-    if ((await readFile(yamlPath, "utf8").catch(() => null)) !== stableYaml(packet)) {
+    const yamlPath = path.posix.join(".lore", "snapshots", `${stem}.context.yaml`);
+    const markdownPath = path.posix.join(".lore", "snapshots", `${stem}.context.md`);
+    const yamlSnapshot = await readContained(root, yamlPath);
+    if (!yamlSnapshot.ok) problems.push(...yamlSnapshot.errors);
+    else if (yamlSnapshot.value !== stableYaml(packet)) {
       problems.push({ code: "HYDRATION_SNAPSHOT_STALE", message: `Stale ${yamlPath}` });
     }
-    if ((await readFile(markdownPath, "utf8").catch(() => null)) !== hydrationMarkdown(packet)) {
+    const markdownSnapshot = await readContained(root, markdownPath);
+    if (!markdownSnapshot.ok) problems.push(...markdownSnapshot.errors);
+    else if (markdownSnapshot.value !== hydrationMarkdown(packet)) {
       problems.push({ code: "HYDRATION_SNAPSHOT_STALE", message: `Stale ${markdownPath}` });
     }
   }
@@ -170,12 +237,12 @@ export async function verifySelf(
           message: `Proposal record ${record.id}@${record.revision} has no transaction ID`,
         });
       } else {
-        const receiptPath = path.join(
-          root,
+        const receiptPath = path.posix.join(
           repository.manifest.paths.transactions,
           `${record.provenance.transaction}.yaml`,
         );
-        if ((await readFile(receiptPath, "utf8").catch(() => null)) === null) {
+        const receipt = await readContained(root, receiptPath);
+        if (!receipt.ok) {
           problems.push({
             code: "HISTORY_RECEIPT_MISSING",
             message: `Missing receipt for ${record.id}@${record.revision}`,

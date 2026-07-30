@@ -97,7 +97,7 @@ export async function planTransaction(
 
   const allRecords = [...repository.records, ...recordsToCreate.map(({ record }) => record)];
   const recordValidation = validateRecordSet(allRecords, repository.manifest.repository.id);
-  if (!recordValidation.ok) return recordValidation as ValidationResult<TransactionPlan>;
+  if (!recordValidation.ok) return recordValidation;
 
   const problems: ValidationProblem[] = [];
   const git = createGitClient(root);
@@ -120,7 +120,7 @@ export async function planTransaction(
     records: allRecords,
   };
   const outputs = await projectRepository(candidate);
-  if (!outputs.ok) return outputs as ValidationResult<TransactionPlan>;
+  if (!outputs.ok) return outputs;
 
   return ok({
     proposal,

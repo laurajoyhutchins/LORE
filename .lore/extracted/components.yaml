@@ -1,3 +1,176 @@
-components: []
+components:
+  - exports:
+      - CliIo
+      - runCli
+    path: src/cli/main.ts
+  - exports:
+      - COMMANDS
+      - HELP_TEXT
+      - LoreCommand
+      - isLoreCommand
+    path: src/cli/output.ts
+  - exports:
+      - loadManifest
+    path: src/config/load-manifest.ts
+  - exports:
+      - createMaintainerContext
+    path: src/context/create-context.ts
+  - exports:
+      - runDemo
+    path: src/demo/run-demo.ts
+  - exports:
+      - SemanticDiff
+      - semanticDiff
+    path: src/diff/semantic-diff.ts
+  - exports:
+      - ERROR_CODES
+      - LoreError
+      - fail
+      - ok
+    path: src/domain/errors.ts
+  - exports:
+      - ParsedRecordReference
+      - parseRecordReference
+      - recordReference
+    path: src/domain/references.ts
+  - exports:
+      - DemoReport
+      - EvidenceReference
+      - ExtractedFacts
+      - HydratedRecord
+      - HydrationPacket
+      - LoreMaintainerContext
+      - LoreManifest
+      - LoreProposal
+      - LoreTask
+      - ProjectionId
+      - ProposalOperation
+      - RecordExplanation
+      - RecordKind
+      - RecordStatus
+      - SemanticRecord
+      - TransactionPlan
+      - TransactionReceipt
+      - ValidatedRepository
+      - ValidationProblem
+      - ValidationResult
+    path: src/domain/types.ts
+  - exports:
+      - validateEvidence
+    path: src/evidence/validate-evidence.ts
+  - exports:
+      - explainRecord
+    path: src/explain/explain-record.ts
+  - exports:
+      - ExtractionResult
+      - extractRepository
+      - writeExtraction
+    path: src/extraction/extract.ts
+  - exports: []
+    path: src/extraction/package-scripts.ts
+  - exports: []
+    path: src/extraction/repository-metadata.ts
+  - exports: []
+    path: src/extraction/typescript-modules.ts
+  - exports: []
+    path: src/extraction/vitest-tests.ts
+  - exports:
+      - prepareDirectoryInsideRoot
+      - prepareWritePathInsideRoot
+      - resolveExistingInsideRoot
+      - resolveExistingInsideRootSync
+      - resolveInsideRoot
+      - resolvePotentialInsideRoot
+      - toPosix
+    path: src/filesystem/repository-paths.ts
+  - exports:
+      - GitClient
+      - createGitClient
+    path: src/git/git-client.ts
+  - exports:
+      - HYDRATION_SNAPSHOT_REVISION
+      - hydrateTask
+      - hydrationMarkdown
+      - normalizeHydrationPacketForSnapshot
+    path: src/hydration/hydrate.ts
+  - exports:
+      - scoreRecord
+    path: src/hydration/score.ts
+  - exports: []
+    path: src/index.ts
+  - exports:
+      - InitOptions
+      - initializeRepository
+    path: src/init/initialize.ts
+  - exports:
+      - GENERATED_MARKER
+    path: src/init/templates.ts
+  - exports:
+      - projectRepository
+    path: src/projection/project.ts
+  - exports:
+      - renderArchitecture
+      - renderCatalog
+      - renderDecisions
+      - renderGuide
+      - renderReadme
+      - renderRepositoryCard
+    path: src/projection/templates.ts
+  - exports:
+      - validateProposal
+    path: src/proposals/validate-proposal.ts
+  - exports:
+      - loadRecords
+    path: src/records/load-records.ts
+  - exports:
+      - deriveEffectiveStatuses
+      - validateRecordSet
+    path: src/records/validate-records.ts
+  - exports:
+      - SchemaRegistry
+      - createSchemaRegistry
+      - validateWithSchema
+    path: src/schemas/schema-registry.ts
+  - exports:
+      - parseYamlDocument
+      - stableYaml
+    path: src/serialization/yaml.ts
+  - exports:
+      - applyTransaction
+    path: src/transactions/apply-transaction.ts
+  - exports:
+      - planTransaction
+    path: src/transactions/plan-transaction.ts
+  - exports:
+      - createReceipt
+      - transactionId
+    path: src/transactions/receipt.ts
+  - exports:
+      - validateRepository
+    path: src/validation/validate-repository.ts
+  - exports:
+      - SelfVerificationReport
+      - verifySelf
+    path: src/verification/verify-self.ts
+  - exports: []
+    path: tests/invariants/remediation-contracts.test.ts
+  - exports: []
+    path: tests/security/git-client.test.ts
+  - exports: []
+    path: tests/security/repository-paths.test.ts
+  - exports: []
+    path: tests/unit/cli/main.test.ts
+  - exports: []
+    path: tests/unit/extraction/extract.test.ts
+  - exports: []
+    path: tests/unit/hydration/hydrate.test.ts
+  - exports: []
+    path: tests/unit/init/initialize.test.ts
+  - exports: []
+    path: tests/unit/projection/templates.test.ts
+  - exports: []
+    path: tests/unit/schemas/schema-registry.test.ts
+  - exports: []
+    path: vitest.config.ts
 extractor: typescript-modules
 schema_version: 1

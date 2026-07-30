@@ -2,6 +2,24 @@
   "name": "lore",
   "version": "0.0.0",
   "private": true,
+  "license": "Apache-2.0",
+  "description": "Agent-neutral, Git-backed repository evidence and documentation system.",
+  "keywords": [
+    "documentation",
+    "git",
+    "repository",
+    "provenance",
+    "architecture",
+    "agents"
+  ],
+  "homepage": "https://github.com/laurajoyhutchins/LORE#readme",
+  "bugs": {
+    "url": "https://github.com/laurajoyhutchins/LORE/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/laurajoyhutchins/LORE.git"
+  },
   "packageManager": "pnpm@10.14.0",
   "type": "module",
   "bin": {
@@ -16,7 +34,10 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lore": "tsx src/cli/main.ts"
+    "lore": "tsx src/cli/main.ts",
+    "release:refresh": "node scripts/public-release-gate.mjs --refresh-generated",
+    "release:verify": "node scripts/public-release-gate.mjs",
+    "release:restore-lock": "node scripts/restore-verified-lockfile.mjs"
   },
   "dependencies": {
     "ajv": "^8.17.1",

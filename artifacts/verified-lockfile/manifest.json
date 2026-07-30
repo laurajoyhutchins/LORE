@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "package_manager": "pnpm@10.14.0",
+  "output": "pnpm-lock.yaml",
+  "raw_bytes": 62769,
+  "sha256": "e5e1747bac45b623c375226759fce20857b50ee615926dce1aefd282104ee57d",
+  "git_blob": "7aec11b06bef06188262e0ca8ae44b8e35f158c9",
+  "compression": "concatenated-gzip-members",
+  "parts": [
+    {
+      "path": "part-000.gz",
+      "compressed_bytes": 3092,
+      "raw_bytes": 8000,
+      "sha256": "ad55e62c3463973292764c0e936bb3e76bfaf468ff17125df74feebdc185cbb3",
+      "git_blob": "96e908725f3d03f7ffb94c6e1a38863a10e2f22e"
+    },
+    {
+      "path": "part-001.gz",
+      "compressed_bytes": 3472,
+      "raw_bytes": 8000,
+      "sha256": "a9439b09336277be325a6268a4c5f9449e2fe2685ec2ac8e455957451faf3b1a",
+      "git_blob": "2ae94a1e3e9e3a98a12a52d413a9fe58da899a73"
+    },
+    {
+      "path": "part-002.gz",
+      "compressed_bytes": 3616,
+      "raw_bytes": 8000,
+      "sha256": "6ca345c3e4fdcc725f5d0a7d7497f8117946b72f33fe1b16d5cd01f375fe22f6",
+      "git_blob": "fcbb79acade7dbcf333faac986ee8fd4a61fd37f"
+    },
+    {
+      "path": "part-003.gz",
+      "compressed_bytes": 3971,
+      "raw_bytes": 8000,
+      "sha256": "f03b2364bbca6b6f86603c0c18edd9ee925861265b186aee053b47badefab02a",
+      "git_blob": "fa7d437950de865610f363fe5953cddc2a0f967f"
+    },
+    {
+      "path": "part-004.gz",
+      "compressed_bytes": 3995,
+      "raw_bytes": 8000,
+      "sha256": "8e7bafc3ccbcdcdd435b5b81accfe83ad2c4c29c6cff9f1882563f4ea098cb7f",
+      "git_blob": "6d0be6877e962440fb130fd223cecd11cb9b46b6"
+    },
+    {
+      "path": "part-005.gz",
+      "compressed_bytes": 2027,
+      "raw_bytes": 8000,
+      "sha256": "d5ea5ad3e628f64894f394da0f1d0273898bd92f73bcd0dc62f7d84ec34cdd2b",
+      "git_blob": "4ef11a97a83100d50140f011ccdb7e88d4eb6f6f"
+    },
+    {
+      "path": "part-006.gz",
+      "compressed_bytes": 1832,
+      "raw_bytes": 8000,
+      "sha256": "3bca348a976353b73e2b1fa8f5d16e6dc85694357b022a6c19f504bfbd6716ec",
+      "git_blob": "0ed3359d86aad96de523244b195eebc6a7c0fd02"
+    },
+    {
+      "path": "part-007.gz",
+      "compressed_bytes": 1764,
+      "raw_bytes": 6769,
+      "sha256": "66e0954bcaaa86a0fd69e7854c0c937dbcf34ed9439aceed00dc736775729715",
+      "git_blob": "46b9279424cc5521f37b594de903be8211885360"
+    }
+  ]
+}
