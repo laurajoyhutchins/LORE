@@ -20,6 +20,16 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lore-source-${{ github.sha }}
+          path: |
+            .
+            !.git/**
+            !node_modules/**
+            !dist/**
+          include-hidden-files: true
+          retention-days: 1
       - uses: actions/setup-node@v4
         with:
           node-version: 22
