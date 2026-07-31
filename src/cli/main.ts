@@ -25,6 +25,7 @@ import { hydrateTask } from "../hydration/hydrate.js";
 import { initializeRepository } from "../init/initialize.js";
 import { projectRepository } from "../projection/project.js";
 import { validateProposal } from "../proposals/validate-proposal.js";
+import { createVersionInfo } from "../release/metadata.js";
 import { createSchemaRegistry } from "../schemas/schema-registry.js";
 import { parseYamlDocument, stableYaml } from "../serialization/yaml.js";
 import { applyTransaction } from "../transactions/apply-transaction.js";
@@ -32,6 +33,7 @@ import { planTransaction } from "../transactions/plan-transaction.js";
 import { validateRepository } from "../validation/validate-repository.js";
 import { verifySelf } from "../verification/verify-self.js";
 import { HELP_TEXT, isLoreCommand } from "./output.js";
+import { formatVersion } from "./version.js";
 
 export interface CliIo {
   stdout(message: string): void;
@@ -161,6 +163,15 @@ export async function runCli(argv: string[], io: CliIo = DEFAULT_IO): Promise<nu
 
   const root = process.cwd();
   try {
+    if (command === "version") {
+      const args = requirePositionals(command, positionals, 0);
+      if (!args.ok) return printProblems(io, args);
+      io.stdout(
+        formatVersion(await createVersionInfo(), parsed.values.json === true),
+      );
+      return 0;
+    }
+
     if (command === "init") {
       const args = requirePositionals(command, positionals, 0);
       if (!args.ok) return printProblems(io, args);
