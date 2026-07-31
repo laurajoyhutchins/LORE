@@ -22,8 +22,8 @@ it("documents the installed CLI-only package", () => {
   expect(readme).toContain(
     "npm install --save-dev @laurajoyhutchins/lore",
   );
-  expect(readme).toContain("npm exec lore -- --help");
-  expect(readme).toContain("npm exec lore -- version --json");
+  expect(readme).toContain("npm exec -- lore --help");
+  expect(readme).toContain("npm exec -- lore version --json");
   expect(readme).toContain("CLI-only");
   expect(readme).toContain("## Source development");
   expect(readme).toContain("Corepack");
