@@ -18,6 +18,7 @@ describe("release workflow authority", () => {
     expect(text).not.toMatch(
       /\b(?:push|pull_request|workflow_dispatch|workflow_call):/u,
     );
+    expect(text).not.toContain("target_commitish");
     expect(text).not.toContain("NODE_AUTH_TOKEN");
     expect(text).not.toContain("NPM_TOKEN");
     expect(text).not.toContain("--provenance");
@@ -31,6 +32,7 @@ describe("release workflow authority", () => {
     expect(build).toContain("actions/checkout@v6");
     expect(build).toContain("actions/setup-node@v6");
     expect(build).toContain("actions/upload-artifact@v4");
+    expect(build).toContain("EVENT_SHA");
     expect(build).toContain(
       "node scripts/public-release-gate.mjs --skip-installed-package",
     );
