@@ -40,6 +40,9 @@ relationships:
     to: ../proposals/validate-proposal.js
     type: imports
   - from: src/cli/main.ts
+    to: ../release/metadata.js
+    type: imports
+  - from: src/cli/main.ts
     to: ../schemas/schema-registry.js
     type: imports
   - from: src/cli/main.ts
@@ -61,6 +64,9 @@ relationships:
     to: ./output.js
     type: imports
   - from: src/cli/main.ts
+    to: ./version.js
+    type: imports
+  - from: src/cli/main.ts
     to: node:fs/promises
     type: imports
   - from: src/cli/main.ts
@@ -68,6 +74,9 @@ relationships:
     type: imports
   - from: src/cli/main.ts
     to: node:util
+    type: imports
+  - from: src/cli/version.ts
+    to: ../release/metadata.js
     type: imports
   - from: src/config/load-manifest.ts
     to: ../domain/errors.js
@@ -306,6 +315,9 @@ relationships:
   - from: src/records/validate-records.ts
     to: ../domain/types.js
     type: imports
+  - from: src/release/metadata.ts
+    to: node:fs/promises
+    type: imports
   - from: src/schemas/schema-registry.ts
     to: ../domain/errors.js
     type: imports
@@ -474,6 +486,15 @@ relationships:
   - from: src/verification/verify-self.ts
     to: node:path
     type: imports
+  - from: tests/integration/package/build-layout.test.ts
+    to: node:child_process
+    type: imports
+  - from: tests/integration/package/build-layout.test.ts
+    to: node:fs/promises
+    type: imports
+  - from: tests/integration/package/build-layout.test.ts
+    to: vitest
+    type: imports
   - from: tests/invariants/remediation-contracts.test.ts
     to: ../../src/domain/types.js
     type: imports
@@ -592,6 +613,12 @@ relationships:
     to: node:path
     type: imports
   - from: tests/unit/init/initialize.test.ts
+    to: vitest
+    type: imports
+  - from: tests/unit/package/package-metadata.test.ts
+    to: node:fs/promises
+    type: imports
+  - from: tests/unit/package/package-metadata.test.ts
     to: vitest
     type: imports
   - from: tests/unit/projection/templates.test.ts
