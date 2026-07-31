@@ -1,4 +1,5 @@
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { describe, expect, it, vi } from "vitest";
 import {
   isCliEntryPoint,
@@ -72,9 +73,10 @@ describe("runCli", () => {
 
 it("detects the executable entrypoint through a platform-safe file URL", () => {
   const executablePath = path.resolve("dist/cli/main.js");
-  expect(isCliEntryPoint(executablePath, executablePath)).toBe(true);
-  expect(isCliEntryPoint(executablePath, undefined)).toBe(false);
-  expect(isCliEntryPoint(executablePath, path.resolve("dist/cli/other.js"))).toBe(
+  const moduleUrl = pathToFileURL(executablePath).href;
+  expect(isCliEntryPoint(moduleUrl, executablePath)).toBe(true);
+  expect(isCliEntryPoint(moduleUrl, undefined)).toBe(false);
+  expect(isCliEntryPoint(moduleUrl, path.resolve("dist/cli/other.js"))).toBe(
     false,
   );
 });
