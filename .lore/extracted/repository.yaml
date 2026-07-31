@@ -9,7 +9,7 @@ repository:
   package_manager: pnpm
 schema_version: 1
 scripts:
-  build: tsc -p tsconfig.build.json
+  build: tsc -p tsconfig.build.json && node scripts/prepare-package.mjs
   lint: eslint .
   lore: tsx src/cli/main.ts
   prepack: corepack pnpm build
