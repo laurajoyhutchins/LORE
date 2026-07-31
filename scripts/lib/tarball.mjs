@@ -10,10 +10,7 @@ function fail(code, detail) {
 function readTextField(header, offset, length) {
   const field = header.subarray(offset, offset + length);
   const nul = field.indexOf(0);
-  return field
-    .subarray(0, nul < 0 ? field.length : nul)
-    .toString("utf8")
-    .trimEnd();
+  return field.subarray(0, nul < 0 ? field.length : nul).toString("utf8");
 }
 
 function readOctalField(header, offset, length) {
@@ -27,6 +24,16 @@ function readOctalField(header, offset, length) {
   const value = Number.parseInt(raw, 8);
   if (!Number.isSafeInteger(value)) throw new Error(`TAR_OCTAL_INVALID: ${raw}`);
   return value;
+}
+
+function verifyHeaderChecksum(header) {
+  const stored = readOctalField(header, 148, 8);
+  const canonical = Buffer.from(header);
+  canonical.fill(0x20, 148, 156);
+  const computed = canonical.reduce((sum, byte) => sum + byte, 0);
+  if (stored !== computed) {
+    fail("TAR_CHECKSUM_INVALID", `expected ${stored}, computed ${computed}`);
+  }
 }
 
 function validatePath(name) {
@@ -83,6 +90,7 @@ export function readTarGzip(bytes) {
       return entries;
     }
 
+    verifyHeaderChecksum(header);
     const shortName = readTextField(header, 0, 100);
     const prefix = readTextField(header, 345, 155);
     const name = prefix === "" ? shortName : `${prefix}/${shortName}`;
