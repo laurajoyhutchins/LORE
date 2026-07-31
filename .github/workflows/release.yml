@@ -1,0 +1,202 @@
+name: Release CLI
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      RELEASE_TAG: ${{ github.event.release.tag_name }}
+      RELEASE_TARGET: ${{ github.event.release.target_commitish }}
+      RELEASE_PRERELEASE: ${{ github.event.release.prerelease }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22.14.0
+          package-manager-cache: false
+      - name: Verify release identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="$(node -p "JSON.parse(require('node:fs').readFileSync('package.json', 'utf8')).version")"
+          test "$RELEASE_TAG" = "v$VERSION"
+          HEAD_COMMIT="$(git rev-parse 'HEAD^{commit}')"
+          TAG_COMMIT="$(git rev-parse "${RELEASE_TAG}^{commit}")"
+          TARGET_COMMIT="$(git rev-parse "${RELEASE_TARGET}^{commit}" 2>/dev/null || git rev-parse "origin/${RELEASE_TARGET}^{commit}")"
+          test "$HEAD_COMMIT" = "$TAG_COMMIT"
+          test "$HEAD_COMMIT" = "$TARGET_COMMIT"
+          case "$VERSION" in
+            *-*) test "$RELEASE_PRERELEASE" = "true" ;;
+            *) test "$RELEASE_PRERELEASE" = "false" ;;
+          esac
+      - name: Verify source and installed artifact
+        run: node scripts/public-release-gate.mjs
+      - name: Build canonical package once
+        shell: bash
+        run: |
+          set -euo pipefail
+          corepack pnpm release:package -- \
+            --tag "$RELEASE_TAG" \
+            --commit "$(git rev-parse 'HEAD^{commit}')" \
+            --output release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: canonical-package
+          path: release/
+          if-no-files-found: error
+          retention-days: 7
+
+  smoke:
+    needs: build
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22.14.0
+          package-manager-cache: false
+      - name: Install trusted-publishing npm floor
+        run: npm install --global npm@11.5.1
+      - uses: actions/download-artifact@v4
+        with:
+          name: canonical-package
+          path: release
+      - name: Install and exercise exact tarball
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p reports
+          TARBALL="$(find release -maxdepth 1 -type f -name '*.tgz' -print -quit)"
+          test -n "$TARBALL"
+          corepack pnpm release:smoke -- \
+            --tarball "$TARBALL" \
+            --evidence release/release-evidence.json \
+            --mode all \
+            --report "reports/${{ runner.os }}.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: smoke-${{ matrix.os }}
+          path: reports/
+          if-no-files-found: error
+          retention-days: 7
+
+  bootstrap-attach:
+    if: ${{ github.event.release.prerelease == true }}
+    needs: smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22.14.0
+          package-manager-cache: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: canonical-package
+          path: release
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: smoke-*
+          path: reports
+          merge-multiple: true
+      - name: Finalize release evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/finalize-release-evidence.mjs \
+            --base release/release-evidence.json \
+            --reports reports \
+            --output release/release-evidence.final.json
+          mv release/release-evidence.final.json release/release-evidence.json
+      - name: Attach verified prerelease assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          node scripts/attach-release-assets.mjs
+          --directory release
+          --tag "${{ github.event.release.tag_name }}"
+
+  publish:
+    if: ${{ github.event.release.prerelease == false }}
+    needs: smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: npm
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22.14.0
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+      - name: Install trusted-publishing npm floor
+        run: npm install --global npm@11.5.1
+      - uses: actions/download-artifact@v4
+        with:
+          name: canonical-package
+          path: release
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: smoke-*
+          path: reports
+          merge-multiple: true
+      - name: Finalize release evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/finalize-release-evidence.mjs \
+            --base release/release-evidence.json \
+            --reports reports \
+            --output release/release-evidence.final.json
+          mv release/release-evidence.final.json release/release-evidence.json
+      - name: Publish exact tested tarball through OIDC
+        shell: bash
+        run: |
+          set -euo pipefail
+          TARBALL="$(find release -maxdepth 1 -type f -name '*.tgz' -print -quit)"
+          test -n "$TARBALL"
+          node scripts/publish-package.mjs \
+            --tarball "$TARBALL" \
+            --evidence release/release-evidence.json
+      - name: Attach verified stable release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          node scripts/attach-release-assets.mjs
+          --directory release
+          --tag "${{ github.event.release.tag_name }}"
