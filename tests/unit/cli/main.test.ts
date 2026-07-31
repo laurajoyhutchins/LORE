@@ -1,5 +1,10 @@
+import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
-import { runCli, type CliIo } from "../../../src/cli/main.js";
+import {
+  isCliEntryPoint,
+  runCli,
+  type CliIo,
+} from "../../../src/cli/main.js";
 
 describe("runCli", () => {
   it("prints stable help for --help", async () => {
@@ -63,4 +68,13 @@ describe("runCli", () => {
       expect.stringContaining("Unknown command: not-a-command"),
     );
   });
+});
+
+it("detects the executable entrypoint through a platform-safe file URL", () => {
+  const executablePath = path.resolve("dist/cli/main.js");
+  expect(isCliEntryPoint(executablePath, executablePath)).toBe(true);
+  expect(isCliEntryPoint(executablePath, undefined)).toBe(false);
+  expect(isCliEntryPoint(executablePath, path.resolve("dist/cli/other.js"))).toBe(
+    false,
+  );
 });
