@@ -1,12 +1,23 @@
 #!/usr/bin/env node
 
 import { spawnSync } from "node:child_process";
-import { access, mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import {
+  access,
+  mkdtemp,
+  mkdir,
+  readFile,
+  rm,
+  writeFile,
+} from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
-import { readTarGzip } from "./lib/tarball.mjs";
+import {
+  readTarGzip,
+  sha256Hex,
+  sha512Integrity,
+} from "./lib/tarball.mjs";
 
 const PACKAGE_NAME = "@laurajoyhutchins/lore";
 const PACKAGE_BIN = "./dist/cli/main.js";
@@ -87,6 +98,23 @@ export function packageIdentityFromTarballBytes(bytes) {
   return { name: parsed.name, version: parsed.version };
 }
 
+export function verifyArtifactEvidence(
+  tarballBytes,
+  tarballFilename,
+  identity,
+  evidence,
+) {
+  if (
+    evidence?.package?.name !== identity.name ||
+    evidence?.package?.version !== identity.version ||
+    evidence?.artifact?.filename !== tarballFilename ||
+    evidence?.artifact?.sha256 !== sha256Hex(tarballBytes) ||
+    evidence?.artifact?.integrity !== sha512Integrity(tarballBytes)
+  ) {
+    fail("SMOKE_ARTIFACT_EVIDENCE_MISMATCH");
+  }
+}
+
 export function createSmokeReport(platform, node, modes) {
   if (!new Set(["linux", "darwin", "win32"]).has(platform)) {
     fail("SMOKE_PLATFORM_UNSUPPORTED", platform);
@@ -113,7 +141,7 @@ function parseArguments(argv) {
     const flag = argv[index];
     const value = argv[index + 1];
     if (
-      !["--tarball", "--mode", "--report"].includes(flag) ||
+      !["--tarball", "--mode", "--report", "--evidence"].includes(flag) ||
       typeof value !== "string" ||
       value.startsWith("--") ||
       values.has(flag)
@@ -122,13 +150,20 @@ function parseArguments(argv) {
     }
     values.set(flag, value);
   }
-  if (values.size !== 3 || !MODES.has(values.get("--mode"))) {
+  if (
+    (values.size !== 3 && values.size !== 4) ||
+    !values.has("--tarball") ||
+    !values.has("--mode") ||
+    !values.has("--report") ||
+    !MODES.has(values.get("--mode"))
+  ) {
     fail("SMOKE_USAGE_INVALID");
   }
   return {
     tarball: values.get("--tarball"),
     mode: values.get("--mode"),
     report: values.get("--report"),
+    evidence: values.get("--evidence"),
   };
 }
 
@@ -307,12 +342,31 @@ async function smokeGlobal(tarballPath, identity, baseEnvironment, temporaryRoot
 }
 
 async function main() {
-  const { tarball, mode, report } = parseArguments(process.argv.slice(2));
+  const { tarball, mode, report, evidence } = parseArguments(
+    process.argv.slice(2),
+  );
   const tarballPath = path.resolve(tarball);
   const reportPath = path.resolve(report);
-  const identity = packageIdentityFromTarballBytes(await readFile(tarballPath));
-  const selectedModes =
-    mode === "all" ? ["local", "global"] : [mode];
+  const tarballBytes = await readFile(tarballPath);
+  const identity = packageIdentityFromTarballBytes(tarballBytes);
+  if (evidence !== undefined) {
+    let parsedEvidence;
+    try {
+      parsedEvidence = JSON.parse(await readFile(path.resolve(evidence), "utf8"));
+    } catch (error) {
+      fail(
+        "SMOKE_ARTIFACT_EVIDENCE_INVALID",
+        error instanceof Error ? error.message : String(error),
+      );
+    }
+    verifyArtifactEvidence(
+      tarballBytes,
+      path.basename(tarballPath),
+      identity,
+      parsedEvidence,
+    );
+  }
+  const selectedModes = mode === "all" ? ["local", "global"] : [mode];
   const temporaryRoot = await mkdtemp(path.join(os.tmpdir(), "lore-installed-smoke-"));
   const environment = sanitizedEnvironment();
   try {
@@ -337,7 +391,7 @@ async function main() {
 }
 
 const entryPath = process.argv[1]
-  ? fileURLToPath(new URL(import.meta.url)) === path.resolve(process.argv[1])
+  ? fileURLToPath(import.meta.url) === path.resolve(process.argv[1])
   : false;
 if (entryPath) {
   try {
