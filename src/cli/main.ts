@@ -2,6 +2,7 @@
 
 import { readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
 import { loadManifest } from "../config/load-manifest.js";
 import { createMaintainerContext } from "../context/create-context.js";
@@ -128,6 +129,15 @@ async function generatedMatches(
     return current;
   }
   return ok(current.value === expected);
+}
+
+export function isCliEntryPoint(
+  moduleUrl: string,
+  executablePath: string | undefined,
+): boolean {
+  return (
+    executablePath !== undefined && moduleUrl === pathToFileURL(executablePath).href
+  );
 }
 
 export async function runCli(argv: string[], io: CliIo = DEFAULT_IO): Promise<number> {
@@ -323,6 +333,6 @@ export async function runCli(argv: string[], io: CliIo = DEFAULT_IO): Promise<nu
   }
 }
 
-if (process.argv[1] && import.meta.url === new URL(process.argv[1], "file:").href) {
+if (isCliEntryPoint(import.meta.url, process.argv[1])) {
   process.exitCode = await runCli(process.argv.slice(2));
 }
