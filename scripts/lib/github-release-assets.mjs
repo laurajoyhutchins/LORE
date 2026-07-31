@@ -8,6 +8,13 @@ function fail(code, detail) {
   throw new Error(detail ? `${code}: ${detail}` : code);
 }
 
+function validateRepository(repository) {
+  if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/u.test(repository)) {
+    fail("GITHUB_REPOSITORY_INVALID", repository);
+  }
+  return repository;
+}
+
 function validateSha256(value) {
   if (typeof value !== "string" || !/^[0-9a-f]{64}$/u.test(value)) {
     fail("RELEASE_ASSET_SHA256_INVALID", String(value));
@@ -20,6 +27,14 @@ export function classifyReleaseAsset(expectedSha256, observedSha256) {
   if (observedSha256 === null) return "absent";
   validateSha256(observedSha256);
   return observedSha256 === expectedSha256 ? "matching" : "conflict";
+}
+
+export function releaseAssetEndpoint(repository, assetId) {
+  validateRepository(repository);
+  if (!Number.isSafeInteger(assetId) || assetId <= 0) {
+    fail("GITHUB_RELEASE_ASSET_INVALID", String(assetId));
+  }
+  return `repos/${repository}/releases/assets/${String(assetId)}`;
 }
 
 export async function readReleaseAssetInventory(directory) {
@@ -88,10 +103,11 @@ function runGh(args, { binary = false } = {}) {
 }
 
 export function readReleaseAssets(repository, tag) {
-  if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/u.test(repository)) {
-    fail("GITHUB_REPOSITORY_INVALID", repository);
-  }
-  if (typeof tag !== "string" || !/^v\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/u.test(tag)) {
+  validateRepository(repository);
+  if (
+    typeof tag !== "string" ||
+    !/^v\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/u.test(tag)
+  ) {
     fail("GITHUB_RELEASE_TAG_INVALID", String(tag));
   }
   let release;
@@ -112,20 +128,26 @@ export function readReleaseAssets(repository, tag) {
   for (const asset of release.assets) {
     if (
       typeof asset?.name !== "string" ||
-      typeof asset?.url !== "string" ||
+      !Number.isSafeInteger(asset?.id) ||
+      asset.id <= 0 ||
       assets.has(asset.name)
     ) {
       fail("GITHUB_RELEASE_RESPONSE_INVALID");
     }
-    assets.set(asset.name, { name: asset.name, url: asset.url });
+    assets.set(asset.name, {
+      name: asset.name,
+      endpoint: releaseAssetEndpoint(repository, asset.id),
+    });
   }
   return assets;
 }
 
 export function downloadReleaseAssetSha256(asset) {
-  if (typeof asset?.url !== "string") fail("GITHUB_RELEASE_ASSET_INVALID");
+  if (typeof asset?.endpoint !== "string") {
+    fail("GITHUB_RELEASE_ASSET_INVALID");
+  }
   const bytes = runGh(
-    ["api", asset.url, "-H", "Accept: application/octet-stream"],
+    ["api", asset.endpoint, "-H", "Accept: application/octet-stream"],
     { binary: true },
   );
   if (!Buffer.isBuffer(bytes) || bytes.length === 0) {
