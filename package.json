@@ -39,7 +39,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && node scripts/prepare-package.mjs",
     "prepack": "corepack pnpm build",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
