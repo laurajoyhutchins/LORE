@@ -14,9 +14,42 @@ describe("runCli", () => {
     expect(stdout).toHaveBeenCalledWith(
       expect.stringContaining("LORE Organizes Repository Evidence"),
     );
+    expect(stdout).toHaveBeenCalledWith(expect.stringContaining("version"));
     expect(stdout).toHaveBeenCalledWith(
       expect.stringContaining("verify-self"),
     );
+  });
+
+  it("reports the installed package outside a LORE repository", async () => {
+    const stdout = vi.fn();
+    const stderr = vi.fn();
+
+    expect(await runCli(["version"], { stdout, stderr })).toBe(0);
+    expect(stderr).not.toHaveBeenCalled();
+    expect(stdout).toHaveBeenCalledWith(
+      "@laurajoyhutchins/lore 0.0.0-bootstrap.0",
+    );
+  });
+
+  it("reports stable version JSON", async () => {
+    const stdout = vi.fn();
+
+    expect(
+      await runCli(["version", "--json"], { stdout, stderr: vi.fn() }),
+    ).toBe(0);
+    expect(JSON.parse(String(stdout.mock.calls[0]?.[0]))).toEqual({
+      name: "@laurajoyhutchins/lore",
+      version: "0.0.0-bootstrap.0",
+      node: process.versions.node,
+      schema_versions: {
+        manifest: 1,
+        record: 1,
+        proposal: 1,
+        task: 1,
+        hydration: 1,
+        transaction: 1,
+      },
+    });
   });
 
   it("returns usage failure for an unknown command", async () => {
