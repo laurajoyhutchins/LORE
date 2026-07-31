@@ -73,6 +73,9 @@ relationships:
     to: node:path
     type: imports
   - from: src/cli/main.ts
+    to: node:url
+    type: imports
+  - from: src/cli/main.ts
     to: node:util
     type: imports
   - from: src/cli/version.ts
@@ -569,6 +572,12 @@ relationships:
     type: imports
   - from: tests/unit/cli/main.test.ts
     to: ../../../src/cli/main.js
+    type: imports
+  - from: tests/unit/cli/main.test.ts
+    to: node:path
+    type: imports
+  - from: tests/unit/cli/main.test.ts
+    to: node:url
     type: imports
   - from: tests/unit/cli/main.test.ts
     to: vitest
