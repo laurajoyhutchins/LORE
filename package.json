@@ -48,7 +48,9 @@
     "lore": "tsx src/cli/main.ts",
     "release:refresh": "node scripts/public-release-gate.mjs --refresh-generated",
     "release:verify": "node scripts/public-release-gate.mjs",
-    "release:restore-lock": "node scripts/restore-verified-lockfile.mjs"
+    "release:restore-lock": "node scripts/restore-verified-lockfile.mjs",
+    "release:package": "node scripts/build-package-artifact.mjs",
+    "release:smoke": "node scripts/smoke-installed-package.mjs"
   },
   "dependencies": {
     "ajv": "^8.17.1",
