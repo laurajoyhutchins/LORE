@@ -31,8 +31,10 @@ describe("release workflow authority", () => {
     expect(build).toContain("actions/checkout@v6");
     expect(build).toContain("actions/setup-node@v6");
     expect(build).toContain("actions/upload-artifact@v4");
-    expect(build).toContain("node scripts/public-release-gate.mjs");
-    expect(build).toContain("release:package");
+    expect(build).toContain(
+      "node scripts/public-release-gate.mjs --skip-installed-package",
+    );
+    expect(build.match(/release:package/gu)).toHaveLength(1);
     expect(workflow.jobs.smoke.needs).toBe("build");
     expect(workflow.jobs.smoke.strategy.matrix.os).toEqual([
       "ubuntu-latest",
@@ -85,6 +87,7 @@ describe("ordinary CI authority", () => {
     expect(text).toContain("actions/checkout@v6");
     expect(text).toContain("actions/setup-node@v6");
     expect(text).toContain("node scripts/public-release-gate.mjs");
+    expect(text).not.toContain("--skip-installed-package");
     expect(text).not.toContain("actions/upload-artifact");
     expect(text).not.toContain("id-token: write");
     expect(text).not.toContain("npm publish");
