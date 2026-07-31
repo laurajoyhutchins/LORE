@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   classifyReleaseAsset,
   readReleaseAssetInventory,
+  releaseAssetEndpoint,
 } from "../../scripts/lib/github-release-assets.mjs";
 
 const SHA_A = "a".repeat(64);
@@ -33,6 +34,12 @@ describe("GitHub Release asset classification", () => {
   ])("rejects malformed %s SHA-256", (_name, expected, observed) => {
     expect(() => classifyReleaseAsset(expected, observed)).toThrow(
       "RELEASE_ASSET_SHA256_INVALID",
+    );
+  });
+
+  it("builds a repository-scoped asset endpoint", () => {
+    expect(releaseAssetEndpoint("laurajoyhutchins/LORE", 12345)).toBe(
+      "repos/laurajoyhutchins/LORE/releases/assets/12345",
     );
   });
 });
