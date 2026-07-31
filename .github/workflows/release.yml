@@ -19,6 +19,7 @@ jobs:
       RELEASE_TAG: ${{ github.event.release.tag_name }}
       RELEASE_PRERELEASE: ${{ github.event.release.prerelease }}
       EVENT_SHA: ${{ github.sha }}
+      REPOSITORY_PRIVATE: ${{ github.event.repository.private }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -39,6 +40,7 @@ jobs:
           TAG_COMMIT="$(git rev-parse "${RELEASE_TAG}^{commit}")"
           test "$HEAD_COMMIT" = "$TAG_COMMIT"
           test "$HEAD_COMMIT" = "$EVENT_SHA"
+          test "$REPOSITORY_PRIVATE" = "false"
           case "$VERSION" in
             *-*) test "$RELEASE_PRERELEASE" = "true" ;;
             *) test "$RELEASE_PRERELEASE" = "false" ;;
