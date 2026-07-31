@@ -17,8 +17,8 @@ jobs:
     timeout-minutes: 30
     env:
       RELEASE_TAG: ${{ github.event.release.tag_name }}
-      RELEASE_TARGET: ${{ github.event.release.target_commitish }}
       RELEASE_PRERELEASE: ${{ github.event.release.prerelease }}
+      EVENT_SHA: ${{ github.sha }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -37,9 +37,8 @@ jobs:
           test "$RELEASE_TAG" = "v$VERSION"
           HEAD_COMMIT="$(git rev-parse 'HEAD^{commit}')"
           TAG_COMMIT="$(git rev-parse "${RELEASE_TAG}^{commit}")"
-          TARGET_COMMIT="$(git rev-parse "${RELEASE_TARGET}^{commit}" 2>/dev/null || git rev-parse "origin/${RELEASE_TARGET}^{commit}")"
           test "$HEAD_COMMIT" = "$TAG_COMMIT"
-          test "$HEAD_COMMIT" = "$TARGET_COMMIT"
+          test "$HEAD_COMMIT" = "$EVENT_SHA"
           case "$VERSION" in
             *-*) test "$RELEASE_PRERELEASE" = "true" ;;
             *) test "$RELEASE_PRERELEASE" = "false" ;;
