@@ -15,22 +15,14 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - uses: actions/upload-artifact@v4
+          persist-credentials: false
+      - uses: actions/setup-node@v6
         with:
-          name: lore-source-${{ github.sha }}
-          path: |
-            .
-            !.git/**
-            !node_modules/**
-            !dist/**
-          include-hidden-files: true
-          retention-days: 1
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
+          node-version: 22.14.0
+          package-manager-cache: false
       - run: node scripts/public-release-gate.mjs
