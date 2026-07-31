@@ -29,17 +29,17 @@ Install LORE as a development dependency in the repository it will maintain:
 
 ```bash
 npm install --save-dev @laurajoyhutchins/lore
-npm exec lore -- --help
-npm exec lore -- version --json
+npm exec -- lore --help
+npm exec -- lore version --json
 ```
 
 Initialize a Git repository with LORE's trust root, schemas, and maintainer skill:
 
 ```bash
-npm exec lore -- init --id example-repository --name "Example Repository"
-npm exec lore -- extract
-npm exec lore -- validate
-npm exec lore -- project
+npm exec -- lore init --id example-repository --name "Example Repository"
+npm exec -- lore extract
+npm exec -- lore validate
+npm exec -- lore project
 ```
 
 The npm package is **CLI-only**. Internal TypeScript modules, generated declaration shapes, and source paths are not supported library APIs. Use the documented `lore` commands and their documented machine-readable output.
@@ -56,7 +56,7 @@ The npm package is **CLI-only**. Internal TypeScript modules, generated declarat
 8. `lore diff` and `lore explain` describe semantic history.
 9. `lore verify-self` checks that LORE's own trust root, facts, records, projections, history, and deterministic outputs remain coherent.
 
-Run `npm exec lore -- --help` for the command list. LORE is self-hosting: this README and the files under `docs/generated/` are projections produced by LORE itself.
+Run `npm exec -- lore --help` for the command list. LORE is self-hosting: this README and the files under `docs/generated/` are projections produced by LORE itself.
 
 ## Source development
 
