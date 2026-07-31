@@ -1,6 +1,7 @@
 components:
   - exports:
       - CliIo
+      - isCliEntryPoint
       - runCli
     path: src/cli/main.ts
   - exports:
