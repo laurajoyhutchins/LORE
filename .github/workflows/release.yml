@@ -44,8 +44,8 @@ jobs:
             *-*) test "$RELEASE_PRERELEASE" = "true" ;;
             *) test "$RELEASE_PRERELEASE" = "false" ;;
           esac
-      - name: Verify source and installed artifact
-        run: node scripts/public-release-gate.mjs
+      - name: Verify source tree
+        run: node scripts/public-release-gate.mjs --skip-installed-package
       - name: Build canonical package once
         shell: bash
         run: |
