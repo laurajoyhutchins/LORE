@@ -60,6 +60,14 @@ export function localExecutable(consumerRoot, platform = process.platform) {
   );
 }
 
+export function npmExecutable(platform = process.platform) {
+  return platform === "win32" ? "npm.cmd" : "npm";
+}
+
+export function gitExecutable() {
+  return "git";
+}
+
 export function sanitizedEnvironment(environment = process.env) {
   return Object.fromEntries(
     Object.entries(environment).filter(
@@ -167,10 +175,6 @@ function parseArguments(argv) {
   };
 }
 
-function executable(name) {
-  return process.platform === "win32" ? `${name}.cmd` : name;
-}
-
 function run(command, args, { cwd, env, capture = true } = {}) {
   const result = spawnSync(command, args, {
     cwd,
@@ -234,13 +238,14 @@ async function verifyInitializedPaths(repositoryRoot) {
 async function exerciseRepository(launcher, environment, parentDirectory) {
   const repositoryRoot = path.join(parentDirectory, "repository");
   await mkdir(repositoryRoot, { recursive: true });
-  run(executable("git"), ["init"], { cwd: repositoryRoot, env: environment });
-  run(executable("git"), ["config", "user.name", "LORE Installation Test"], {
+  const git = gitExecutable();
+  run(git, ["init"], { cwd: repositoryRoot, env: environment });
+  run(git, ["config", "user.name", "LORE Installation Test"], {
     cwd: repositoryRoot,
     env: environment,
   });
   run(
-    executable("git"),
+    git,
     ["config", "user.email", "lore-installation-test@example.invalid"],
     { cwd: repositoryRoot, env: environment },
   );
@@ -259,16 +264,16 @@ async function exerciseRepository(launcher, environment, parentDirectory) {
   ]) {
     run(launcher, args, { cwd: repositoryRoot, env: environment });
   }
-  run(executable("git"), ["add", "."], {
+  run(git, ["add", "."], {
     cwd: repositoryRoot,
     env: environment,
   });
   run(
-    executable("git"),
+    git,
     ["commit", "-m", "Initialize LORE smoke repository"],
     { cwd: repositoryRoot, env: environment },
   );
-  const status = run(executable("git"), ["status", "--porcelain=v1"], {
+  const status = run(git, ["status", "--porcelain=v1"], {
     cwd: repositoryRoot,
     env: environment,
   });
@@ -278,7 +283,7 @@ async function exerciseRepository(launcher, environment, parentDirectory) {
 async function smokeLocal(tarballPath, identity, baseEnvironment, temporaryRoot) {
   const consumerRoot = path.join(temporaryRoot, "local-consumer");
   await mkdir(consumerRoot, { recursive: true });
-  const npm = executable("npm");
+  const npm = npmExecutable();
   run(npm, ["init", "--yes"], {
     cwd: consumerRoot,
     env: baseEnvironment,
@@ -313,7 +318,7 @@ async function smokeLocal(tarballPath, identity, baseEnvironment, temporaryRoot)
 async function smokeGlobal(tarballPath, identity, baseEnvironment, temporaryRoot) {
   const prefix = path.join(temporaryRoot, "global-prefix");
   await mkdir(prefix, { recursive: true });
-  const npm = executable("npm");
+  const npm = npmExecutable();
   run(npm, ["install", "--global", "--prefix", prefix, tarballPath], {
     cwd: temporaryRoot,
     env: baseEnvironment,
