@@ -13,6 +13,7 @@ import {
 
 const refreshGenerated = process.argv.includes("--refresh-generated");
 const skipInstall = process.argv.includes("--skip-install");
+const skipInstalledPackage = process.argv.includes("--skip-installed-package");
 const pnpmExecutable = process.env.LORE_PNPM_EXECUTABLE;
 const offlineStore = process.env.LORE_PNPM_OFFLINE_STORE;
 let restoredLockfile;
@@ -262,7 +263,7 @@ function main() {
   pnpm(["lint"]);
   pnpm(["test"]);
   pnpm(["build"]);
-  verifyInstalledPackage(head);
+  if (!skipInstalledPackage) verifyInstalledPackage(head);
   pnpm(["lore", "extract", "--check"]);
   pnpm(["lore", "validate"]);
   pnpm(["lore", "project", "--check"]);
