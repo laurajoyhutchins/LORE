@@ -5,8 +5,8 @@ import {
   publicationEnvironment,
 } from "../../scripts/lib/npm-registry.mjs";
 
-const INTEGRITY_A = `sha512-${Buffer.from("artifact-a").toString("base64")}`;
-const INTEGRITY_B = `sha512-${Buffer.from("artifact-b").toString("base64")}`;
+const INTEGRITY_A = `sha512-${Buffer.alloc(64, 0x41).toString("base64")}`;
+const INTEGRITY_B = `sha512-${Buffer.alloc(64, 0x42).toString("base64")}`;
 
 describe("npm immutable version classification", () => {
   it("classifies absent, matching, and conflicting versions", () => {
@@ -21,6 +21,7 @@ describe("npm immutable version classification", () => {
 
   it.each([
     ["expected", "sha512-not base64", null],
+    ["expected", `sha512-${Buffer.alloc(63).toString("base64")}`, null],
     ["observed", INTEGRITY_A, "sha1-QUFBQQ=="],
     ["observed", INTEGRITY_A, "sha512-***"],
   ])("rejects malformed %s integrity", (_name, expected, observed) => {
@@ -32,12 +33,12 @@ describe("npm immutable version classification", () => {
 
 describe("npm view parsing", () => {
   it("parses the JSON string returned by npm view", () => {
-    expect(parsePublishedIntegrityOutput(`${JSON.stringify(INTEGRITY_A)}\n`)).toBe(
-      INTEGRITY_A,
-    );
+    expect(
+      parsePublishedIntegrityOutput(`${JSON.stringify(INTEGRITY_A)}\n`),
+    ).toBe(INTEGRITY_A);
   });
 
-  it.each(["", "null", "{}", "[]", '"sha1-QUFBQQ=="']) (
+  it.each(["", "null", "{}", "[]", '"sha1-QUFBQQ=="'])(
     "rejects invalid npm view output %s",
     (output) => {
       expect(() => parsePublishedIntegrityOutput(output)).toThrow(
