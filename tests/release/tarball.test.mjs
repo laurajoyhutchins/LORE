@@ -21,6 +21,17 @@ function writeOctal(buffer, offset, length, value) {
   );
 }
 
+function writeChecksum(header) {
+  header.fill(0x20, 148, 156);
+  const checksum = header.reduce((sum, byte) => sum + byte, 0);
+  writeString(
+    header,
+    148,
+    8,
+    `${checksum.toString(8).padStart(6, "0")}\0 `,
+  );
+}
+
 function makeHeader({ name, mode = 0o644, size, type = "0" }) {
   const header = Buffer.alloc(BLOCK);
   let fileName = name;
@@ -36,18 +47,11 @@ function makeHeader({ name, mode = 0o644, size, type = "0" }) {
   writeOctal(header, 116, 8, 0);
   writeOctal(header, 124, 12, size);
   writeOctal(header, 136, 12, 0);
-  header.fill(0x20, 148, 156);
   writeString(header, 156, 1, type);
   writeString(header, 257, 6, "ustar\0");
   writeString(header, 263, 2, "00");
   writeString(header, 345, 155, prefix);
-  const checksum = header.reduce((sum, byte) => sum + byte, 0);
-  writeString(
-    header,
-    148,
-    8,
-    `${checksum.toString(8).padStart(6, "0")}\0 `,
-  );
+  writeChecksum(header);
   return header;
 }
 
@@ -84,6 +88,7 @@ function makeInvalidOctalArchive() {
     makeTarGzip([{ name: "package/file.txt", content: "x" }]),
   );
   tar[124] = "9".charCodeAt(0);
+  writeChecksum(tar.subarray(0, BLOCK));
   return gzipSync(tar);
 }
 
