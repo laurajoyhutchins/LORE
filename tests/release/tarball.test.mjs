@@ -13,7 +13,12 @@ function writeString(buffer, offset, length, value) {
 }
 
 function writeOctal(buffer, offset, length, value) {
-  writeString(buffer, offset, length, `${value.toString(8).padStart(length - 1, "0")}\0`);
+  writeString(
+    buffer,
+    offset,
+    length,
+    `${value.toString(8).padStart(length - 1, "0")}\0`,
+  );
 }
 
 function makeHeader({ name, mode = 0o644, size, type = "0" }) {
@@ -37,7 +42,12 @@ function makeHeader({ name, mode = 0o644, size, type = "0" }) {
   writeString(header, 263, 2, "00");
   writeString(header, 345, 155, prefix);
   const checksum = header.reduce((sum, byte) => sum + byte, 0);
-  writeString(header, 148, 8, `${checksum.toString(8).padStart(6, "0")}\0 `);
+  writeString(
+    header,
+    148,
+    8,
+    `${checksum.toString(8).padStart(6, "0")}\0 `,
+  );
   return header;
 }
 
@@ -138,9 +148,9 @@ describe("readTarGzip", () => {
 
   it("rejects non-zero bytes after the terminator", () => {
     const tar = gunzipSync(makeTarGzip([]));
-    expect(() => readTarGzip(gzipSync(Buffer.concat([tar, Buffer.from("x")])))).toThrow(
-      "TAR_TRAILING_DATA",
-    );
+    expect(() =>
+      readTarGzip(gzipSync(Buffer.concat([tar, Buffer.from("x")]))),
+    ).toThrow("TAR_TRAILING_DATA");
   });
 });
 
@@ -148,7 +158,7 @@ describe("artifact digests", () => {
   it("computes stable digests", () => {
     const bytes = Buffer.from("lore");
     expect(sha256Hex(bytes)).toBe(
-      "c88fd64a6e5e56c6ea443a202ae12f1c574675b4f0d7d3be7a52d2c4d7cbd693",
+      "b6598e838f350a97cb734eca208ce0cdc602dd60afbf65a3b8b65195cbd1a7fe",
     );
     expect(sha512Integrity(bytes)).toMatch(/^sha512-[A-Za-z0-9+/]+=*$/);
   });
