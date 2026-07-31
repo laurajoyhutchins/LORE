@@ -87,6 +87,14 @@ function makeInvalidOctalArchive() {
   return gzipSync(tar);
 }
 
+function makeChecksumMismatchArchive() {
+  const tar = gunzipSync(
+    makeTarGzip([{ name: "package/file.txt", content: "x" }]),
+  );
+  tar[101] = "7".charCodeAt(0);
+  return gzipSync(tar);
+}
+
 describe("readTarGzip", () => {
   it("preserves exact entry bytes and modes", () => {
     const archive = makeTarGzip([
@@ -115,6 +123,11 @@ describe("readTarGzip", () => {
   it.each([
     ["truncated body", makeTruncatedArchive(), "TAR_ENTRY_TRUNCATED"],
     ["invalid octal", makeInvalidOctalArchive(), "TAR_OCTAL_INVALID"],
+    [
+      "checksum mismatch",
+      makeChecksumMismatchArchive(),
+      "TAR_CHECKSUM_INVALID",
+    ],
     [
       "parent path",
       makeTarGzip([{ name: "package/../escape", content: "x" }]),
