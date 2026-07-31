@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { gzipSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
 import {
@@ -7,6 +8,7 @@ import {
   localExecutable,
   packageIdentityFromTarballBytes,
   sanitizedEnvironment,
+  verifyArtifactEvidence,
 } from "../../scripts/smoke-installed-package.mjs";
 
 const BLOCK = 512;
@@ -60,6 +62,19 @@ function makeTarball(entries) {
   return gzipSync(Buffer.concat(parts));
 }
 
+function identityTarball() {
+  return makeTarball([
+    {
+      name: "package/package.json",
+      content: JSON.stringify({
+        name: "@laurajoyhutchins/lore",
+        version: "0.0.0-bootstrap.0",
+        bin: { lore: "./dist/cli/main.js" },
+      }),
+    },
+  ]);
+}
+
 describe("installed CLI paths", () => {
   it("resolves isolated global wrappers", () => {
     expect(globalExecutable("win32")).toBe("lore.cmd");
@@ -97,18 +112,7 @@ describe("installed smoke environment", () => {
 
 describe("installed package identity", () => {
   it("reads the exact package name, version, and bin from the tarball", () => {
-    const bytes = makeTarball([
-      {
-        name: "package/package.json",
-        content: JSON.stringify({
-          name: "@laurajoyhutchins/lore",
-          version: "0.0.0-bootstrap.0",
-          bin: { lore: "./dist/cli/main.js" },
-        }),
-      },
-    ]);
-
-    expect(packageIdentityFromTarballBytes(bytes)).toEqual({
+    expect(packageIdentityFromTarballBytes(identityTarball())).toEqual({
       name: "@laurajoyhutchins/lore",
       version: "0.0.0-bootstrap.0",
     });
@@ -129,6 +133,31 @@ describe("installed package identity", () => {
     expect(() => packageIdentityFromTarballBytes(bytes)).toThrow(
       "SMOKE_PACKAGE_IDENTITY_INVALID",
     );
+  });
+
+  it("requires the tarball bytes to match release evidence", () => {
+    const bytes = identityTarball();
+    const identity = packageIdentityFromTarballBytes(bytes);
+    const evidence = {
+      package: identity,
+      artifact: {
+        filename: "package.tgz",
+        sha256: createHash("sha256").update(bytes).digest("hex"),
+        integrity: `sha512-${createHash("sha512")
+          .update(bytes)
+          .digest("base64")}`,
+      },
+    };
+
+    expect(() =>
+      verifyArtifactEvidence(bytes, "package.tgz", identity, evidence),
+    ).not.toThrow();
+    expect(() =>
+      verifyArtifactEvidence(bytes, "package.tgz", identity, {
+        ...evidence,
+        artifact: { ...evidence.artifact, sha256: "a".repeat(64) },
+      }),
+    ).toThrow("SMOKE_ARTIFACT_EVIDENCE_MISMATCH");
   });
 });
 
