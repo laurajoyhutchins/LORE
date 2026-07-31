@@ -16,6 +16,10 @@ function isObject(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
+function cloneJson(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
 function validateBaseEvidence(base) {
   if (
     !isObject(base) ||
@@ -77,9 +81,9 @@ export function finalizeEvidence(base, reports) {
     fail("PLATFORM_REPORT_SET_INVALID");
   }
   return {
-    ...structuredClone(base),
+    ...cloneJson(base),
     platforms: PLATFORM_ORDER.map((platform) =>
-      structuredClone(byPlatform.get(platform)),
+      cloneJson(byPlatform.get(platform)),
     ),
   };
 }
