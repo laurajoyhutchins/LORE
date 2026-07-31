@@ -192,6 +192,8 @@ function verifyInstalledPackage(head) {
     "--",
     "--tarball",
     path.join(outputDirectory, tarballs[0]),
+    "--evidence",
+    path.join(outputDirectory, "release-evidence.json"),
     "--mode",
     "all",
     "--report",
