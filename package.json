@@ -1,7 +1,6 @@
 {
-  "name": "lore",
-  "version": "0.0.0",
-  "private": true,
+  "name": "@laurajoyhutchins/lore",
+  "version": "0.0.0-bootstrap.0",
   "license": "Apache-2.0",
   "description": "Agent-neutral, Git-backed repository evidence and documentation system.",
   "keywords": [
@@ -25,11 +24,23 @@
   "bin": {
     "lore": "./dist/cli/main.js"
   },
+  "files": [
+    "dist/",
+    "BOOTSTRAP.md",
+    "schemas/",
+    "skills/maintain-repository-documentation/",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "engines": {
     "node": ">=22"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.build.json",
+    "prepack": "corepack pnpm build",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
