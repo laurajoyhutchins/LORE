@@ -10,6 +10,9 @@ components:
       - isLoreCommand
     path: src/cli/output.ts
   - exports:
+      - formatVersion
+    path: src/cli/version.ts
+  - exports:
       - loadManifest
     path: src/config/load-manifest.ts
   - exports:
@@ -127,6 +130,11 @@ components:
       - validateRecordSet
     path: src/records/validate-records.ts
   - exports:
+      - LoreVersionInfo
+      - SCHEMA_VERSIONS
+      - createVersionInfo
+    path: src/release/metadata.ts
+  - exports:
       - SchemaRegistry
       - createSchemaRegistry
       - validateWithSchema
@@ -153,6 +161,8 @@ components:
       - verifySelf
     path: src/verification/verify-self.ts
   - exports: []
+    path: tests/integration/package/build-layout.test.ts
+  - exports: []
     path: tests/invariants/remediation-contracts.test.ts
   - exports: []
     path: tests/security/git-client.test.ts
@@ -166,6 +176,8 @@ components:
     path: tests/unit/hydration/hydrate.test.ts
   - exports: []
     path: tests/unit/init/initialize.test.ts
+  - exports: []
+    path: tests/unit/package/package-metadata.test.ts
   - exports: []
     path: tests/unit/projection/templates.test.ts
   - exports: []
