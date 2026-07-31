@@ -3,9 +3,11 @@ import { gzipSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
 import {
   createSmokeReport,
+  gitExecutable,
   globalExecutable,
   globalPathDirectory,
   localExecutable,
+  npmExecutable,
   packageIdentityFromTarballBytes,
   sanitizedEnvironment,
   verifyArtifactEvidence,
@@ -92,6 +94,13 @@ describe("installed CLI paths", () => {
     expect(localExecutable("/tmp/consumer", "linux")).toBe(
       "/tmp/consumer/node_modules/.bin/lore",
     );
+  });
+
+  it("uses the platform wrappers that actually exist", () => {
+    expect(npmExecutable("win32")).toBe("npm.cmd");
+    expect(npmExecutable("linux")).toBe("npm");
+    expect(gitExecutable("win32")).toBe("git");
+    expect(gitExecutable("linux")).toBe("git");
   });
 });
 
