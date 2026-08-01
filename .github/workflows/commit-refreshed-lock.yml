@@ -1,0 +1,110 @@
+name: Commit refreshed lock artifact
+
+on:
+  push:
+    branches: [feat/versioned-cli-release]
+    paths:
+      - .github/workflows/commit-refreshed-lock.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: commit-refreshed-lock
+  cancel-in-progress: false
+
+jobs:
+  commit:
+    if: ${{ github.repository == 'laurajoyhutchins/LORE' && github.ref == 'refs/heads/feat/versioned-cli-release' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      EXPECTED_PARENT: 1bfa7274a0317d8e8157159cf5835645578b2a42
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: feat/versioned-cli-release
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22.14.0
+          package-manager-cache: false
+      - name: Verify one-shot authority boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse 'HEAD^{commit}')" = "$GITHUB_SHA"
+          test "$(git rev-parse 'HEAD^1^{commit}')" = "$EXPECTED_PARENT"
+          test "$(git branch --show-current)" = "feat/versioned-cli-release"
+      - name: Regenerate and verify lock artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/restore-verified-lockfile.mjs
+          corepack pnpm install --lockfile-only --no-frozen-lockfile --ignore-scripts
+          cp pnpm-lock.yaml "$RUNNER_TEMP/generated-lock.yaml"
+          node scripts/refresh-verified-lockfile-artifact.mjs
+          node <<'NODE'
+          const fs = require('node:fs');
+          const manifest = JSON.parse(
+            fs.readFileSync('artifacts/verified-lockfile/manifest.json', 'utf8'),
+          );
+          let verifier = fs.readFileSync('scripts/verified-lockfile.mjs', 'utf8');
+          verifier = verifier
+            .replace(
+              /export const EXPECTED_LOCKFILE_SHA256 =\n  "[0-9a-f]{64}";/u,
+              `export const EXPECTED_LOCKFILE_SHA256 =\n  "${manifest.sha256}";`,
+            )
+            .replace(
+              /export const EXPECTED_LOCKFILE_GIT_BLOB =\n  "[0-9a-f]{40}";/u,
+              `export const EXPECTED_LOCKFILE_GIT_BLOB =\n  "${manifest.git_blob}";`,
+            )
+            .replace(
+              /export const EXPECTED_LOCKFILE_BYTES = [0-9_]+;/u,
+              `export const EXPECTED_LOCKFILE_BYTES = ${manifest.raw_bytes.toLocaleString('en-US').replaceAll(',', '_')};`,
+            );
+          fs.writeFileSync('scripts/verified-lockfile.mjs', verifier);
+
+          let readiness = fs.readFileSync('docs/public-release-readiness.md', 'utf8');
+          readiness = readiness.replace(
+            /raw bytes: \d+\nSHA-256: [0-9a-f]{64}\nGit blob: [0-9a-f]{40}/u,
+            `raw bytes: ${manifest.raw_bytes}\nSHA-256: ${manifest.sha256}\nGit blob: ${manifest.git_blob}`,
+          );
+          fs.writeFileSync('docs/public-release-readiness.md', readiness);
+          NODE
+          rm pnpm-lock.yaml
+          node scripts/restore-verified-lockfile.mjs
+          cmp pnpm-lock.yaml "$RUNNER_TEMP/generated-lock.yaml"
+          rm pnpm-lock.yaml
+      - name: Commit only the verified bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm .github/workflows/commit-refreshed-lock.yml
+          git rm .github/workflows/refresh-lock-artifact.yml
+          git diff --check
+          git add artifacts/verified-lockfile/manifest.json
+          git add artifacts/verified-lockfile/part-*.gz
+          git add scripts/verified-lockfile.mjs
+          git add docs/public-release-readiness.md
+          ACTUAL="$(git status --short | sed 's/^...//' | sort)"
+          EXPECTED="$(printf '%s\n' \
+            '.github/workflows/commit-refreshed-lock.yml' \
+            '.github/workflows/refresh-lock-artifact.yml' \
+            'artifacts/verified-lockfile/manifest.json' \
+            'artifacts/verified-lockfile/part-000.gz' \
+            'artifacts/verified-lockfile/part-001.gz' \
+            'artifacts/verified-lockfile/part-002.gz' \
+            'artifacts/verified-lockfile/part-003.gz' \
+            'artifacts/verified-lockfile/part-004.gz' \
+            'artifacts/verified-lockfile/part-005.gz' \
+            'artifacts/verified-lockfile/part-006.gz' \
+            'artifacts/verified-lockfile/part-007.gz' \
+            'docs/public-release-readiness.md' \
+            'scripts/verified-lockfile.mjs' | sort)"
+          test "$ACTUAL" = "$EXPECTED"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore: refresh verified lockfile artifact'
+          git push origin HEAD:feat/versioned-cli-release
