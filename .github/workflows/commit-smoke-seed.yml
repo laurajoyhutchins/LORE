@@ -1,0 +1,103 @@
+name: Commit smoke repository seed
+
+on:
+  push:
+    branches: [feat/versioned-cli-release]
+    paths:
+      - .github/workflows/commit-smoke-seed.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: commit-smoke-seed
+  cancel-in-progress: false
+
+jobs:
+  commit:
+    if: ${{ github.repository == 'laurajoyhutchins/LORE' && github.ref == 'refs/heads/feat/versioned-cli-release' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      EXPECTED_PARENT: 7f91f8323ce17e0ca0e1148381bd1d515c87a75e
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: feat/versioned-cli-release
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22.14.0
+          package-manager-cache: false
+      - name: Verify one-shot authority boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse 'HEAD^{commit}')" = "$GITHUB_SHA"
+          test "$(git rev-parse 'HEAD^1^{commit}')" = "$EXPECTED_PARENT"
+          test "$(git branch --show-current)" = "feat/versioned-cli-release"
+      - name: Seed the fresh smoke repository
+        shell: bash
+        run: |
+          set -euo pipefail
+          python <<'PY'
+          from pathlib import Path
+
+          path = Path('scripts/smoke-installed-package.mjs')
+          text = path.read_text()
+          before = '''  run(
+            git,
+            ["config", "user.email", "lore-installation-test@example.invalid"],
+            { cwd: repositoryRoot, env: environment },
+          );
+          run(
+            launcher,
+          '''
+          after = '''  run(
+            git,
+            ["config", "user.email", "lore-installation-test@example.invalid"],
+            { cwd: repositoryRoot, env: environment },
+          );
+          run(
+            git,
+            ["commit", "--allow-empty", "-m", "Seed LORE smoke repository"],
+            { cwd: repositoryRoot, env: environment },
+          );
+          run(
+            launcher,
+          '''
+          if text.count(before) != 1:
+              raise SystemExit('SMOKE_SEED_PATCH_ANCHOR_INVALID')
+          path.write_text(text.replace(before, after))
+          PY
+      - name: Refresh self-hosted projections and test
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/restore-verified-lockfile.mjs
+          corepack pnpm install --frozen-lockfile
+          corepack pnpm lore extract
+          corepack pnpm lore project
+          corepack pnpm test
+          rm pnpm-lock.yaml
+      - name: Commit only the expected generated change
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm .github/workflows/commit-smoke-seed.yml
+          git diff --check
+          git add scripts/smoke-installed-package.mjs
+          git add .lore/extracted/relationships.yaml
+          git add .lore/extracted/tests.yaml
+          ACTUAL="$(git status --short | sed 's/^...//' | sort)"
+          EXPECTED="$(printf '%s\n' \
+            '.github/workflows/commit-smoke-seed.yml' \
+            '.lore/extracted/relationships.yaml' \
+            '.lore/extracted/tests.yaml' \
+            'scripts/smoke-installed-package.mjs' | sort)"
+          test "$ACTUAL" = "$EXPECTED"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'test: seed installed smoke repository history'
+          git push origin HEAD:feat/versioned-cli-release
