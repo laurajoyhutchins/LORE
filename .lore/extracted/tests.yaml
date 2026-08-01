@@ -96,6 +96,9 @@ tests:
     name: fails closed for an unknown enabled extractor
   - file: tests/unit/extraction/extract.test.ts
     kind: it
+    name: fails closed for duplicate extractor IDs
+  - file: tests/unit/extraction/extract.test.ts
+    kind: it
     name: removes outputs for extractors that are no longer enabled
   - file: tests/unit/extraction/extract.test.ts
     kind: it
@@ -121,3 +124,6 @@ tests:
   - file: tests/unit/schemas/schema-registry.test.ts
     kind: it
     name: compiles strict schemas and validates the repository manifest and task fixture
+  - file: tests/unit/schemas/schema-registry.test.ts
+    kind: it
+    name: rejects a manifest with a null extractor list

@@ -231,6 +231,7 @@ lore/
 ├── .lore/
 │   ├── extracted/
 │   │   ├── repository.yaml
+│   │   ├── scripts.yaml
 │   │   ├── components.yaml
 │   │   ├── relationships.yaml
 │   │   └── tests.yaml
@@ -310,9 +311,11 @@ paths:
 extractors:
   - id: repository-metadata
     enabled: true
-  - id: typescript-imports
-    enabled: true
   - id: package-scripts
+    enabled: true
+  - id: typescript-modules
+    enabled: true
+  - id: typescript-imports
     enabled: true
   - id: vitest-tests
     enabled: true
@@ -340,7 +343,7 @@ hydration:
   max_characters: 40000
 ```
 
-The manifest schema is versioned. Unknown schema versions fail closed.
+The manifest schema is versioned. Every loaded manifest is validated against it before use, and unknown schema versions fail closed. Extractor IDs may appear only once; duplicate or contradictory entries are invalid.
 
 ## 11. Stable identity and references
 
@@ -495,8 +498,8 @@ Extracted facts are generated under `.lore/extracted/` and may be replaced in pl
 
 The first release extracts:
 
-- repository metadata
-- package manager and package scripts
+- repository metadata and package manager
+- package scripts
 - source files and TypeScript modules
 - import relationships
 - exported symbols
@@ -505,6 +508,14 @@ The first release extracts:
 - skill files
 - schema files
 - documentation projections
+
+Each built-in extractor owns exactly one managed output:
+
+- `repository-metadata` → `repository.yaml`
+- `package-scripts` → `scripts.yaml`
+- `typescript-modules` → `components.yaml`
+- `typescript-imports` → `relationships.yaml`
+- `vitest-tests` → `tests.yaml`
 
 Extraction requirements:
 
