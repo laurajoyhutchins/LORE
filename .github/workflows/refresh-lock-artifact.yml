@@ -1,0 +1,42 @@
+name: Refresh lock artifact
+
+on:
+  push:
+    branches: [feat/versioned-cli-release]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: refresh-lock-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22.14.0
+          package-manager-cache: false
+      - name: Restore approved baseline lockfile
+        run: node scripts/restore-verified-lockfile.mjs
+      - name: Refresh lockfile importer
+        run: corepack pnpm install --lockfile-only --no-frozen-lockfile --ignore-scripts
+      - name: Generate verified artifact bundle
+        run: node scripts/refresh-verified-lockfile-artifact.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: refreshed-lock-${{ github.sha }}
+          path: |
+            pnpm-lock.yaml
+            artifacts/verified-lockfile/manifest.json
+            artifacts/verified-lockfile/part-*.gz
+          if-no-files-found: error
+          retention-days: 1
