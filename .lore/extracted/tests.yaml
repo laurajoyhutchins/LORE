@@ -6,10 +6,10 @@ tests:
     name: does not overwrite a different destination lockfile
   - file: tests/invariants/remediation-contracts.test.ts
     kind: it
-    name: does not plan a transaction before candidate evidence is validated
+    name: does not report self-verification categories without checking required artifacts
   - file: tests/invariants/remediation-contracts.test.ts
     kind: it
-    name: does not report self-verification categories without checking required artifacts
+    name: projects candidate effective statuses when planning a transaction
   - file: tests/invariants/remediation-contracts.test.ts
     kind: it
     name: rejects a modified verified-lockfile member
@@ -81,13 +81,22 @@ tests:
     name: runCli
   - file: tests/unit/extraction/extract.test.ts
     kind: it
+    name: does not parse package.json when package scripts are disabled
+  - file: tests/unit/extraction/extract.test.ts
+    kind: it
     name: emits no extracted files when every extractor is disabled
+  - file: tests/unit/extraction/extract.test.ts
+    kind: it
+    name: emits package scripts separately from repository metadata
   - file: tests/unit/extraction/extract.test.ts
     kind: it
     name: extracts nested Vitest test declarations when enabled
   - file: tests/unit/extraction/extract.test.ts
     kind: it
     name: fails closed for an unknown enabled extractor
+  - file: tests/unit/extraction/extract.test.ts
+    kind: it
+    name: removes outputs for extractors that are no longer enabled
   - file: tests/unit/extraction/extract.test.ts
     kind: it
     name: reports Python repository metadata without inventing pnpm
