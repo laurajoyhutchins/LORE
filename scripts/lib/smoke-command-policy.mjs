@@ -5,6 +5,9 @@ const NPM_INSTALL_SAFETY_FLAGS = Object.freeze([
   "--no-fund",
   "--ignore-scripts",
   "--package-lock=false",
+  "--fetch-retries=0",
+  "--fetch-timeout=30000",
+  "--omit=dev",
 ]);
 
 export function npmInstallArguments(tarballPath, options = {}) {
