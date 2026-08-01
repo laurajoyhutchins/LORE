@@ -44,6 +44,7 @@ describe("release workflow authority", () => {
       "node scripts/public-release-gate.mjs --skip-installed-package",
     );
     expect(build.match(/release:package/gu)).toHaveLength(1);
+    expect(build).not.toContain("release:package --");
     expect(workflow.jobs.smoke.needs).toBe("build");
     expect(workflow.jobs.smoke.strategy.matrix.os).toEqual([
       "ubuntu-latest",
@@ -52,6 +53,7 @@ describe("release workflow authority", () => {
     ]);
     expect(smoke).toContain("actions/download-artifact@v4");
     expect(smoke).toContain("release:smoke");
+    expect(smoke).not.toContain("release:smoke --");
     expect(smoke).not.toContain("release:package");
     expect(smoke).not.toContain("npm pack");
     expect(smoke).not.toMatch(/pnpm (?:run )?build/u);
@@ -91,6 +93,7 @@ describe("release workflow authority", () => {
 describe("ordinary CI authority", () => {
   it("retains read-only authority and the unified release gate", async () => {
     const { text, workflow } = await readWorkflow(".github/workflows/ci.yml");
+    const gate = await readFile("scripts/public-release-gate.mjs", "utf8");
     const checkout = workflow.jobs.verify.steps[0];
 
     expect(workflow.permissions).toEqual({ contents: "read" });
@@ -104,5 +107,7 @@ describe("ordinary CI authority", () => {
     expect(text).not.toContain("actions/upload-artifact");
     expect(text).not.toContain("id-token: write");
     expect(text).not.toContain("npm publish");
+    expect(gate).not.toContain('"release:package",\n    "--",');
+    expect(gate).not.toContain('"release:smoke",\n    "--",');
   });
 });

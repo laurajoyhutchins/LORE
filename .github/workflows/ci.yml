@@ -1,147 +1,29 @@
-name: CI repair
+name: CI
 
 on:
+  push:
+    branches: [main]
   pull_request:
 
 permissions:
   contents: read
 
 concurrency:
-  group: ci-repair-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  repair-release-argv:
-    if: github.head_ref == 'feat/versioned-cli-release'
-    permissions:
-      contents: write
+  verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: ${{ github.head_ref }}
-          fetch-depth: 0
-      - name: Apply exact release argv repair
-        shell: bash
-        run: |
-          set -euo pipefail
-          python - <<'PY'
-          from pathlib import Path
-
-          def replace_once(path: Path, old: str, new: str) -> None:
-              text = path.read_text()
-              count = text.count(old)
-              if count != 1:
-                  raise SystemExit(
-                      f"{path}: expected one occurrence, found {count}: {old!r}"
-                  )
-              path.write_text(text.replace(old, new))
-
-          gate = Path("scripts/public-release-gate.mjs")
-          replace_once(
-              gate,
-              '''    "release:package",
-              "--",
-              "--tag",'''.replace("              ", "    "),
-              '''    "release:package",
-              "--tag",'''.replace("              ", "    "),
-          )
-          replace_once(
-              gate,
-              '''    "release:smoke",
-              "--",
-              "--tarball",'''.replace("              ", "    "),
-              '''    "release:smoke",
-              "--tarball",'''.replace("              ", "    "),
-          )
-
-          workflow = Path(".github/workflows/release.yml")
-          backslash = "\\"
-          replace_once(
-              workflow,
-              "corepack pnpm release:package -- " + backslash,
-              "corepack pnpm release:package " + backslash,
-          )
-          replace_once(
-              workflow,
-              "corepack pnpm release:smoke -- " + backslash,
-              "corepack pnpm release:smoke " + backslash,
-          )
-
-          tests = Path("tests/release/release-workflow.test.mjs")
-          replace_once(
-              tests,
-              '    expect(build.match(/release:package/gu)).toHaveLength(1);',
-              '    expect(build.match(/release:package/gu)).toHaveLength(1);\n'
-              '    expect(build).not.toContain("release:package --");',
-          )
-          replace_once(
-              tests,
-              '    expect(smoke).toContain("release:smoke");',
-              '    expect(smoke).toContain("release:smoke");\n'
-              '    expect(smoke).not.toContain("release:smoke --");',
-          )
-          replace_once(
-              tests,
-              '    const { text, workflow } = await readWorkflow(".github/workflows/ci.yml");',
-              '    const { text, workflow } = await readWorkflow(".github/workflows/ci.yml");\n'
-              '    const gate = await readFile("scripts/public-release-gate.mjs", "utf8");',
-          )
-          replace_once(
-              tests,
-              '    expect(text).not.toContain("npm publish");',
-              '    expect(text).not.toContain("npm publish");\n'
-              '    expect(gate).not.toContain(\'"release:package",\\n    "--",\');\n'
-              '    expect(gate).not.toContain(\'"release:smoke",\\n    "--",\');',
-          )
-
-          normal_ci = '''name: CI
-
-          on:
-            push:
-              branches: [main]
-            pull_request:
-
-          permissions:
-            contents: read
-
-          concurrency:
-            group: ci-__WORKFLOW__-__REF__
-            cancel-in-progress: true
-
-          jobs:
-            verify:
-              runs-on: ubuntu-latest
-              timeout-minutes: 30
-              steps:
-                - uses: actions/checkout@v6
-                  with:
-                    ref: __HEAD__
-                    fetch-depth: 0
-                    persist-credentials: false
-                - uses: actions/setup-node@v6
-                  with:
-                    node-version: 22.14.0
-                    package-manager-cache: false
-                - run: node scripts/public-release-gate.mjs
-          '''.replace("          ", "")
-          expression = "$" + "{{"
-          normal_ci = normal_ci.replace(
-              "__WORKFLOW__", expression + " github.workflow }}"
-          ).replace(
-              "__REF__", expression + " github.ref }}"
-          ).replace(
-              "__HEAD__",
-              expression + " github.event.pull_request.head.sha || github.sha }}",
-          )
-          Path(".github/workflows/ci.yml").write_text(normal_ci)
-          PY
-
-          git rm --ignore-unmatch .github/workflows/repair-release-argv.yml
-          git diff --check
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add scripts/public-release-gate.mjs .github/workflows/release.yml tests/release/release-workflow.test.mjs .github/workflows/ci.yml
-          git commit -m "fix: forward release script arguments"
-          git push origin HEAD:${GITHUB_HEAD_REF}
+ref: ${{ github.event.pull_request.head.sha || github.sha }}
+fetch-depth: 0
+persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+node-version: 22.14.0
+package-manager-cache: false
+      - run: node scripts/public-release-gate.mjs

@@ -174,7 +174,6 @@ function verifyInstalledPackage(head) {
   const version = readPackageVersion();
   pnpm([
     "release:package",
-    "--",
     "--tag",
     `v${version}`,
     "--commit",
@@ -190,7 +189,6 @@ function verifyInstalledPackage(head) {
   }
   pnpm([
     "release:smoke",
-    "--",
     "--tarball",
     path.join(outputDirectory, tarballs[0]),
     "--evidence",
