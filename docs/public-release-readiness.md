@@ -1,11 +1,12 @@
 # Public release readiness
 
-This document records completed evidence and unresolved owner-controlled gates for making the LORE repository public and publishing the CLI package `@laurajoyhutchins/lore`.
+This document records completed evidence and unresolved owner-controlled gates for publishing the LORE CLI package `@laurajoyhutchins/lore` from the now-public repository.
 
-Repository visibility must change before either the bootstrap package or the stable package release runs. The release workflow fails closed while the repository is private.
+Repository visibility and package publication are separate decisions. The repository is public, but neither the bootstrap package nor the stable package is authorized merely by that visibility change. The release workflow also fails closed if repository visibility regresses before a release.
 
 ## Completed preparation
 
+- The LORE repository is public.
 - Apache License 2.0 is adopted with canonical license text, SPDX package metadata, and aligned contribution terms.
 - The generated README, repository metadata, security policy, contribution guide, code of conduct, issue and pull-request templates, and Dependabot configuration are present.
 - Ordinary CI has read-only repository permissions and invokes the unified exact-head publication gate.
@@ -47,9 +48,9 @@ VERIFIED_PUBLICATION_READY <unchanged-exact-head-sha>
 
 Any commit after that result requires another complete run.
 
-## Owner-controlled gates before changing visibility
+## Post-public repository hardening audit
 
-All boxes must be checked at the same exact repository head that passed the publication gate.
+The visibility transition has occurred. These items remain explicit audit work until independently confirmed in this record. An unchecked item means it has not been evidenced here, not that repository visibility is still pending.
 
 - [ ] Review every commit email printed by the gate and accept it for public disclosure.
 - [ ] Review all branches and tags; delete stale private-development refs or explicitly accept their reachable history.
@@ -59,10 +60,10 @@ All boxes must be checked at the same exact repository head that passed the publ
 - [ ] Confirm the repository Actions default permission is read-only.
 - [ ] Confirm `main` protection requires the CI verification job.
 - [ ] Confirm repository description, topics, social preview, issue surface, and discussion settings.
-- [ ] Confirm that changing visibility alone cannot publish a package, create a tag, or create a GitHub Release.
-- [ ] Record the exact verified commit SHA approved for public visibility.
+- [ ] Confirm public visibility alone cannot publish a package, create a tag, or create a GitHub Release.
+- [ ] Record the exact commit SHA at which public visibility was confirmed.
 
-Only after every item passes may the repository visibility change from private to public.
+Close the relevant security and branch-governance items before package publication. Public visibility by itself does not authorize or imply an npm release.
 
 ## Owner-controlled gates before bootstrap publication
 
@@ -94,6 +95,6 @@ Only after every item passes may the repository visibility change from private t
 
 ## Decision rule
 
-Merge, visibility change, bootstrap publication, and stable publication are separate decisions.
+Merge, bootstrap publication, stable publication, and downstream adoption are separate decisions.
 
 A decision advances only when its preceding exact-head evidence and owner-controlled checklist are complete. No automated path may infer approval, move a release tag, unpublish a version, overwrite an asset, or bypass the protected npm environment.
