@@ -10,6 +10,7 @@ import type {
   ValidationResult,
 } from "../domain/types.js";
 import { validateEvidence } from "../evidence/validate-evidence.js";
+import { requiredExtractionFiles } from "../extraction/extractor-configuration.js";
 import {
   resolveExistingInsideRoot,
   resolvePotentialInsideRoot,
@@ -19,13 +20,6 @@ import { loadRecords } from "../records/load-records.js";
 import { deriveEffectiveStatuses, validateRecordSet } from "../records/validate-records.js";
 import { createSchemaRegistry } from "../schemas/schema-registry.js";
 import { parseYamlDocument } from "../serialization/yaml.js";
-
-const EXTRACTED_FILES = [
-  ["repository.yaml", "repository"],
-  ["components.yaml", "components"],
-  ["relationships.yaml", "relationships"],
-  ["tests.yaml", "tests"],
-] as const;
 
 function generatedOnlyEvidence(record: SemanticRecord, generatedDocs: string): boolean {
   const generatedRoot = generatedDocs.replace(/\\/g, "/").replace(/\/$/, "");
@@ -58,6 +52,8 @@ export async function validateRepository(
   const manifestResult = await loadManifest(root);
   if (!manifestResult.ok) return manifestResult;
   const manifest = manifestResult.value;
+  const extractionRequirements = requiredExtractionFiles(manifest);
+  if (!extractionRequirements.ok) return extractionRequirements;
   const problems: ValidationProblem[] = [];
 
   for (const candidate of [
@@ -111,7 +107,7 @@ export async function validateRepository(
   }
 
   const extracted: ExtractedFacts = {};
-  for (const [fileName, key] of EXTRACTED_FILES) {
+  for (const { fileName, key } of extractionRequirements.value) {
     const relativePath = path.posix.join(manifest.paths.extracted, fileName);
     const extractedFile = await readContained(root, relativePath);
     if (!extractedFile.ok) {
