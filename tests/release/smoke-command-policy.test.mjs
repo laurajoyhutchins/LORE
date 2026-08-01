@@ -5,18 +5,25 @@ import {
   npmInstallArguments,
 } from "../../scripts/lib/smoke-command-policy.mjs";
 
+const INSTALL_FLAGS = [
+  "--no-audit",
+  "--no-fund",
+  "--ignore-scripts",
+  "--package-lock=false",
+  "--fetch-retries=0",
+  "--fetch-timeout=30000",
+  "--omit=dev",
+];
+
 describe("installed smoke command policy", () => {
   it("bounds every child command", () => {
     expect(SMOKE_COMMAND_TIMEOUT_MS).toBe(120_000);
   });
 
-  it("installs without audit, funding, lockfile, or lifecycle side effects", () => {
+  it("installs without audit, funding, lockfile, lifecycle, or unbounded fetch side effects", () => {
     expect(npmInstallArguments("package.tgz")).toEqual([
       "install",
-      "--no-audit",
-      "--no-fund",
-      "--ignore-scripts",
-      "--package-lock=false",
+      ...INSTALL_FLAGS,
       "package.tgz",
     ]);
     expect(
@@ -26,10 +33,7 @@ describe("installed smoke command policy", () => {
       }),
     ).toEqual([
       "install",
-      "--no-audit",
-      "--no-fund",
-      "--ignore-scripts",
-      "--package-lock=false",
+      ...INSTALL_FLAGS,
       "--global",
       "--prefix",
       "/tmp/lore-prefix",
