@@ -5,7 +5,7 @@
     {
       "type": "object",
       "additionalProperties": false,
-      "required": ["schema_version", "extractor", "repository", "scripts"],
+      "required": ["schema_version", "extractor", "repository"],
       "properties": {
         "schema_version": { "const": 1 },
         "extractor": { "const": "repository-metadata" },
@@ -23,7 +23,16 @@
               "uniqueItems": true
             }
           }
-        },
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "extractor", "scripts"],
+      "properties": {
+        "schema_version": { "const": 1 },
+        "extractor": { "const": "package-scripts" },
         "scripts": {
           "type": "object",
           "additionalProperties": { "type": "string" }
