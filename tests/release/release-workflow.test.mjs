@@ -28,13 +28,18 @@ describe("release workflow authority", () => {
     const { workflow } = await readWorkflow(".github/workflows/release.yml");
     const build = JSON.stringify(workflow.jobs.build);
     const smoke = JSON.stringify(workflow.jobs.smoke);
+    const identityStep = workflow.jobs.build.steps.find(
+      (step) => step.name === "Verify release identity",
+    );
 
     expect(build).toContain("actions/checkout@v6");
     expect(build).toContain("actions/setup-node@v6");
     expect(build).toContain("actions/upload-artifact@v4");
     expect(build).toContain("EVENT_SHA");
     expect(build).toContain("REPOSITORY_PRIVATE");
-    expect(build).toContain('test "$REPOSITORY_PRIVATE" = "false"');
+    expect(identityStep?.run).toContain(
+      'test "$REPOSITORY_PRIVATE" = "false"',
+    );
     expect(build).toContain(
       "node scripts/public-release-gate.mjs --skip-installed-package",
     );
