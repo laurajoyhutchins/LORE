@@ -24,6 +24,7 @@ describe("remediation contracts", () => {
   it("does not plan a transaction before candidate evidence is validated", async () => {
     const source = await readFile("src/transactions/plan-transaction.ts", "utf8");
     expect(source).toContain("validateEvidence");
+    expect(source).toContain("effectiveStatus: deriveEffectiveStatuses");
   });
 
   it("restores the exact approved lockfile and is idempotent", async () => {
