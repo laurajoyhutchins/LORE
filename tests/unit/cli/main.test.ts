@@ -80,3 +80,19 @@ it("detects the executable entrypoint through a platform-safe file URL", () => {
     false,
   );
 });
+
+it("detects a package entrypoint invoked through a bin symlink", () => {
+  const modulePath = path.resolve(
+    "node_modules/@laurajoyhutchins/lore/dist/cli/main.js",
+  );
+  const executablePath = path.resolve("node_modules/.bin/lore");
+  const canonicalize = vi.fn((candidate: string) =>
+    candidate === executablePath ? modulePath : candidate,
+  );
+
+  expect(
+    isCliEntryPoint(pathToFileURL(modulePath).href, executablePath, canonicalize),
+  ).toBe(true);
+  expect(canonicalize).toHaveBeenCalledWith(modulePath);
+  expect(canonicalize).toHaveBeenCalledWith(executablePath);
+});
