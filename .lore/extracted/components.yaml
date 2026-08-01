@@ -70,6 +70,7 @@ components:
       - ExtractedFactKey
       - ExtractionFileRequirement
       - enabledExtractorIds
+      - managedExtractionFileNames
       - requiredExtractionFiles
     path: src/extraction/extractor-configuration.ts
   - exports: []
