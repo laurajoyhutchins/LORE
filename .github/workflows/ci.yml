@@ -24,7 +24,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: |
-          node scripts/public-release-gate.mjs --refresh-generated
-          git diff -- .lore/extracted
-          exit 1
+      - run: node scripts/public-release-gate.mjs --refresh-generated
+      - uses: actions/upload-artifact@v4
+        with:
+          name: generated-extraction
+          path: .lore/extracted
