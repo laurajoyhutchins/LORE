@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
+import { realpathSync } from "node:fs";
 import { readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
 import { loadManifest } from "../config/load-manifest.js";
 import { createMaintainerContext } from "../context/create-context.js";
@@ -134,10 +135,15 @@ async function generatedMatches(
 export function isCliEntryPoint(
   moduleUrl: string,
   executablePath: string | undefined,
+  canonicalizePath: (candidate: string) => string = realpathSync,
 ): boolean {
-  return (
-    executablePath !== undefined && moduleUrl === pathToFileURL(executablePath).href
-  );
+  if (executablePath === undefined) return false;
+  const modulePath = fileURLToPath(moduleUrl);
+  try {
+    return canonicalizePath(modulePath) === canonicalizePath(executablePath);
+  } catch {
+    return moduleUrl === pathToFileURL(executablePath).href;
+  }
 }
 
 export async function runCli(argv: string[], io: CliIo = DEFAULT_IO): Promise<number> {
