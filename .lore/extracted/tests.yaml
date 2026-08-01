@@ -81,7 +81,16 @@ tests:
     name: runCli
   - file: tests/unit/extraction/extract.test.ts
     kind: it
-    name: extracts nested Vitest test declarations
+    name: emits no extracted files when every extractor is disabled
+  - file: tests/unit/extraction/extract.test.ts
+    kind: it
+    name: extracts nested Vitest test declarations when enabled
+  - file: tests/unit/extraction/extract.test.ts
+    kind: it
+    name: fails closed for an unknown enabled extractor
+  - file: tests/unit/extraction/extract.test.ts
+    kind: it
+    name: reports Python repository metadata without inventing pnpm
   - file: tests/unit/hydration/hydrate.test.ts
     kind: it
     name: normalizes only the volatile revision in checked-in hydration snapshots

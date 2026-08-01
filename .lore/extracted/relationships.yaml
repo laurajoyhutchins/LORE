@@ -169,6 +169,9 @@ relationships:
     to: ../serialization/yaml.js
     type: imports
   - from: src/extraction/extract.ts
+    to: ./extractor-configuration.js
+    type: imports
+  - from: src/extraction/extract.ts
     to: node:fs/promises
     type: imports
   - from: src/extraction/extract.ts
@@ -176,6 +179,12 @@ relationships:
     type: imports
   - from: src/extraction/extract.ts
     to: typescript
+    type: imports
+  - from: src/extraction/extractor-configuration.ts
+    to: ../domain/errors.js
+    type: imports
+  - from: src/extraction/extractor-configuration.ts
+    to: ../domain/types.js
     type: imports
   - from: src/filesystem/repository-paths.ts
     to: ../domain/errors.js
@@ -413,6 +422,9 @@ relationships:
     type: imports
   - from: src/validation/validate-repository.ts
     to: ../evidence/validate-evidence.js
+    type: imports
+  - from: src/validation/validate-repository.ts
+    to: ../extraction/extractor-configuration.js
     type: imports
   - from: src/validation/validate-repository.ts
     to: ../filesystem/repository-paths.js
