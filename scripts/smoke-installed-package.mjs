@@ -15,6 +15,11 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { stripArgumentSeparator } from "./lib/script-arguments.mjs";
 import {
+  SMOKE_COMMAND_TIMEOUT_MS,
+  npmExecArguments,
+  npmInstallArguments,
+} from "./lib/smoke-command-policy.mjs";
+import {
   readTarGzip,
   sha256Hex,
   sha512Integrity,
@@ -178,6 +183,8 @@ function parseArguments(argv) {
 }
 
 function run(command, args, { cwd, env, capture = true } = {}) {
+  const invocation = `${command} ${args.join(" ")}`;
+  process.stdout.write(`$ ${invocation}\n`);
   const result = spawnSync(command, args, {
     cwd,
     env,
@@ -185,13 +192,20 @@ function run(command, args, { cwd, env, capture = true } = {}) {
     stdio: capture ? "pipe" : "inherit",
     shell: process.platform === "win32",
     maxBuffer: 128 * 1024 * 1024,
+    timeout: SMOKE_COMMAND_TIMEOUT_MS,
+    killSignal: "SIGKILL",
   });
-  if (result.error) fail("SMOKE_COMMAND_START_FAILED", result.error.message);
+  if (result.error) {
+    if (result.error.code === "ETIMEDOUT") {
+      fail("SMOKE_COMMAND_TIMEOUT", invocation);
+    }
+    fail("SMOKE_COMMAND_START_FAILED", result.error.message);
+  }
   if (result.status !== 0) {
     fail(
       "SMOKE_COMMAND_FAILED",
       [
-        `${command} ${args.join(" ")} exited ${String(result.status)}`,
+        `${invocation} exited ${String(result.status)}`,
         result.stdout,
         result.stderr,
       ]
@@ -290,7 +304,7 @@ async function smokeLocal(tarballPath, identity, baseEnvironment, temporaryRoot)
     cwd: consumerRoot,
     env: baseEnvironment,
   });
-  run(npm, ["install", tarballPath], {
+  run(npm, npmInstallArguments(tarballPath), {
     cwd: consumerRoot,
     env: baseEnvironment,
   });
@@ -298,13 +312,13 @@ async function smokeLocal(tarballPath, identity, baseEnvironment, temporaryRoot)
   const launcher = localExecutable(consumerRoot);
   await access(launcher);
   verifyHelp(
-    run(npm, ["exec", "--", "lore", "--help"], {
+    run(npm, npmExecArguments(["--help"]), {
       cwd: consumerRoot,
       env: baseEnvironment,
     }),
   );
   parseVersionOutput(
-    run(npm, ["exec", "--", "lore", "version", "--json"], {
+    run(npm, npmExecArguments(["version", "--json"]), {
       cwd: consumerRoot,
       env: baseEnvironment,
     }),
@@ -321,10 +335,14 @@ async function smokeGlobal(tarballPath, identity, baseEnvironment, temporaryRoot
   const prefix = path.join(temporaryRoot, "global-prefix");
   await mkdir(prefix, { recursive: true });
   const npm = npmExecutable();
-  run(npm, ["install", "--global", "--prefix", prefix, tarballPath], {
-    cwd: temporaryRoot,
-    env: baseEnvironment,
-  });
+  run(
+    npm,
+    npmInstallArguments(tarballPath, { global: true, prefix }),
+    {
+      cwd: temporaryRoot,
+      env: baseEnvironment,
+    },
+  );
 
   const binDirectory = globalPathDirectory(prefix);
   const environment = {
