@@ -1,0 +1,38 @@
+name: Regenerate extracted facts
+
+on:
+  push:
+    branches:
+      - agent/honor-extractor-configuration
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/honor-extractor-configuration
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/restore-verified-lockfile.mjs
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lore extract
+      - name: Commit regenerated facts
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- .lore/extracted; then
+            exit 0
+          fi
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add .lore/extracted
+          git commit -m "docs: regenerate configured extraction facts"
+          git push origin HEAD:agent/honor-extractor-configuration
