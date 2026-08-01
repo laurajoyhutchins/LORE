@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { gzipSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
+import { stripArgumentSeparator } from "../../scripts/lib/script-arguments.mjs";
 import {
   createSmokeReport,
   gitExecutable,
@@ -76,6 +77,19 @@ function identityTarball() {
     },
   ]);
 }
+
+describe("script arguments", () => {
+  it("accepts pnpm's optional separator without changing direct arguments", () => {
+    expect(stripArgumentSeparator(["--", "--mode", "all"])).toEqual([
+      "--mode",
+      "all",
+    ]);
+    expect(stripArgumentSeparator(["--mode", "all"])).toEqual([
+      "--mode",
+      "all",
+    ]);
+  });
+});
 
 describe("installed CLI paths", () => {
   it("resolves isolated global wrappers", () => {
