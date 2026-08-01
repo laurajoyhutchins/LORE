@@ -25,8 +25,8 @@ Repository visibility and package publication are separate decisions. The reposi
 
 ```text
 raw bytes: 62769
-SHA-256: e5e1747bac45b623c375226759fce20857b50ee615926dce1aefd282104ee57d
-Git blob: 7aec11b06bef06188262e0ca8ae44b8e35f158c9
+SHA-256: bbda9e0c90ce2996f8fc510b1414321957e879d72443a68d850baa61d17aa1e6
+Git blob: df207b5d79375bc28d5481c7d1f106952e77adbe
 ```
 
 A visually similar lockfile does not satisfy the release contract. The committed member manifest and reconstructed file must match all three values.
