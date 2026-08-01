@@ -4,6 +4,7 @@ import { spawnSync } from "node:child_process";
 import { mkdir, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
+import { parseNpmPackFilename } from "./lib/npm-pack-output.mjs";
 import { inspectPackageArtifact } from "./lib/package-contract.mjs";
 import { stripArgumentSeparator } from "./lib/script-arguments.mjs";
 
@@ -73,23 +74,14 @@ function runNpmPack(outputDirectory) {
       [result.stdout, result.stderr].filter(Boolean).join("\n").trim(),
     );
   }
-  let parsed;
   try {
-    parsed = JSON.parse(result.stdout);
+    return path.basename(parseNpmPackFilename(result.stdout));
   } catch (error) {
     fail(
       "RELEASE_PACKAGE_NPM_OUTPUT_INVALID",
       error instanceof Error ? error.message : String(error),
     );
   }
-  if (
-    !Array.isArray(parsed) ||
-    parsed.length !== 1 ||
-    typeof parsed[0]?.filename !== "string"
-  ) {
-    fail("RELEASE_PACKAGE_NPM_OUTPUT_INVALID");
-  }
-  return path.basename(parsed[0].filename);
 }
 
 async function main() {
