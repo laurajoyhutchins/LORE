@@ -1,9 +1,12 @@
-import { mkdtemp, mkdir, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { expect, it } from "vitest";
 import type { LoreManifest } from "../../../src/domain/types.js";
-import { extractRepository } from "../../../src/extraction/extract.js";
+import {
+  extractRepository,
+  writeExtraction,
+} from "../../../src/extraction/extract.js";
 
 function manifest(extractors: LoreManifest["extractors"]): LoreManifest {
   return {
@@ -68,6 +71,61 @@ it("reports Python repository metadata without inventing pnpm", async () => {
   expect(repository).toContain("package_manager: python");
   expect(repository).toContain("- Python");
   expect(repository).not.toContain("package_manager: pnpm");
+  expect(repository).not.toContain("scripts:");
+});
+
+it("does not parse package.json when package scripts are disabled", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "lore-extract-no-scripts-"));
+  await writeFile(path.join(root, "package.json"), "{ invalid json\n");
+  await writeFile(path.join(root, "fixture.ts"), "export const value = 1;\n");
+
+  const result = await extractRepository(
+    root,
+    manifest([{ id: "typescript-modules", enabled: true }]),
+  );
+
+  expect(result.ok).toBe(true);
+  if (!result.ok) return;
+  expect([...result.value.files.keys()]).toEqual([".lore/extracted/components.yaml"]);
+});
+
+it("emits package scripts separately from repository metadata", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "lore-extract-scripts-"));
+  await writeFile(
+    path.join(root, "package.json"),
+    '{"name":"fixture","scripts":{"build":"tsc"}}\n',
+  );
+
+  const result = await extractRepository(
+    root,
+    manifest([{ id: "package-scripts", enabled: true }]),
+  );
+
+  expect(result.ok).toBe(true);
+  if (!result.ok) return;
+  expect([...result.value.files.keys()]).toEqual([".lore/extracted/scripts.yaml"]);
+  const scripts = result.value.files.get(".lore/extracted/scripts.yaml");
+  expect(scripts).toContain("extractor: package-scripts");
+  expect(scripts).toContain("build: tsc");
+  expect(scripts).not.toContain("repository:");
+});
+
+it("removes outputs for extractors that are no longer enabled", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "lore-extract-cleanup-"));
+  const extracted = path.join(root, ".lore", "extracted");
+  await mkdir(extracted, { recursive: true });
+  const stale = path.join(extracted, "relationships.yaml");
+  await writeFile(stale, "stale: true\n");
+
+  const result = await extractRepository(
+    root,
+    manifest([{ id: "repository-metadata", enabled: true }]),
+  );
+
+  expect(result.ok).toBe(true);
+  if (!result.ok) return;
+  await writeExtraction(root, result.value);
+  await expect(readFile(stale, "utf8")).rejects.toMatchObject({ code: "ENOENT" });
 });
 
 it("emits no extracted files when every extractor is disabled", async () => {
