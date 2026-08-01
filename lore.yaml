@@ -6,6 +6,8 @@ extractors:
 - enabled: true
   id: typescript-modules
 - enabled: true
+  id: typescript-imports
+- enabled: true
   id: vitest-tests
 hydration:
   max_characters: 40000
