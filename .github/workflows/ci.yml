@@ -53,7 +53,12 @@ jobs:
               text = text.replace(marker, mapping + marker)
           path.write_text(text)
           PY
-      - run: node scripts/public-release-gate.mjs --refresh-generated
+      - name: Regenerate LORE outputs
+        run: |
+          node scripts/restore-verified-lockfile.mjs
+          corepack pnpm install --frozen-lockfile
+          corepack pnpm lore extract
+          corepack pnpm lore project
       - uses: actions/upload-artifact@v4
         with:
           name: pr9-review-fixes
