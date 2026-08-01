@@ -19,11 +19,11 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-ref: ${{ github.event.pull_request.head.sha || github.sha }}
-fetch-depth: 0
-persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
-node-version: 22.14.0
-package-manager-cache: false
+          node-version: 22.14.0
+          package-manager-cache: false
       - run: node scripts/public-release-gate.mjs
