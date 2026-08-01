@@ -91,9 +91,13 @@ describe("release workflow authority", () => {
 describe("ordinary CI authority", () => {
   it("retains read-only authority and the unified release gate", async () => {
     const { text, workflow } = await readWorkflow(".github/workflows/ci.yml");
+    const checkout = workflow.jobs.verify.steps[0];
 
     expect(workflow.permissions).toEqual({ contents: "read" });
-    expect(text).toContain("actions/checkout@v6");
+    expect(checkout.uses).toBe("actions/checkout@v6");
+    expect(checkout.with.ref).toBe(
+      "${{ github.event.pull_request.head.sha || github.sha }}",
+    );
     expect(text).toContain("actions/setup-node@v6");
     expect(text).toContain("node scripts/public-release-gate.mjs");
     expect(text).not.toContain("--skip-installed-package");
