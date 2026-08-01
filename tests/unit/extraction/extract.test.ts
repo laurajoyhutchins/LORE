@@ -159,3 +159,24 @@ it("fails closed for an unknown enabled extractor", async () => {
     }),
   ]);
 });
+
+it("fails closed for duplicate extractor IDs", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "lore-extract-duplicate-"));
+
+  const result = await extractRepository(
+    root,
+    manifest([
+      { id: "repository-metadata", enabled: false },
+      { id: "repository-metadata", enabled: true },
+    ]),
+  );
+
+  expect(result.ok).toBe(false);
+  if (result.ok) return;
+  expect(result.errors).toEqual([
+    expect.objectContaining({
+      code: "DUPLICATE_EXTRACTOR",
+      message: "Duplicate extractor configuration: repository-metadata",
+    }),
+  ]);
+});
