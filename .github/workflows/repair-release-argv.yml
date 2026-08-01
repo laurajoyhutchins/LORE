@@ -1,0 +1,85 @@
+name: Repair release argv forwarding
+
+on:
+  push:
+    branches:
+      - feat/versioned-cli-release
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: feat/versioned-cli-release
+          fetch-depth: 0
+      - name: Patch pnpm script forwarding
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          replacements = {
+              Path("scripts/public-release-gate.mjs"): [
+                  (
+                      '    "release:package",\n    "--",\n    "--tag",',
+                      '    "release:package",\n    "--tag",',
+                  ),
+                  (
+                      '    "release:smoke",\n    "--",\n    "--tarball",',
+                      '    "release:smoke",\n    "--tarball",',
+                  ),
+              ],
+              Path(".github/workflows/release.yml"): [
+                  (
+                      "corepack pnpm release:package -- \\\n",
+                      "corepack pnpm release:package \\\n",
+                  ),
+                  (
+                      "corepack pnpm release:smoke -- \\\n",
+                      "corepack pnpm release:smoke \\\n",
+                  ),
+              ],
+              Path("tests/release/release-workflow.test.mjs"): [
+                  (
+                      '    expect(build.match(/release:package/gu)).toHaveLength(1);',
+                      '    expect(build.match(/release:package/gu)).toHaveLength(1);\n    expect(build).not.toContain("release:package --");',
+                  ),
+                  (
+                      '    expect(smoke).toContain("release:smoke");',
+                      '    expect(smoke).toContain("release:smoke");\n    expect(smoke).not.toContain("release:smoke --");',
+                  ),
+                  (
+                      '    const { text, workflow } = await readWorkflow(".github/workflows/ci.yml");',
+                      '    const { text, workflow } = await readWorkflow(".github/workflows/ci.yml");\n    const gate = await readFile("scripts/public-release-gate.mjs", "utf8");',
+                  ),
+                  (
+                      '    expect(text).not.toContain("npm publish");',
+                      '    expect(text).not.toContain("npm publish");\n    expect(gate).not.toContain(\'"release:package",\\n    "--",\');\n    expect(gate).not.toContain(\'"release:smoke",\\n    "--",\');',
+                  ),
+              ],
+          }
+
+          for path, pairs in replacements.items():
+              text = path.read_text()
+              for old, new in pairs:
+                  count = text.count(old)
+                  if count != 1:
+                      raise SystemExit(
+                          f"{path}: expected one occurrence, found {count}: {old!r}"
+                      )
+                  text = text.replace(old, new)
+              path.write_text(text)
+          PY
+          git rm .github/workflows/repair-release-argv.yml
+          git diff --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scripts/public-release-gate.mjs .github/workflows/release.yml tests/release/release-workflow.test.mjs
+          git commit -m "fix: forward release script arguments"
+          git push origin HEAD:feat/versioned-cli-release
