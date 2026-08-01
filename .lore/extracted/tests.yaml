@@ -75,6 +75,9 @@ tests:
     name: repository filesystem containment
   - file: tests/unit/cli/main.test.ts
     kind: it
+    name: detects a package entrypoint invoked through a bin symlink
+  - file: tests/unit/cli/main.test.ts
+    kind: it
     name: detects the executable entrypoint through a platform-safe file URL
   - file: tests/unit/cli/main.test.ts
     kind: it

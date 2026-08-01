@@ -67,6 +67,9 @@ relationships:
     to: ./version.js
     type: imports
   - from: src/cli/main.ts
+    to: node:fs
+    type: imports
+  - from: src/cli/main.ts
     to: node:fs/promises
     type: imports
   - from: src/cli/main.ts
