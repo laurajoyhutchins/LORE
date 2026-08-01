@@ -6,66 +6,38 @@ on:
   pull_request:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  refresh-review-fixes:
+  verify-head:
+    name: Verify exact head
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name || github.repository }}
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/public-release-gate.mjs
+
+  verify-merge:
+    name: Verify proposed merge
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Update approved design contract
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-
-          path = Path("docs/superpowers/specs/2026-07-28-lore-design.md")
-          text = path.read_text()
-          text = text.replace(
-              "│   │   ├── repository.yaml\n│   │   ├── components.yaml",
-              "│   │   ├── repository.yaml\n│   │   ├── scripts.yaml\n│   │   ├── components.yaml",
-          )
-          text = text.replace(
-              "extractors:\n  - id: repository-metadata\n    enabled: true\n  - id: typescript-imports\n    enabled: true\n  - id: package-scripts\n    enabled: true\n  - id: vitest-tests\n    enabled: true",
-              "extractors:\n  - id: repository-metadata\n    enabled: true\n  - id: package-scripts\n    enabled: true\n  - id: typescript-modules\n    enabled: true\n  - id: typescript-imports\n    enabled: true\n  - id: vitest-tests\n    enabled: true",
-          )
-          text = text.replace(
-              "The manifest schema is versioned. Unknown schema versions fail closed.",
-              "The manifest schema is versioned. Every loaded manifest is validated against it before use, and unknown schema versions fail closed. Extractor IDs may appear only once; duplicate or contradictory entries are invalid.",
-          )
-          text = text.replace(
-              "- repository metadata\n- package manager and package scripts\n- source files and TypeScript modules",
-              "- repository metadata and package manager\n- package scripts\n- source files and TypeScript modules",
-          )
-          marker = "Extraction requirements:\n"
-          mapping = "Each built-in extractor owns exactly one managed output:\n\n- `repository-metadata` → `repository.yaml`\n- `package-scripts` → `scripts.yaml`\n- `typescript-modules` → `components.yaml`\n- `typescript-imports` → `relationships.yaml`\n- `vitest-tests` → `tests.yaml`\n\n"
-          if mapping not in text:
-              text = text.replace(marker, mapping + marker)
-          path.write_text(text)
-          PY
-      - name: Regenerate LORE outputs
-        run: |
-          node scripts/restore-verified-lockfile.mjs
-          corepack pnpm install --frozen-lockfile
-          corepack pnpm lore extract
-          corepack pnpm lore project
-      - name: Commit authoritative and generated updates
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .lore/extracted docs/superpowers/specs/2026-07-28-lore-design.md README.md docs/generated
-          if git diff --cached --quiet; then
-            exit 0
-          fi
-          git commit -m "docs: align extractor contract and generated facts"
-          git push origin HEAD:agent/honor-extractor-configuration
+      - run: node scripts/public-release-gate.mjs
