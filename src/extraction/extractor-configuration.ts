@@ -45,6 +45,22 @@ export function enabledExtractorIds(
   const configured =
     manifest.extractors ??
     KNOWN_EXTRACTOR_IDS.map((id) => ({ id, enabled: true }));
+  const counts = new Map<string, number>();
+  for (const { id } of configured) counts.set(id, (counts.get(id) ?? 0) + 1);
+  const duplicates = [...counts]
+    .filter(([, count]) => count > 1)
+    .map(([id]) => id)
+    .sort();
+  if (duplicates.length > 0) {
+    return fail(
+      ...duplicates.map((id) => ({
+        code: "DUPLICATE_EXTRACTOR",
+        message: `Duplicate extractor configuration: ${id}`,
+        location: "lore.yaml",
+      })),
+    );
+  }
+
   const enabled = new Set(
     configured.filter(({ enabled }) => enabled).map(({ id }) => id),
   );
