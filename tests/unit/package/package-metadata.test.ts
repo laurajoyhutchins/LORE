@@ -9,6 +9,8 @@ interface PackageManifest {
   files?: unknown;
   publishConfig?: unknown;
   engines?: unknown;
+  dependencies?: Record<string, unknown>;
+  devDependencies?: Record<string, unknown>;
   main?: unknown;
   module?: unknown;
   types?: unknown;
@@ -33,6 +35,8 @@ it("defines the CLI-only bootstrap package", async () => {
   ]);
   expect(pkg.publishConfig).toEqual({ access: "public" });
   expect(pkg.engines).toEqual({ node: ">=22" });
+  expect(pkg.dependencies?.typescript).toBe("^5.9.2");
+  expect(pkg.devDependencies?.typescript).toBeUndefined();
   expect(pkg.main).toBeUndefined();
   expect(pkg.module).toBeUndefined();
   expect(pkg.types).toBeUndefined();
