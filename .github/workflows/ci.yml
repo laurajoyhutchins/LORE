@@ -95,10 +95,8 @@ jobs:
               '    expect(gate).not.toContain(\'"release:package",\\n    "--",\');\n'
               '    expect(gate).not.toContain(\'"release:smoke",\\n    "--",\');',
           )
-          PY
 
-          cat > .github/workflows/ci.yml <<'YAML'
-          name: CI
+          normal_ci = '''name: CI
 
           on:
             push:
@@ -109,7 +107,7 @@ jobs:
             contents: read
 
           concurrency:
-            group: ci-${{ github.workflow }}-${{ github.ref }}
+            group: ci-__WORKFLOW__-__REF__
             cancel-in-progress: true
 
           jobs:
@@ -119,7 +117,7 @@ jobs:
               steps:
                 - uses: actions/checkout@v6
                   with:
-                    ref: ${{ github.event.pull_request.head.sha || github.sha }}
+                    ref: __HEAD__
                     fetch-depth: 0
                     persist-credentials: false
                 - uses: actions/setup-node@v6
@@ -127,9 +125,20 @@ jobs:
                     node-version: 22.14.0
                     package-manager-cache: false
                 - run: node scripts/public-release-gate.mjs
-          YAML
+          '''.replace("          ", "")
+          expression = "$" + "{{"
+          normal_ci = normal_ci.replace(
+              "__WORKFLOW__", expression + " github.workflow }}"
+          ).replace(
+              "__REF__", expression + " github.ref }}"
+          ).replace(
+              "__HEAD__",
+              expression + " github.event.pull_request.head.sha || github.sha }}",
+          )
+          Path(".github/workflows/ci.yml").write_text(normal_ci)
+          PY
 
-          git rm .github/workflows/repair-release-argv.yml
+          git rm --ignore-unmatch .github/workflows/repair-release-argv.yml
           git diff --check
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
