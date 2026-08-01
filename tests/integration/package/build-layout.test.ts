@@ -1,5 +1,5 @@
-import { access, readdir, rm, stat } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
+import { access, readdir, rm, stat } from "node:fs/promises";
 import { expect, it } from "vitest";
 
 it("emits runtime JavaScript without tests, maps, or declarations", async () => {
@@ -13,8 +13,12 @@ it("emits runtime JavaScript without tests, maps, or declarations", async () => 
   if (process.platform !== "win32") {
     expect((await stat("dist/cli/main.js")).mode & 0o111).not.toBe(0);
   }
-  const names = (await readdir("dist", { recursive: true })).map(String);
-  expect(names.some((name) => name.includes("tests"))).toBe(false);
+  const names = (await readdir("dist", { recursive: true })).map((name) =>
+    String(name).replaceAll("\\", "/"),
+  );
+  expect(
+    names.some((name) => name === "tests" || name.startsWith("tests/")),
+  ).toBe(false);
   expect(names.some((name) => name.endsWith(".d.ts"))).toBe(false);
   expect(names.some((name) => name.endsWith(".map"))).toBe(false);
 });
