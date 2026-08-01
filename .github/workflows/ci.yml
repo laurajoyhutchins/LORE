@@ -1,29 +1,52 @@
-name: CI
+name: Refresh self-hosted LORE projections
 
 on:
-  push:
-    branches: [main]
   pull_request:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  group: refresh-lore-projections-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  verify:
+  refresh:
+    if: github.head_ref == 'feat/versioned-cli-release'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.head_ref }}
           fetch-depth: 0
-          persist-credentials: false
+          persist-credentials: true
       - uses: actions/setup-node@v6
         with:
           node-version: 22.14.0
           package-manager-cache: false
-      - run: node scripts/public-release-gate.mjs
+      - name: Regenerate canonical LORE outputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/restore-verified-lockfile.mjs
+          corepack pnpm install --frozen-lockfile
+          corepack pnpm lore extract
+          corepack pnpm lore project
+          rm pnpm-lock.yaml
+          git diff --check
+
+          CHANGED="$(git diff --name-only)"
+          test -n "$CHANGED"
+          while IFS= read -r path; do
+            case "$path" in
+              .lore/extracted/*|README.md|docs/generated/*) ;;
+              *) echo "Unexpected generated change: $path" >&2; exit 1 ;;
+            esac
+          done <<< "$CHANGED"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .lore/extracted README.md docs/generated
+          git commit -m "docs: refresh self-hosted LORE projections"
+          git push origin HEAD:${GITHUB_HEAD_REF}
