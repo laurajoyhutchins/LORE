@@ -265,6 +265,19 @@ async function exerciseRepository(launcher, environment, parentDirectory) {
     ["config", "user.email", "lore-installation-test@example.invalid"],
     { cwd: repositoryRoot, env: environment },
   );
+  await writeFile(
+    path.join(repositoryRoot, "installation-smoke.ts"),
+    "export const installationSmoke = true;\n",
+  );
+  run(git, ["add", "installation-smoke.ts"], {
+    cwd: repositoryRoot,
+    env: environment,
+  });
+  run(
+    git,
+    ["commit", "-m", "Create installation smoke repository"],
+    { cwd: repositoryRoot, env: environment },
+  );
   run(
     launcher,
     ["init", "--id", "installation-smoke", "--name", "Installation Smoke"],
