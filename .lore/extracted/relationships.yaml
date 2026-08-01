@@ -493,7 +493,13 @@ relationships:
     to: ../../src/proposals/validate-proposal.js
     type: imports
   - from: tests/invariants/remediation-contracts.test.ts
+    to: ../../src/transactions/plan-transaction.js
+    type: imports
+  - from: tests/invariants/remediation-contracts.test.ts
     to: ../../src/verification/verify-self.js
+    type: imports
+  - from: tests/invariants/remediation-contracts.test.ts
+    to: node:child_process
     type: imports
   - from: tests/invariants/remediation-contracts.test.ts
     to: node:fs/promises
@@ -503,6 +509,9 @@ relationships:
     type: imports
   - from: tests/invariants/remediation-contracts.test.ts
     to: node:path
+    type: imports
+  - from: tests/invariants/remediation-contracts.test.ts
+    to: node:util
     type: imports
   - from: tests/invariants/remediation-contracts.test.ts
     to: vitest
