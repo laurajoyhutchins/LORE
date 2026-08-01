@@ -13,6 +13,7 @@ import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import { stripArgumentSeparator } from "./lib/script-arguments.mjs";
 import {
   readTarGzip,
   sha256Hex,
@@ -144,10 +145,11 @@ export function createSmokeReport(platform, node, modes) {
 }
 
 function parseArguments(argv) {
+  const args = stripArgumentSeparator(argv);
   const values = new Map();
-  for (let index = 0; index < argv.length; index += 2) {
-    const flag = argv[index];
-    const value = argv[index + 1];
+  for (let index = 0; index < args.length; index += 2) {
+    const flag = args[index];
+    const value = args[index + 1];
     if (
       !["--tarball", "--mode", "--report", "--evidence"].includes(flag) ||
       typeof value !== "string" ||
@@ -255,14 +257,14 @@ async function exerciseRepository(launcher, environment, parentDirectory) {
     { cwd: repositoryRoot, env: environment },
   );
   await verifyInitializedPaths(repositoryRoot);
-  for (const args of [
+  for (const commandArguments of [
     ["extract"],
     ["validate"],
     ["project"],
     ["extract", "--check"],
     ["project", "--check"],
   ]) {
-    run(launcher, args, { cwd: repositoryRoot, env: environment });
+    run(launcher, commandArguments, { cwd: repositoryRoot, env: environment });
   }
   run(git, ["add", "."], {
     cwd: repositoryRoot,
