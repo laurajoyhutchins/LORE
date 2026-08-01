@@ -1,4 +1,4 @@
-import { readdir, readFile, writeFile } from "node:fs/promises";
+import { readdir, readFile, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import ts from "typescript";
 import { fail, ok } from "../domain/errors.js";
@@ -14,11 +14,13 @@ import {
 import { stableYaml } from "../serialization/yaml.js";
 import {
   enabledExtractorIds,
+  managedExtractionFileNames,
   requiredExtractionFiles,
 } from "./extractor-configuration.js";
 
 export interface ExtractionResult {
   files: Map<string, string>;
+  obsoleteFiles: string[];
   warnings: ValidationProblem[];
 }
 
@@ -85,7 +87,9 @@ async function walk(root: string, directory = root): Promise<WalkResult> {
 async function loadPackageJson(root: string): Promise<ValidationResult<PackageJson>> {
   const packagePath = await resolveExistingInsideRoot(root, "package.json");
   if (!packagePath.ok) {
-    if (packagePath.errors.every(({ code }) => code === "PATH_NOT_FOUND")) return ok({ scripts: {} });
+    if (packagePath.errors.every(({ code }) => code === "PATH_NOT_FOUND")) {
+      return ok({ scripts: {} });
+    }
     return packagePath;
   }
 
@@ -134,13 +138,24 @@ function detectedPackageManager(files: string[]): string {
   return "unknown";
 }
 
+function extractedPath(manifest: LoreManifest, fileName: string): string {
+  return path.posix.join(manifest.paths.extracted.replace(/\\/g, "/"), fileName);
+}
+
 export async function extractRepository(
   root: string,
   manifest: LoreManifest,
 ): Promise<ValidationResult<ExtractionResult>> {
   const requirements = requiredExtractionFiles(manifest);
   if (!requirements.ok) return requirements;
-  if (requirements.value.length === 0) return ok({ files: new Map(), warnings: [] });
+  const required = new Set(requirements.value.map(({ fileName }) => fileName));
+  const obsoleteFiles = managedExtractionFileNames()
+    .filter((fileName) => !required.has(fileName))
+    .map((fileName) => extractedPath(manifest, fileName));
+  if (requirements.value.length === 0) {
+    return ok({ files: new Map(), obsoleteFiles, warnings: [] });
+  }
+
   const enabledResult = enabledExtractorIds(manifest);
   if (!enabledResult.ok) return enabledResult;
   const enabled = enabledResult.value;
@@ -149,9 +164,13 @@ export async function extractRepository(
   if (walked.problems.length > 0) return fail(...walked.problems);
   const allFiles = walked.files;
 
-  const packageResult = await loadPackageJson(root);
-  if (!packageResult.ok) return packageResult;
-  const packageJson = packageResult.value;
+  let packageJson: PackageJson = { scripts: {} };
+  if (enabled.has("package-scripts")) {
+    const packageResult = await loadPackageJson(root);
+    if (!packageResult.ok) return packageResult;
+    packageJson = packageResult.value;
+  }
+
   const inspectTypeScript = [
     "typescript-modules",
     "typescript-imports",
@@ -221,11 +240,10 @@ export async function extractRepository(
     }
   }
 
-  const required = new Set(requirements.value.map(({ fileName }) => fileName));
   const files = new Map<string, string>();
   if (required.has("repository.yaml")) {
     files.set(
-      `${manifest.paths.extracted}/repository.yaml`,
+      extractedPath(manifest, "repository.yaml"),
       stableYaml({
         schema_version: 1,
         extractor: "repository-metadata",
@@ -235,13 +253,22 @@ export async function extractRepository(
           package_manager: detectedPackageManager(allFiles),
           languages: detectedLanguages(allFiles),
         },
+      }),
+    );
+  }
+  if (required.has("scripts.yaml")) {
+    files.set(
+      extractedPath(manifest, "scripts.yaml"),
+      stableYaml({
+        schema_version: 1,
+        extractor: "package-scripts",
         scripts: Object.fromEntries(Object.entries(packageJson.scripts ?? {}).sort()),
       }),
     );
   }
   if (required.has("components.yaml")) {
     files.set(
-      `${manifest.paths.extracted}/components.yaml`,
+      extractedPath(manifest, "components.yaml"),
       stableYaml({
         schema_version: 1,
         extractor: "typescript-modules",
@@ -251,7 +278,7 @@ export async function extractRepository(
   }
   if (required.has("relationships.yaml")) {
     files.set(
-      `${manifest.paths.extracted}/relationships.yaml`,
+      extractedPath(manifest, "relationships.yaml"),
       stableYaml({
         schema_version: 1,
         extractor: "typescript-imports",
@@ -263,7 +290,7 @@ export async function extractRepository(
   }
   if (required.has("tests.yaml")) {
     files.set(
-      `${manifest.paths.extracted}/tests.yaml`,
+      extractedPath(manifest, "tests.yaml"),
       stableYaml({
         schema_version: 1,
         extractor: "vitest-tests",
@@ -274,7 +301,7 @@ export async function extractRepository(
       }),
     );
   }
-  return ok({ files, warnings }, warnings);
+  return ok({ files, obsoleteFiles, warnings }, warnings);
 }
 
 export async function writeExtraction(
@@ -283,7 +310,18 @@ export async function writeExtraction(
 ): Promise<void> {
   for (const [filePath, content] of result.files) {
     const target = await prepareWritePathInsideRoot(root, filePath);
-    if (!target.ok) throw new Error(target.errors.map(({ message }) => message).join("; "));
+    if (!target.ok) {
+      throw new Error(target.errors.map(({ message }) => message).join("; "));
+    }
     await writeFile(target.value, content);
+  }
+
+  for (const filePath of result.obsoleteFiles) {
+    const target = await resolveExistingInsideRoot(root, filePath);
+    if (!target.ok) {
+      if (target.errors.every(({ code }) => code === "PATH_NOT_FOUND")) continue;
+      throw new Error(target.errors.map(({ message }) => message).join("; "));
+    }
+    await unlink(target.value);
   }
 }
