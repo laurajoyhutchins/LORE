@@ -13,7 +13,7 @@ export type ProposalOperation={operation:'append_record';record:SemanticRecord}|
 export interface LoreProposal { protocol:'lore-proposal/v1'; proposal_id:string; base_revision:string; producer?:{type?:string;name?:string;model?:string}; skill:{path:string;digest:string}; result:'changes_proposed'|'no_documentation_change'; reason?:string; operations:ProposalOperation[]; uncertainties:string[] }
 export interface TransactionPlan { proposal:LoreProposal; recordsToCreate:Array<{path:string;record:SemanticRecord}>; transactionReceiptPath:string; generatedOutputs:Map<string,string> }
 export interface TransactionReceipt { schema_version:1; transaction_id:string; proposal_id:string; base_revision:string; accepted_at:string; records:string[]; outputs:string[] }
-export interface ExtractedFacts { repository?:unknown; components?:unknown[]; relationships?:unknown[]; tests?:unknown[] }
+export interface ExtractedFacts { repository?:unknown; scripts?:Record<string,string>; components?:unknown[]; relationships?:unknown[]; tests?:unknown[] }
 export interface ValidatedRepository { root:string; manifest:LoreManifest; revision:string; records:SemanticRecord[]; effectiveStatus:Map<string,RecordStatus>; extracted:ExtractedFacts }
 export interface LoreMaintainerContext { protocol:'lore-maintainer-context/v1'; task:LoreTask; packet:HydrationPacket; skill_path:string; output_schema_path:string; proposal_destination:string }
 export interface RecordExplanation { reference:string; record:SemanticRecord; current_status:RecordStatus; predecessors:string[]; successors:string[]; related:string[]; introducing_transaction:string|null; superseding_transaction:string|null }
