@@ -1,8 +1,24 @@
 import { readFile } from "node:fs/promises";
 import { expect, it } from "vitest";
 
+interface PackageManifest {
+  name?: unknown;
+  version?: unknown;
+  private?: unknown;
+  bin?: unknown;
+  files?: unknown;
+  publishConfig?: unknown;
+  engines?: unknown;
+  main?: unknown;
+  module?: unknown;
+  types?: unknown;
+  exports?: unknown;
+}
+
 it("defines the CLI-only bootstrap package", async () => {
-  const pkg = JSON.parse(await readFile("package.json", "utf8"));
+  const pkg = JSON.parse(
+    await readFile("package.json", "utf8"),
+  ) as PackageManifest;
   expect(pkg.name).toBe("@laurajoyhutchins/lore");
   expect(pkg.version).toBe("0.0.0-bootstrap.0");
   expect(pkg.private).toBeUndefined();
