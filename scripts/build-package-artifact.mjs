@@ -1,20 +1,22 @@
 #!/usr/bin/env node
 
+import { spawnSync } from "node:child_process";
 import { mkdir, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
-import { spawnSync } from "node:child_process";
 import { inspectPackageArtifact } from "./lib/package-contract.mjs";
+import { stripArgumentSeparator } from "./lib/script-arguments.mjs";
 
 function fail(code, detail) {
   throw new Error(detail ? `${code}: ${detail}` : code);
 }
 
 function parseArguments(argv) {
+  const args = stripArgumentSeparator(argv);
   const values = new Map();
-  for (let index = 0; index < argv.length; index += 2) {
-    const flag = argv[index];
-    const value = argv[index + 1];
+  for (let index = 0; index < args.length; index += 2) {
+    const flag = args[index];
+    const value = args[index + 1];
     if (
       !["--tag", "--commit", "--output"].includes(flag) ||
       typeof value !== "string" ||
