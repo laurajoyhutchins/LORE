@@ -12,17 +12,16 @@ export function parseNpmPackFilename(output) {
     throw new Error("RELEASE_PACKAGE_NPM_OUTPUT_INVALID");
   }
 
-  for (
-    let index = output.lastIndexOf("[");
-    index >= 0;
-    index = output.lastIndexOf("[", index - 1)
-  ) {
+  let index = output.lastIndexOf("[");
+  while (index >= 0) {
     try {
       const parsed = JSON.parse(output.slice(index).trim());
       if (isPackResult(parsed)) return parsed[0].filename;
     } catch {
-      continue;
+      // Continue searching for an earlier array boundary.
     }
+    if (index === 0) break;
+    index = output.lastIndexOf("[", index - 1);
   }
 
   throw new Error("RELEASE_PACKAGE_NPM_OUTPUT_INVALID");
