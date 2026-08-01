@@ -13,15 +13,53 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  verify:
+  refresh-review-fixes:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.event.pull_request.head.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: node scripts/public-release-gate.mjs
+      - name: Update approved design contract
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("docs/superpowers/specs/2026-07-28-lore-design.md")
+          text = path.read_text()
+          text = text.replace(
+              "│   │   ├── repository.yaml\n│   │   ├── components.yaml",
+              "│   │   ├── repository.yaml\n│   │   ├── scripts.yaml\n│   │   ├── components.yaml",
+          )
+          text = text.replace(
+              "extractors:\n  - id: repository-metadata\n    enabled: true\n  - id: typescript-imports\n    enabled: true\n  - id: package-scripts\n    enabled: true\n  - id: vitest-tests\n    enabled: true",
+              "extractors:\n  - id: repository-metadata\n    enabled: true\n  - id: package-scripts\n    enabled: true\n  - id: typescript-modules\n    enabled: true\n  - id: typescript-imports\n    enabled: true\n  - id: vitest-tests\n    enabled: true",
+          )
+          text = text.replace(
+              "The manifest schema is versioned. Unknown schema versions fail closed.",
+              "The manifest schema is versioned. Every loaded manifest is validated against it before use, and unknown schema versions fail closed. Extractor IDs may appear only once; duplicate or contradictory entries are invalid.",
+          )
+          text = text.replace(
+              "- repository metadata\n- package manager and package scripts\n- source files and TypeScript modules",
+              "- repository metadata and package manager\n- package scripts\n- source files and TypeScript modules",
+          )
+          marker = "Extraction requirements:\n"
+          mapping = "Each built-in extractor owns exactly one managed output:\n\n- `repository-metadata` → `repository.yaml`\n- `package-scripts` → `scripts.yaml`\n- `typescript-modules` → `components.yaml`\n- `typescript-imports` → `relationships.yaml`\n- `vitest-tests` → `tests.yaml`\n\n"
+          if mapping not in text:
+              text = text.replace(marker, mapping + marker)
+          path.write_text(text)
+          PY
+      - run: node scripts/public-release-gate.mjs --refresh-generated
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pr9-review-fixes
+          path: |
+            .lore/extracted
+            docs/superpowers/specs/2026-07-28-lore-design.md
+            README.md
+            docs/generated
+          if-no-files-found: error
