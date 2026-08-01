@@ -12,6 +12,7 @@ import {
   resolveExistingInsideRoot,
 } from "../filesystem/repository-paths.js";
 import { stableYaml } from "../serialization/yaml.js";
+import { requiredExtractionFiles } from "./extractor-configuration.js";
 
 export interface ExtractionResult {
   files: Map<string, string>;
@@ -96,10 +97,48 @@ async function loadPackageJson(root: string): Promise<ValidationResult<PackageJs
   }
 }
 
+function detectedLanguages(files: string[]): string[] {
+  return [
+    ...new Set(
+      files
+        .map((file) =>
+          file.endsWith(".py")
+            ? "Python"
+            : file.endsWith(".ts")
+              ? "TypeScript"
+              : file.endsWith(".js")
+                ? "JavaScript"
+                : file.endsWith(".md")
+                  ? "Markdown"
+                  : null,
+        )
+        .filter((language) => language !== null),
+    ),
+  ].sort();
+}
+
+function detectedPackageManager(files: string[]): string {
+  if (files.includes("pnpm-lock.yaml")) return "pnpm";
+  if (files.includes("yarn.lock")) return "yarn";
+  if (files.includes("bun.lock") || files.includes("bun.lockb")) return "bun";
+  if (files.includes("package-lock.json")) return "npm";
+  if (files.includes("uv.lock")) return "uv";
+  if (files.includes("poetry.lock")) return "poetry";
+  if (files.includes("Pipfile.lock")) return "pipenv";
+  if (files.includes("pyproject.toml")) return "python";
+  if (files.includes("package.json")) return "npm";
+  if (files.some((file) => /^requirements(?:-[^/]+)?\.txt$/.test(file))) return "pip";
+  return "unknown";
+}
+
 export async function extractRepository(
   root: string,
   manifest: LoreManifest,
 ): Promise<ValidationResult<ExtractionResult>> {
+  const requirements = requiredExtractionFiles(manifest);
+  if (!requirements.ok) return requirements;
+  if (requirements.value.length === 0) return ok({ files: new Map(), warnings: [] });
+
   const walked = await walk(root);
   if (walked.problems.length > 0) return fail(...walked.problems);
   const allFiles = walked.files;
@@ -107,127 +146,131 @@ export async function extractRepository(
   const packageResult = await loadPackageJson(root);
   if (!packageResult.ok) return packageResult;
   const packageJson = packageResult.value;
+  const enabled = new Set(
+    manifest.extractors.filter(({ enabled }) => enabled).map(({ id }) => id),
+  );
+  const inspectTypeScript = [
+    "typescript-modules",
+    "typescript-imports",
+    "vitest-tests",
+  ].some((id) => enabled.has(id));
 
-  const languages = [
-    ...new Set(
-      allFiles
-        .map((file) =>
-          file.endsWith(".ts")
-            ? "TypeScript"
-            : file.endsWith(".js")
-              ? "JavaScript"
-              : file.endsWith(".md")
-                ? "Markdown"
-                : null,
-        )
-        .filter((language) => language !== null),
-    ),
-  ].sort();
   const modules: ExtractedModule[] = [];
   const relationships: ExtractedRelationship[] = [];
   const tests: ExtractedTest[] = [];
   const warnings: ValidationProblem[] = [];
 
-  for (const file of allFiles.filter((candidate) => candidate.endsWith(".ts"))) {
-    const sourcePath = await resolveExistingInsideRoot(root, file);
-    if (!sourcePath.ok) return sourcePath;
-    const sourceText = await readFile(sourcePath.value, "utf8");
-    const sourceFile = ts.createSourceFile(
-      file,
-      sourceText,
-      ts.ScriptTarget.Latest,
-      true,
-    );
-    const exports: string[] = [];
-    const visit = (node: ts.Node): void => {
-      if (
-        (ts.getCombinedModifierFlags(node as ts.Declaration) & ts.ModifierFlags.Export) !== 0 &&
-        "name" in node &&
-        node.name !== undefined &&
-        typeof node.name === "object" &&
-        node.name !== null &&
-        ts.isIdentifier(node.name as ts.Node)
-      ) {
-        exports.push((node.name as ts.Identifier).text);
-      }
-      if (ts.isImportDeclaration(node) && ts.isStringLiteral(node.moduleSpecifier)) {
-        relationships.push({
-          from: file,
-          to: node.moduleSpecifier.text,
-          type: "imports",
-        });
-      }
-      if (
-        ts.isCallExpression(node) &&
-        ts.isIdentifier(node.expression) &&
-        ["describe", "it", "test"].includes(node.expression.text)
-      ) {
-        const argument = node.arguments[0];
-        if (argument && ts.isStringLiteral(argument)) {
-          tests.push({
-            file,
-            name: argument.text,
-            kind: node.expression.text,
+  if (inspectTypeScript) {
+    for (const file of allFiles.filter((candidate) => candidate.endsWith(".ts"))) {
+      const sourcePath = await resolveExistingInsideRoot(root, file);
+      if (!sourcePath.ok) return sourcePath;
+      const sourceText = await readFile(sourcePath.value, "utf8");
+      const sourceFile = ts.createSourceFile(
+        file,
+        sourceText,
+        ts.ScriptTarget.Latest,
+        true,
+      );
+      const exports: string[] = [];
+      const visit = (node: ts.Node): void => {
+        if (
+          (ts.getCombinedModifierFlags(node as ts.Declaration) & ts.ModifierFlags.Export) !== 0 &&
+          "name" in node &&
+          node.name !== undefined &&
+          typeof node.name === "object" &&
+          node.name !== null &&
+          ts.isIdentifier(node.name as ts.Node)
+        ) {
+          exports.push((node.name as ts.Identifier).text);
+        }
+        if (ts.isImportDeclaration(node) && ts.isStringLiteral(node.moduleSpecifier)) {
+          relationships.push({
+            from: file,
+            to: node.moduleSpecifier.text,
+            type: "imports",
           });
         }
+        if (
+          ts.isCallExpression(node) &&
+          ts.isIdentifier(node.expression) &&
+          ["describe", "it", "test"].includes(node.expression.text)
+        ) {
+          const argument = node.arguments[0];
+          if (argument && ts.isStringLiteral(argument)) {
+            tests.push({
+              file,
+              name: argument.text,
+              kind: node.expression.text,
+            });
+          }
+        }
+        ts.forEachChild(node, visit);
+      };
+      visit(sourceFile);
+      modules.push({ path: file, exports: exports.sort() });
+      for (const diagnostic of (sourceFile as ParsedSourceFile).parseDiagnostics ?? []) {
+        warnings.push({
+          code: "UNSUPPORTED_SYNTAX",
+          message: ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n"),
+          location: file,
+        });
       }
-      ts.forEachChild(node, visit);
-    };
-    visit(sourceFile);
-    modules.push({ path: file, exports: exports.sort() });
-    for (const diagnostic of (sourceFile as ParsedSourceFile).parseDiagnostics ?? []) {
-      warnings.push({
-        code: "UNSUPPORTED_SYNTAX",
-        message: ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n"),
-        location: file,
-      });
     }
   }
 
+  const required = new Set(requirements.value.map(({ fileName }) => fileName));
   const files = new Map<string, string>();
-  files.set(
-    `${manifest.paths.extracted}/repository.yaml`,
-    stableYaml({
-      schema_version: 1,
-      extractor: "repository-metadata",
-      repository: {
-        id: manifest.repository.id,
-        name: manifest.repository.name,
-        package_manager: "pnpm",
-        languages,
-      },
-      scripts: Object.fromEntries(Object.entries(packageJson.scripts ?? {}).sort()),
-    }),
-  );
-  files.set(
-    `${manifest.paths.extracted}/components.yaml`,
-    stableYaml({
-      schema_version: 1,
-      extractor: "typescript-modules",
-      components: modules.sort((left, right) => left.path.localeCompare(right.path)),
-    }),
-  );
-  files.set(
-    `${manifest.paths.extracted}/relationships.yaml`,
-    stableYaml({
-      schema_version: 1,
-      extractor: "typescript-imports",
-      relationships: relationships.sort((left, right) =>
-        JSON.stringify(left).localeCompare(JSON.stringify(right)),
-      ),
-    }),
-  );
-  files.set(
-    `${manifest.paths.extracted}/tests.yaml`,
-    stableYaml({
-      schema_version: 1,
-      extractor: "vitest-tests",
-      tests: tests.sort(
-        (left, right) =>
-          left.file.localeCompare(right.file) || left.name.localeCompare(right.name),
-      ),
-    }),
-  );
+  if (required.has("repository.yaml")) {
+    files.set(
+      `${manifest.paths.extracted}/repository.yaml`,
+      stableYaml({
+        schema_version: 1,
+        extractor: "repository-metadata",
+        repository: {
+          id: manifest.repository.id,
+          name: manifest.repository.name,
+          package_manager: detectedPackageManager(allFiles),
+          languages: detectedLanguages(allFiles),
+        },
+        scripts: Object.fromEntries(Object.entries(packageJson.scripts ?? {}).sort()),
+      }),
+    );
+  }
+  if (required.has("components.yaml")) {
+    files.set(
+      `${manifest.paths.extracted}/components.yaml`,
+      stableYaml({
+        schema_version: 1,
+        extractor: "typescript-modules",
+        components: modules.sort((left, right) => left.path.localeCompare(right.path)),
+      }),
+    );
+  }
+  if (required.has("relationships.yaml")) {
+    files.set(
+      `${manifest.paths.extracted}/relationships.yaml`,
+      stableYaml({
+        schema_version: 1,
+        extractor: "typescript-imports",
+        relationships: relationships.sort((left, right) =>
+          JSON.stringify(left).localeCompare(JSON.stringify(right)),
+        ),
+      }),
+    );
+  }
+  if (required.has("tests.yaml")) {
+    files.set(
+      `${manifest.paths.extracted}/tests.yaml`,
+      stableYaml({
+        schema_version: 1,
+        extractor: "vitest-tests",
+        tests: tests.sort(
+          (left, right) =>
+            left.file.localeCompare(right.file) || left.name.localeCompare(right.name),
+        ),
+      }),
+    );
+  }
   return ok({ files, warnings }, warnings);
 }
 
