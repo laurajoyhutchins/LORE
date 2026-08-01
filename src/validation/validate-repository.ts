@@ -133,9 +133,15 @@ export async function validateRepository(
       continue;
     }
     if (key === "repository") extracted.repository = schema.value.repository;
-    else if (key === "components") extracted.components = schema.value.components as unknown[];
-    else if (key === "relationships") extracted.relationships = schema.value.relationships as unknown[];
-    else extracted.tests = schema.value.tests as unknown[];
+    else if (key === "scripts") {
+      extracted.scripts = schema.value.scripts as Record<string, string>;
+    } else if (key === "components") {
+      extracted.components = schema.value.components as unknown[];
+    } else if (key === "relationships") {
+      extracted.relationships = schema.value.relationships as unknown[];
+    } else {
+      extracted.tests = schema.value.tests as unknown[];
+    }
   }
 
   const [rootSchema, skillSchema, skill] = await Promise.all([
