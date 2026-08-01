@@ -12,7 +12,10 @@ import {
   resolveExistingInsideRoot,
 } from "../filesystem/repository-paths.js";
 import { stableYaml } from "../serialization/yaml.js";
-import { requiredExtractionFiles } from "./extractor-configuration.js";
+import {
+  enabledExtractorIds,
+  requiredExtractionFiles,
+} from "./extractor-configuration.js";
 
 export interface ExtractionResult {
   files: Map<string, string>;
@@ -138,6 +141,9 @@ export async function extractRepository(
   const requirements = requiredExtractionFiles(manifest);
   if (!requirements.ok) return requirements;
   if (requirements.value.length === 0) return ok({ files: new Map(), warnings: [] });
+  const enabledResult = enabledExtractorIds(manifest);
+  if (!enabledResult.ok) return enabledResult;
+  const enabled = enabledResult.value;
 
   const walked = await walk(root);
   if (walked.problems.length > 0) return fail(...walked.problems);
@@ -146,9 +152,6 @@ export async function extractRepository(
   const packageResult = await loadPackageJson(root);
   if (!packageResult.ok) return packageResult;
   const packageJson = packageResult.value;
-  const enabled = new Set(
-    manifest.extractors.filter(({ enabled }) => enabled).map(({ id }) => id),
-  );
   const inspectTypeScript = [
     "typescript-modules",
     "typescript-imports",
