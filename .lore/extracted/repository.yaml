@@ -8,13 +8,3 @@ repository:
   name: LORE
   package_manager: pnpm
 schema_version: 1
-scripts:
-  build: tsc -p tsconfig.json
-  lint: eslint .
-  lore: tsx src/cli/main.ts
-  release:refresh: node scripts/public-release-gate.mjs --refresh-generated
-  release:restore-lock: node scripts/restore-verified-lockfile.mjs
-  release:verify: node scripts/public-release-gate.mjs
-  test: vitest run
-  test:watch: vitest
-  typecheck: tsc -p tsconfig.json --noEmit
