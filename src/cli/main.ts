@@ -190,6 +190,16 @@ export async function runCli(argv: string[], io: CliIo = DEFAULT_IO): Promise<nu
             return 14;
           }
         }
+        for (const relativePath of extraction.value.obsoleteFiles) {
+          const stale = await readContainedText(root, relativePath);
+          if (stale.ok) {
+            io.stderr(`GENERATED_OUTPUT_STALE: ${relativePath}`);
+            return 14;
+          }
+          if (!stale.errors.every(({ code }) => code === "PATH_NOT_FOUND")) {
+            return printProblems(io, stale);
+          }
+        }
       } else {
         await writeExtraction(root, extraction.value);
       }
