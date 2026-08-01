@@ -11,19 +11,21 @@ export interface ExtractionFileRequirement {
   key: ExtractedFactKey;
 }
 
-const KNOWN_EXTRACTORS = new Set([
+const KNOWN_EXTRACTOR_IDS = [
   "repository-metadata",
   "package-scripts",
   "typescript-modules",
   "typescript-imports",
   "vitest-tests",
-]);
+] as const;
+const KNOWN_EXTRACTORS = new Set<string>(KNOWN_EXTRACTOR_IDS);
 
-export function requiredExtractionFiles(
+export function enabledExtractorIds(
   manifest: LoreManifest,
-): ValidationResult<ExtractionFileRequirement[]> {
+): ValidationResult<Set<string>> {
+  const configured = manifest.extractors ?? KNOWN_EXTRACTOR_IDS.map((id) => ({ id, enabled: true }));
   const enabled = new Set(
-    manifest.extractors.filter(({ enabled }) => enabled).map(({ id }) => id),
+    configured.filter(({ enabled }) => enabled).map(({ id }) => id),
   );
   const unknown = [...enabled].filter((id) => !KNOWN_EXTRACTORS.has(id)).sort();
   if (unknown.length > 0) {
@@ -35,6 +37,15 @@ export function requiredExtractionFiles(
       })),
     );
   }
+  return ok(enabled);
+}
+
+export function requiredExtractionFiles(
+  manifest: LoreManifest,
+): ValidationResult<ExtractionFileRequirement[]> {
+  const enabledResult = enabledExtractorIds(manifest);
+  if (!enabledResult.ok) return enabledResult;
+  const enabled = enabledResult.value;
 
   const files: ExtractionFileRequirement[] = [];
   if (enabled.has("repository-metadata") || enabled.has("package-scripts")) {
