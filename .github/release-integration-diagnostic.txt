@@ -1,0 +1,26 @@
+head=87917a5c2eb3aa10c565730989c7ad7c74e00325
+main=38d0a4b71ab3d9f268a807de019501a27c6ec313
+merge_exit=128
+unmerged_begin
+unmerged_end
+status_begin
+?? merge.stderr
+?? merge.stdout
+status_end
+stdout_begin
+stdout_end
+stderr_begin
+Committer identity unknown
+
+*** Please tell me who you are.
+
+Run
+
+  git config --global user.email "you@example.com"
+  git config --global user.name "Your Name"
+
+to set your account's default identity.
+Omit --global to set the identity only in this repository.
+
+fatal: empty ident name (for <runner@runnervmvrwv9.spuvt2424gcedosxb35o4vhdqf.dx.internal.cloudapp.net>) not allowed
+stderr_end
