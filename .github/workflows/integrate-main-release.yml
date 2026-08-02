@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
-      EXPECTED_PARENT: bfd3090538e913c96bf29993240355aff76f891c
+      EXPECTED_PARENT: c53d222c9547c494dc9d85e0c6e2f09fbea4e44c
     steps:
       - uses: actions/checkout@v6
         with:
@@ -48,72 +48,6 @@ jobs:
           git checkout --ours -- .lore/extracted/repository.yaml
           git add .lore/extracted/repository.yaml
 
-          python <<'PY'
-          from pathlib import Path
-
-          path = Path('.github/workflows/ci.yml')
-          lines = path.read_text().splitlines()
-          output = []
-          index = 0
-          while index < len(lines):
-              line = lines[index]
-              line = line.replace('actions/checkout@v4', 'actions/checkout@v6')
-              line = line.replace('actions/setup-node@v4', 'actions/setup-node@v6')
-              if line.strip() == 'timeout-minutes: 20':
-                  line = line.replace('20', '30')
-              if line.strip() == 'node-version: 22':
-                  line = line.replace('22', '22.14.0')
-              output.append(line)
-
-              if line.strip() in {
-                  '- uses: actions/checkout@v6',
-                  '- uses: actions/setup-node@v6',
-              }:
-                  step_kind = 'checkout' if 'checkout' in line else 'setup-node'
-                  step_indent = len(line) - len(line.lstrip())
-                  cursor = index + 1
-                  block = []
-                  while cursor < len(lines):
-                      candidate = lines[cursor]
-                      candidate_indent = len(candidate) - len(candidate.lstrip())
-                      if candidate.strip().startswith('- ') and candidate_indent == step_indent:
-                          break
-                      block.append(candidate)
-                      cursor += 1
-
-                  normalized = []
-                  for candidate in block:
-                      candidate = candidate.replace('actions/checkout@v4', 'actions/checkout@v6')
-                      candidate = candidate.replace('actions/setup-node@v4', 'actions/setup-node@v6')
-                      if candidate.strip() == 'node-version: 22':
-                          candidate = candidate.replace('22', '22.14.0')
-                      normalized.append(candidate)
-
-                  required = (
-                      'persist-credentials: false'
-                      if step_kind == 'checkout'
-                      else 'package-manager-cache: false'
-                  )
-                  if not any(required in candidate for candidate in normalized):
-                      insert_at = len(normalized)
-                      while insert_at > 0 and normalized[insert_at - 1].strip() == '':
-                          insert_at -= 1
-                      property_indent = ' ' * (step_indent + 4)
-                      if not any(candidate.strip() == 'with:' for candidate in normalized):
-                          normalized.insert(0, f"{' ' * (step_indent + 2)}with:")
-                          insert_at += 1
-                      normalized.insert(insert_at, f'{property_indent}{required}')
-
-                  output.extend(normalized)
-                  index = cursor
-                  continue
-
-              index += 1
-
-          path.write_text('\n'.join(output) + '\n')
-          PY
-          git add .github/workflows/ci.yml
-
           grep -Fq 'extraction.value.obsoleteFiles' src/cli/main.ts
           grep -Fq 'projects candidate effective statuses when planning a transaction' tests/invariants/remediation-contracts.test.ts
           grep -Fq 'exact-head and proposed-merge verification' tests/release/release-workflow.test.mjs
@@ -122,16 +56,64 @@ jobs:
           git rm .github/release-integration-failure.txt
           git rm .github/workflows/diagnose-release-sync.yml
           git rm .github/workflows/integrate-main-release.yml
-      - name: Regenerate and verify integrated source
+      - name: Install verified dependencies
         shell: bash
         run: |
           set -euo pipefail
           exec > >(tee /tmp/integration-verify.log) 2>&1
-          phase() { echo "$1" > /tmp/integration-phase; }
-          phase restore-lock
+          echo restore-lock > /tmp/integration-phase
           node scripts/restore-verified-lockfile.mjs
-          phase install
+          echo install > /tmp/integration-phase
           corepack pnpm install --frozen-lockfile
+      - name: Normalize permanent CI authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo normalize-ci > /tmp/integration-phase
+          node --input-type=module <<'NODE'
+          import { readFile, writeFile } from 'node:fs/promises';
+          import { parse, stringify } from 'yaml';
+
+          const path = '.github/workflows/ci.yml';
+          const workflow = parse(await readFile(path, 'utf8'));
+          const head = workflow.jobs?.['verify-head'];
+          const merge = workflow.jobs?.['verify-merge'];
+          if (!head || !merge) throw new Error('CI_LANES_MISSING');
+
+          for (const job of [head, merge]) {
+            job['timeout-minutes'] = 30;
+            const checkout = job.steps?.find((step) =>
+              String(step.uses ?? '').startsWith('actions/checkout@'),
+            );
+            const setup = job.steps?.find((step) =>
+              String(step.uses ?? '').startsWith('actions/setup-node@'),
+            );
+            if (!checkout || !setup) throw new Error('CI_REQUIRED_STEP_MISSING');
+            checkout.uses = 'actions/checkout@v6';
+            checkout.with ??= {};
+            checkout.with['fetch-depth'] = 0;
+            checkout.with['persist-credentials'] = false;
+            setup.uses = 'actions/setup-node@v6';
+            setup.with ??= {};
+            setup.with['node-version'] = '22.14.0';
+            setup.with['package-manager-cache'] = false;
+          }
+
+          const mergeCheckout = merge.steps.find((step) =>
+            String(step.uses ?? '').startsWith('actions/checkout@'),
+          );
+          delete mergeCheckout.with.ref;
+          delete mergeCheckout.with.repository;
+
+          await writeFile(path, stringify(workflow, { lineWidth: 0 }));
+          NODE
+          git add .github/workflows/ci.yml
+      - name: Regenerate and verify integrated source
+        shell: bash
+        run: |
+          set -euo pipefail
+          exec > >(tee -a /tmp/integration-verify.log) 2>&1
+          phase() { echo "$1" > /tmp/integration-phase; }
           phase extract
           corepack pnpm lore extract
           phase project
@@ -182,7 +164,7 @@ jobs:
           phase="$(cat /tmp/integration-phase 2>/dev/null || echo unknown)"
           status="$(git status --short || true)"
           local_head="$(git rev-parse HEAD)"
-          log_tail="$(tail -n 240 /tmp/integration-verify.log 2>/dev/null || true)"
+          log_tail="$(tail -n 260 /tmp/integration-verify.log 2>/dev/null || true)"
           git reset --hard "$GITHUB_SHA"
           git clean -fd
           {
