@@ -1,8 +1,9 @@
-phase=verify
-workflow_sha=95da844d64f54a54f690f0c1bced84404ec4570b
-local_head_before_reset=95da844d64f54a54f690f0c1bced84404ec4570b
+phase=test
+workflow_sha=39b91b6594c9c45d2702ccc3b50b2a72c89632f8
+local_head_before_reset=39b91b6594c9c45d2702ccc3b50b2a72c89632f8
 status_before_reset_begin
 D  .github/release-integration-diagnostic.txt
+D  .github/release-integration-failure.txt
 M  .github/workflows/ci.yml
 D  .github/workflows/diagnose-release-sync.yml
 D  .github/workflows/integrate-main-release.yml
@@ -27,3 +28,112 @@ M  tests/unit/extraction/extract.test.ts
 M  tests/unit/schemas/schema-registry.test.ts
 ?? pnpm-lock.yaml
 status_before_reset_end
+verify_log_tail_begin
+Restored verified lockfile at /home/runner/work/LORE/LORE/pnpm-lock.yaml
+SHA-256: bbda9e0c90ce2996f8fc510b1414321957e879d72443a68d850baa61d17aa1e6
+Git blob: df207b5d79375bc28d5481c7d1f106952e77adbe
+Lockfile is up to date, resolution step is skipped
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +162
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 162, reused 0, downloaded 162, added 162, done
+
+dependencies:
++ ajv 8.20.0
++ ajv-formats 3.0.1
++ typescript 5.9.3
++ yaml 2.9.0
+
+devDependencies:
++ @eslint/js 9.39.5
++ @types/node 22.20.1
++ eslint 9.39.5
++ tsx 4.23.1
++ typescript-eslint 8.65.0
++ vitest 3.2.7
+
+╭ Warning ─────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│   Ignored build scripts: esbuild.                                            │
+│   Run "pnpm approve-builds" to pick which dependencies should be allowed     │
+│   to run scripts.                                                            │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+Done in 1.3s using pnpm v10.14.0
+
+> @laurajoyhutchins/lore@0.0.0-bootstrap.0 lore /home/runner/work/LORE/LORE
+> tsx src/cli/main.ts extract
+
+
+> @laurajoyhutchins/lore@0.0.0-bootstrap.0 lore /home/runner/work/LORE/LORE
+> tsx src/cli/main.ts project
+
+
+> @laurajoyhutchins/lore@0.0.0-bootstrap.0 typecheck /home/runner/work/LORE/LORE
+> tsc -p tsconfig.json --noEmit
+
+
+> @laurajoyhutchins/lore@0.0.0-bootstrap.0 lint /home/runner/work/LORE/LORE
+> eslint .
+
+
+> @laurajoyhutchins/lore@0.0.0-bootstrap.0 test /home/runner/work/LORE/LORE
+> vitest run
+
+
+[1m[46m RUN [49m[22m [36mv3.2.7 [39m[90m/home/runner/work/LORE/LORE[39m
+
+ [32m✓[39m tests/release/package-contract.test.mjs [2m([22m[2m13 tests[22m[2m)[22m[32m 61[2mms[22m[39m
+ [32m✓[39m tests/release/installed-smoke.test.mjs [2m([22m[2m9 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/unit/extraction/extract.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 54[2mms[22m[39m
+ [32m✓[39m tests/release/tarball.test.mjs [2m([22m[2m10 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m tests/invariants/remediation-contracts.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 390[2mms[22m[39m
+ [32m✓[39m tests/security/repository-paths.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [31m❯[39m tests/release/release-workflow.test.mjs [2m([22m[2m4 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 101[2mms[22m[39m
+   [32m✓[39m release workflow authority[2m > [22mruns only for published GitHub Releases[32m 34[2mms[22m[39m
+   [32m✓[39m release workflow authority[2m > [22mbuilds once and tests the canonical tarball on three platforms[32m 23[2mms[22m[39m
+   [32m✓[39m release workflow authority[2m > [22mseparates bootstrap attachment from stable OIDC publication[32m 13[2mms[22m[39m
+[31m   [31m×[31m ordinary CI authority[2m > [22mretains read-only authority and the unified release gate[39m[32m 29[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'steps')[39m
+ [32m✓[39m tests/release/github-release-assets.test.mjs [2m([22m[2m10 tests[22m[2m)[22m[32m 30[2mms[22m[39m
+ [32m✓[39m tests/security/git-client.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 246[2mms[22m[39m
+ [32m✓[39m tests/unit/init/initialize.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 95[2mms[22m[39m
+ [32m✓[39m tests/release/finalize-release-evidence.test.mjs [2m([22m[2m6 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/unit/cli/main.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 27[2mms[22m[39m
+ [32m✓[39m tests/release/npm-registry.test.mjs [2m([22m[2m12 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m tests/release/release-gate-state.test.mjs [2m([22m[2m3 tests[22m[2m)[22m[32m 27[2mms[22m[39m
+ [32m✓[39m tests/unit/schemas/schema-registry.test.ts [2m([22m[2m2 tests[22m[2m)[22m[33m 341[2mms[22m[39m
+ [32m✓[39m tests/release/smoke-command-policy.test.mjs [2m([22m[2m4 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/projection/templates.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/package/package-metadata.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/release/npm-pack-output.test.mjs [2m([22m[2m8 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/release/verified-lockfile-artifact.test.mjs [2m([22m[2m2 tests[22m[2m)[22m[32m 161[2mms[22m[39m
+ [32m✓[39m tests/unit/hydration/hydrate.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/integration/package/build-layout.test.ts [2m([22m[2m1 test[22m[2m)[22m[33m 2371[2mms[22m[39m
+   [33m[2m✓[22m[39m emits runtime JavaScript without tests, maps, or declarations [33m 2370[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/release/release-workflow.test.mjs[2m > [22mordinary CI authority[2m > [22mretains read-only authority and the unified release gate
+[31m[1mTypeError[22m: Cannot read properties of undefined (reading 'steps')[39m
+[36m [2m❯[22m tests/release/release-workflow.test.mjs:[2m97:43[22m[39m
+    [90m 95| [39m    const { text, workflow } = await readWorkflow(".github/workflows/c…
+    [90m 96| [39m    const gate = await readFile("scripts/public-release-gate.mjs", "ut…
+    [90m 97| [39m    [35mconst[39m checkout [33m=[39m workflow[33m.[39mjobs[33m.[39mverify[33m.[39msteps[[34m0[39m][33m;[39m
+    [90m   | [39m                                          [31m^[39m
+    [90m 98| [39m
+    [90m 99| [39m    [34mexpect[39m(workflow[33m.[39mpermissions)[33m.[39m[34mtoEqual[39m({ contents[33m:[39m [32m"read"[39m })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m21 passed[39m[22m[90m (22)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m124 passed[39m[22m[90m (125)[39m
+[2m   Start at [22m 16:45:24
+[2m   Duration [22m 6.43s[2m (transform 661ms, setup 0ms, collect 4.53s, tests 3.99s, environment 8ms, prepare 2.60s)[22m
+
+
+::error file=/home/runner/work/LORE/LORE/tests/release/release-workflow.test.mjs,title=tests/release/release-workflow.test.mjs > ordinary CI authority > retains read-only authority and the unified release gate,line=97,column=43::TypeError: Cannot read properties of undefined (reading 'steps')%0A ❯ tests/release/release-workflow.test.mjs:97:43%0A%0A
+ ELIFECYCLE  Test failed. See above for more details.
+verify_log_tail_end
