@@ -91,18 +91,42 @@ describe("release workflow authority", () => {
 });
 
 describe("ordinary CI authority", () => {
-  it("retains read-only authority and the unified release gate", async () => {
+  it("retains read-only authority for exact-head and proposed-merge verification", async () => {
     const { text, workflow } = await readWorkflow(".github/workflows/ci.yml");
     const gate = await readFile("scripts/public-release-gate.mjs", "utf8");
-    const checkout = workflow.jobs.verify.steps[0];
+    const head = workflow.jobs["verify-head"];
+    const merge = workflow.jobs["verify-merge"];
+    const headCheckout = head.steps[0];
+    const mergeCheckout = merge.steps[0];
 
     expect(workflow.permissions).toEqual({ contents: "read" });
-    expect(checkout.uses).toBe("actions/checkout@v6");
-    expect(checkout.with.ref).toBe(
-      "${{ github.event.pull_request.head.sha || github.sha }}",
+    expect(Object.keys(workflow.jobs).sort()).toEqual([
+      "verify-head",
+      "verify-merge",
+    ]);
+
+    expect(headCheckout.uses).toBe("actions/checkout@v6");
+    expect(headCheckout.with.repository).toBe(
+      "${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name || github.repository }}",
     );
-    expect(text).toContain("actions/setup-node@v6");
-    expect(text).toContain("node scripts/public-release-gate.mjs");
+    expect(headCheckout.with.ref).toBe(
+      "${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}",
+    );
+    expect(headCheckout.with["fetch-depth"]).toBe(0);
+    expect(headCheckout.with["persist-credentials"]).toBe(false);
+
+    expect(merge.if).toBe("github.event_name == 'pull_request'");
+    expect(mergeCheckout.uses).toBe("actions/checkout@v6");
+    expect(mergeCheckout.with.ref).toBeUndefined();
+    expect(mergeCheckout.with["fetch-depth"]).toBe(0);
+    expect(mergeCheckout.with["persist-credentials"]).toBe(false);
+
+    for (const job of [head, merge]) {
+      const serialized = JSON.stringify(job);
+      expect(serialized).toContain("actions/setup-node@v6");
+      expect(serialized).toContain("node scripts/public-release-gate.mjs");
+    }
+
     expect(text).not.toContain("--skip-installed-package");
     expect(text).not.toContain("actions/upload-artifact");
     expect(text).not.toContain("id-token: write");
