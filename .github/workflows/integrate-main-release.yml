@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
-      EXPECTED_PARENT: 5ce4d213975a4c49d7ac36ea0256a69883e5a076
+      EXPECTED_PARENT: bfd3090538e913c96bf29993240355aff76f891c
     steps:
       - uses: actions/checkout@v6
         with:
@@ -48,55 +48,70 @@ jobs:
           git checkout --ours -- .lore/extracted/repository.yaml
           git add .lore/extracted/repository.yaml
 
-          cat > .github/workflows/ci.yml <<'YAML'
-          name: CI
+          python <<'PY'
+          from pathlib import Path
 
-          on:
-            push:
-              branches: [main]
-            pull_request:
+          path = Path('.github/workflows/ci.yml')
+          lines = path.read_text().splitlines()
+          output = []
+          index = 0
+          while index < len(lines):
+              line = lines[index]
+              line = line.replace('actions/checkout@v4', 'actions/checkout@v6')
+              line = line.replace('actions/setup-node@v4', 'actions/setup-node@v6')
+              if line.strip() == 'timeout-minutes: 20':
+                  line = line.replace('20', '30')
+              if line.strip() == 'node-version: 22':
+                  line = line.replace('22', '22.14.0')
+              output.append(line)
 
-          permissions:
-            contents: read
+              if line.strip() in {
+                  '- uses: actions/checkout@v6',
+                  '- uses: actions/setup-node@v6',
+              }:
+                  step_kind = 'checkout' if 'checkout' in line else 'setup-node'
+                  step_indent = len(line) - len(line.lstrip())
+                  cursor = index + 1
+                  block = []
+                  while cursor < len(lines):
+                      candidate = lines[cursor]
+                      candidate_indent = len(candidate) - len(candidate.lstrip())
+                      if candidate.strip().startswith('- ') and candidate_indent == step_indent:
+                          break
+                      block.append(candidate)
+                      cursor += 1
 
-          concurrency:
-            group: ci-${{ github.workflow }}-${{ github.ref }}
-            cancel-in-progress: true
+                  normalized = []
+                  for candidate in block:
+                      candidate = candidate.replace('actions/checkout@v4', 'actions/checkout@v6')
+                      candidate = candidate.replace('actions/setup-node@v4', 'actions/setup-node@v6')
+                      if candidate.strip() == 'node-version: 22':
+                          candidate = candidate.replace('22', '22.14.0')
+                      normalized.append(candidate)
 
-          jobs:
-            verify-head:
-              name: Verify exact head
-              runs-on: ubuntu-latest
-              timeout-minutes: 30
-              steps:
-                - uses: actions/checkout@v6
-                  with:
-                    repository: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name || github.repository }}
-                    ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
-                    fetch-depth: 0
-                    persist-credentials: false
-                - uses: actions/setup-node@v6
-                  with:
-                    node-version: 22.14.0
-                    package-manager-cache: false
-                - run: node scripts/public-release-gate.mjs
+                  required = (
+                      'persist-credentials: false'
+                      if step_kind == 'checkout'
+                      else 'package-manager-cache: false'
+                  )
+                  if not any(required in candidate for candidate in normalized):
+                      insert_at = len(normalized)
+                      while insert_at > 0 and normalized[insert_at - 1].strip() == '':
+                          insert_at -= 1
+                      property_indent = ' ' * (step_indent + 4)
+                      if not any(candidate.strip() == 'with:' for candidate in normalized):
+                          normalized.insert(0, f"{' ' * (step_indent + 2)}with:")
+                          insert_at += 1
+                      normalized.insert(insert_at, f'{property_indent}{required}')
 
-            verify-merge:
-              name: Verify proposed merge
-              if: github.event_name == 'pull_request'
-              runs-on: ubuntu-latest
-              timeout-minutes: 30
-              steps:
-                - uses: actions/checkout@v6
-                  with:
-                    fetch-depth: 0
-                    persist-credentials: false
-                - uses: actions/setup-node@v6
-                  with:
-                    node-version: 22.14.0
-                    package-manager-cache: false
-                - run: node scripts/public-release-gate.mjs
-          YAML
+                  output.extend(normalized)
+                  index = cursor
+                  continue
+
+              index += 1
+
+          path.write_text('\n'.join(output) + '\n')
+          PY
           git add .github/workflows/ci.yml
 
           grep -Fq 'extraction.value.obsoleteFiles' src/cli/main.ts
