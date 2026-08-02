@@ -1,6 +1,6 @@
 phase=test
-workflow_sha=fdd047eb830f5a751e3d56cfe8856f39e028534a
-local_head_before_reset=fdd047eb830f5a751e3d56cfe8856f39e028534a
+workflow_sha=bab7eb86e422fc07c954786db1c20ae9b6eb9241
+local_head_before_reset=bab7eb86e422fc07c954786db1c20ae9b6eb9241
 status_before_reset_begin
 D  .github/release-integration-diagnostic.txt
 D  .github/release-integration-failure.txt
@@ -60,7 +60,7 @@ devDependencies:
 │                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 
-Done in 1.4s using pnpm v10.14.0
+Done in 1.3s using pnpm v10.14.0
 
 > @laurajoyhutchins/lore@0.0.0-bootstrap.0 lore /home/runner/work/LORE/LORE
 > tsx src/cli/main.ts extract
@@ -84,60 +84,63 @@ Done in 1.4s using pnpm v10.14.0
 
 [1m[46m RUN [49m[22m [36mv3.2.7 [39m[90m/home/runner/work/LORE/LORE[39m
 
- [32m✓[39m tests/release/package-contract.test.mjs [2m([22m[2m13 tests[22m[2m)[22m[32m 63[2mms[22m[39m
- [32m✓[39m tests/release/installed-smoke.test.mjs [2m([22m[2m9 tests[22m[2m)[22m[32m 9[2mms[22m[39m
- [32m✓[39m tests/unit/extraction/extract.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 49[2mms[22m[39m
- [31m❯[39m tests/release/release-workflow.test.mjs [2m([22m[2m4 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 85[2mms[22m[39m
-   [32m✓[39m release workflow authority[2m > [22mruns only for published GitHub Releases[32m 30[2mms[22m[39m
-   [32m✓[39m release workflow authority[2m > [22mbuilds once and tests the canonical tarball on three platforms[32m 15[2mms[22m[39m
-   [32m✓[39m release workflow authority[2m > [22mseparates bootstrap attachment from stable OIDC publication[32m 11[2mms[22m[39m
-[31m   [31m×[31m ordinary CI authority[2m > [22mretains read-only authority for exact-head and proposed-merge verification[39m[32m 25[2mms[22m[39m
-[31m     → expected 'laurajoyhutchins/LORE' to be '${{ github.event_name == \'pull_reque…' // Object.is equality[39m
- [32m✓[39m tests/release/tarball.test.mjs [2m([22m[2m10 tests[22m[2m)[22m[32m 13[2mms[22m[39m
- [32m✓[39m tests/invariants/remediation-contracts.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 317[2mms[22m[39m
- [32m✓[39m tests/release/github-release-assets.test.mjs [2m([22m[2m10 tests[22m[2m)[22m[32m 31[2mms[22m[39m
- [32m✓[39m tests/security/repository-paths.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 18[2mms[22m[39m
- [32m✓[39m tests/security/git-client.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 172[2mms[22m[39m
- [32m✓[39m tests/unit/init/initialize.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 71[2mms[22m[39m
- [32m✓[39m tests/release/finalize-release-evidence.test.mjs [2m([22m[2m6 tests[22m[2m)[22m[32m 5[2mms[22m[39m
- [32m✓[39m tests/unit/cli/main.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 13[2mms[22m[39m
- [32m✓[39m tests/release/npm-registry.test.mjs [2m([22m[2m12 tests[22m[2m)[22m[32m 10[2mms[22m[39m
- [32m✓[39m tests/release/release-gate-state.test.mjs [2m([22m[2m3 tests[22m[2m)[22m[32m 32[2mms[22m[39m
+ [32m✓[39m tests/release/package-contract.test.mjs [2m([22m[2m13 tests[22m[2m)[22m[32m 51[2mms[22m[39m
+ [32m✓[39m tests/release/installed-smoke.test.mjs [2m([22m[2m9 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m tests/unit/extraction/extract.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 63[2mms[22m[39m
+ [31m❯[39m tests/release/release-workflow.test.mjs [2m([22m[2m4 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 62[2mms[22m[39m
+   [32m✓[39m release workflow authority[2m > [22mruns only for published GitHub Releases[32m 27[2mms[22m[39m
+   [32m✓[39m release workflow authority[2m > [22mbuilds once and tests the canonical tarball on three platforms[32m 11[2mms[22m[39m
+   [32m✓[39m release workflow authority[2m > [22mseparates bootstrap attachment from stable OIDC publication[32m 7[2mms[22m[39m
+[31m   [31m×[31m ordinary CI authority[2m > [22mretains read-only authority for exact-head and proposed-merge verification[39m[32m 15[2mms[22m[39m
+[31m     → expected '${{ github.event.pull_request.head.sh…' to be undefined[39m
+ [32m✓[39m tests/release/tarball.test.mjs [2m([22m[2m10 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m tests/invariants/remediation-contracts.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 367[2mms[22m[39m
+ [32m✓[39m tests/release/github-release-assets.test.mjs [2m([22m[2m10 tests[22m[2m)[22m[32m 45[2mms[22m[39m
+ [32m✓[39m tests/security/repository-paths.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 42[2mms[22m[39m
+ [32m✓[39m tests/security/git-client.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 167[2mms[22m[39m
+ [32m✓[39m tests/unit/init/initialize.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 77[2mms[22m[39m
+ [32m✓[39m tests/release/finalize-release-evidence.test.mjs [2m([22m[2m6 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/unit/cli/main.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m tests/release/npm-registry.test.mjs [2m([22m[2m12 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m tests/release/release-gate-state.test.mjs [2m([22m[2m3 tests[22m[2m)[22m[32m 35[2mms[22m[39m
+ [32m✓[39m tests/release/smoke-command-policy.test.mjs [2m([22m[2m4 tests[22m[2m)[22m[32m 7[2mms[22m[39m
  [32m✓[39m tests/unit/schemas/schema-registry.test.ts [2m([22m[2m2 tests[22m[2m)[22m[33m 311[2mms[22m[39m
- [32m✓[39m tests/release/smoke-command-policy.test.mjs [2m([22m[2m4 tests[22m[2m)[22m[32m 4[2mms[22m[39m
- [32m✓[39m tests/unit/package/package-metadata.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 5[2mms[22m[39m
  [32m✓[39m tests/unit/projection/templates.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 4[2mms[22m[39m
- [32m✓[39m tests/release/npm-pack-output.test.mjs [2m([22m[2m8 tests[22m[2m)[22m[32m 9[2mms[22m[39m
- [32m✓[39m tests/release/verified-lockfile-artifact.test.mjs [2m([22m[2m2 tests[22m[2m)[22m[32m 137[2mms[22m[39m
+ [32m✓[39m tests/unit/package/package-metadata.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/release/verified-lockfile-artifact.test.mjs [2m([22m[2m2 tests[22m[2m)[22m[32m 176[2mms[22m[39m
+ [32m✓[39m tests/release/npm-pack-output.test.mjs [2m([22m[2m8 tests[22m[2m)[22m[32m 7[2mms[22m[39m
  [32m✓[39m tests/unit/hydration/hydrate.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
- [32m✓[39m tests/integration/package/build-layout.test.ts [2m([22m[2m1 test[22m[2m)[22m[33m 2155[2mms[22m[39m
-   [33m[2m✓[22m[39m emits runtime JavaScript without tests, maps, or declarations [33m 2154[2mms[22m[39m
+ [32m✓[39m tests/integration/package/build-layout.test.ts [2m([22m[2m1 test[22m[2m)[22m[33m 2276[2mms[22m[39m
+   [33m[2m✓[22m[39m emits runtime JavaScript without tests, maps, or declarations [33m 2275[2mms[22m[39m
 
 [31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
 
 [41m[1m FAIL [22m[49m tests/release/release-workflow.test.mjs[2m > [22mordinary CI authority[2m > [22mretains read-only authority for exact-head and proposed-merge verification
-[31m[1mAssertionError[22m: expected 'laurajoyhutchins/LORE' to be '${{ github.event_name == \'pull_reque…' // Object.is equality[39m
+[31m[1mAssertionError[22m: expected '${{ github.event.pull_request.head.sh…' to be undefined[39m
 
-Expected: [32m"${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name || github.repository }}"[39m
-Received: [31m"laurajoyhutchins/LORE"[39m
+[32m- Expected:[39m 
+undefined
 
-[36m [2m❯[22m tests/release/release-workflow.test.mjs:[2m109:42[22m[39m
-    [90m107| [39m
-    [90m108| [39m    [34mexpect[39m(headCheckout[33m.[39muses)[33m.[39m[34mtoBe[39m([32m"actions/checkout@v6"[39m)[33m;[39m
-    [90m109| [39m    [34mexpect[39m(headCheckout[33m.[39m[35mwith[39m[33m.[39mrepository)[33m.[39m[34mtoBe[39m(
-    [90m   | [39m                                         [31m^[39m
-    [90m110| [39m      "${{ github.event_name == 'pull_request' && github.event.pull_re…
-    [90m111| [39m    )[33m;[39m
+[31m+ Received:[39m 
+"${{ github.event.pull_request.head.sha || github.sha }}"
+
+[36m [2m❯[22m tests/release/release-workflow.test.mjs:[2m120:36[22m[39m
+    [90m118| [39m    [34mexpect[39m(merge[33m.[39m[35mif[39m)[33m.[39m[34mtoBe[39m([32m"github.event_name == 'pull_request'"[39m)[33m;[39m
+    [90m119| [39m    [34mexpect[39m(mergeCheckout[33m.[39muses)[33m.[39m[34mtoBe[39m([32m"actions/checkout@v6"[39m)[33m;[39m
+    [90m120| [39m    [34mexpect[39m(mergeCheckout[33m.[39m[35mwith[39m[33m.[39mref)[33m.[39m[34mtoBeUndefined[39m()[33m;[39m
+    [90m   | [39m                                   [31m^[39m
+    [90m121| [39m    [34mexpect[39m(mergeCheckout[33m.[39m[35mwith[39m[[32m"fetch-depth"[39m])[33m.[39m[34mtoBe[39m([34m0[39m)[33m;[39m
+    [90m122| [39m    [34mexpect[39m(mergeCheckout[33m.[39m[35mwith[39m[[32m"persist-credentials"[39m])[33m.[39m[34mtoBe[39m([35mfalse[39m)[33m;[39m
 
 [31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
 
 
 [2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m21 passed[39m[22m[90m (22)[39m
 [2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m124 passed[39m[22m[90m (125)[39m
-[2m   Start at [22m 16:47:57
-[2m   Duration [22m 5.88s[2m (transform 768ms, setup 0ms, collect 4.23s, tests 3.52s, environment 5ms, prepare 2.44s)[22m
+[2m   Start at [22m 16:49:57
+[2m   Duration [22m 6.14s[2m (transform 607ms, setup 0ms, collect 4.38s, tests 3.75s, environment 5ms, prepare 2.49s)[22m
 
 
-::error file=/home/runner/work/LORE/LORE/tests/release/release-workflow.test.mjs,title=tests/release/release-workflow.test.mjs > ordinary CI authority > retains read-only authority for exact-head and proposed-merge verification,line=109,column=42::AssertionError: expected 'laurajoyhutchins/LORE' to be '${{ github.event_name == \'pull_reque…' // Object.is equality%0A%0AExpected: "${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name || github.repository }}"%0AReceived: "laurajoyhutchins/LORE"%0A%0A ❯ tests/release/release-workflow.test.mjs:109:42%0A%0A
+::error file=/home/runner/work/LORE/LORE/tests/release/release-workflow.test.mjs,title=tests/release/release-workflow.test.mjs > ordinary CI authority > retains read-only authority for exact-head and proposed-merge verification,line=120,column=36::AssertionError: expected '${{ github.event.pull_request.head.sh…' to be undefined%0A%0A- Expected: %0Aundefined%0A%0A+ Received: %0A"${{ github.event.pull_request.head.sha || github.sha }}"%0A%0A ❯ tests/release/release-workflow.test.mjs:120:36%0A%0A
  ELIFECYCLE  Test failed. See above for more details.
 verify_log_tail_end
