@@ -66,6 +66,13 @@ components:
       - extractRepository
       - writeExtraction
     path: src/extraction/extract.ts
+  - exports:
+      - ExtractedFactKey
+      - ExtractionFileRequirement
+      - enabledExtractorIds
+      - managedExtractionFileNames
+      - requiredExtractionFiles
+    path: src/extraction/extractor-configuration.ts
   - exports: []
     path: src/extraction/package-scripts.ts
   - exports: []

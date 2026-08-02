@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { ERROR_CODES, fail } from "../domain/errors.js";
 import type { LoreManifest, ValidationResult } from "../domain/types.js";
 import { resolveExistingInsideRoot } from "../filesystem/repository-paths.js";
+import { createSchemaRegistry } from "../schemas/schema-registry.js";
 import { parseYamlDocument } from "../serialization/yaml.js";
 
 export async function loadManifest(
@@ -28,13 +29,28 @@ export async function loadManifest(
     });
   }
 
-  const parsed = parseYamlDocument<LoreManifest>(text, "lore.yaml");
+  const parsed = parseYamlDocument<unknown>(text, "lore.yaml");
   if (!parsed.ok) return parsed;
-  if (parsed.value.schema_version !== 1) {
+
+  let validated: ValidationResult<LoreManifest>;
+  try {
+    validated = createSchemaRegistry(root).validateWithSchema<LoreManifest>(
+      "manifest",
+      parsed.value,
+    );
+  } catch (error) {
     return fail({
-      code: ERROR_CODES.UNSUPPORTED_SCHEMA_VERSION,
-      message: `Unsupported manifest schema ${String(parsed.value.schema_version)}`,
+      code: ERROR_CODES.SCHEMA_VALIDATION_FAILED,
+      message: error instanceof Error ? error.message : String(error),
+      location: "lore.yaml",
     });
   }
-  return parsed;
+  if (!validated.ok) return validated;
+  if (validated.value.schema_version !== 1) {
+    return fail({
+      code: ERROR_CODES.UNSUPPORTED_SCHEMA_VERSION,
+      message: `Unsupported manifest schema ${String(validated.value.schema_version)}`,
+    });
+  }
+  return validated;
 }

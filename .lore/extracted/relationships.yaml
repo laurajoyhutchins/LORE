@@ -79,6 +79,9 @@ relationships:
     to: ../filesystem/repository-paths.js
     type: imports
   - from: src/config/load-manifest.ts
+    to: ../schemas/schema-registry.js
+    type: imports
+  - from: src/config/load-manifest.ts
     to: ../serialization/yaml.js
     type: imports
   - from: src/config/load-manifest.ts
@@ -169,6 +172,9 @@ relationships:
     to: ../serialization/yaml.js
     type: imports
   - from: src/extraction/extract.ts
+    to: ./extractor-configuration.js
+    type: imports
+  - from: src/extraction/extract.ts
     to: node:fs/promises
     type: imports
   - from: src/extraction/extract.ts
@@ -176,6 +182,12 @@ relationships:
     type: imports
   - from: src/extraction/extract.ts
     to: typescript
+    type: imports
+  - from: src/extraction/extractor-configuration.ts
+    to: ../domain/errors.js
+    type: imports
+  - from: src/extraction/extractor-configuration.ts
+    to: ../domain/types.js
     type: imports
   - from: src/filesystem/repository-paths.ts
     to: ../domain/errors.js
@@ -415,6 +427,9 @@ relationships:
     to: ../evidence/validate-evidence.js
     type: imports
   - from: src/validation/validate-repository.ts
+    to: ../extraction/extractor-configuration.js
+    type: imports
+  - from: src/validation/validate-repository.ts
     to: ../filesystem/repository-paths.js
     type: imports
   - from: src/validation/validate-repository.ts
@@ -481,7 +496,13 @@ relationships:
     to: ../../src/proposals/validate-proposal.js
     type: imports
   - from: tests/invariants/remediation-contracts.test.ts
+    to: ../../src/transactions/plan-transaction.js
+    type: imports
+  - from: tests/invariants/remediation-contracts.test.ts
     to: ../../src/verification/verify-self.js
+    type: imports
+  - from: tests/invariants/remediation-contracts.test.ts
+    to: node:child_process
     type: imports
   - from: tests/invariants/remediation-contracts.test.ts
     to: node:fs/promises
@@ -491,6 +512,9 @@ relationships:
     type: imports
   - from: tests/invariants/remediation-contracts.test.ts
     to: node:path
+    type: imports
+  - from: tests/invariants/remediation-contracts.test.ts
+    to: node:util
     type: imports
   - from: tests/invariants/remediation-contracts.test.ts
     to: vitest
@@ -604,6 +628,9 @@ relationships:
     to: vitest
     type: imports
   - from: tests/unit/schemas/schema-registry.test.ts
+    to: ../../../src/config/load-manifest.js
+    type: imports
+  - from: tests/unit/schemas/schema-registry.test.ts
     to: ../../../src/domain/types.js
     type: imports
   - from: tests/unit/schemas/schema-registry.test.ts
@@ -614,6 +641,12 @@ relationships:
     type: imports
   - from: tests/unit/schemas/schema-registry.test.ts
     to: node:fs/promises
+    type: imports
+  - from: tests/unit/schemas/schema-registry.test.ts
+    to: node:os
+    type: imports
+  - from: tests/unit/schemas/schema-registry.test.ts
+    to: node:path
     type: imports
   - from: tests/unit/schemas/schema-registry.test.ts
     to: vitest

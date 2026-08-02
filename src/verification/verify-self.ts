@@ -106,6 +106,15 @@ export async function verifySelf(
     if (!equalMaps(extractionA.value.files, extractionB.value.files)) {
       problems.push({ code: "DETERMINISM_FAILED", message: "Two extraction runs differ" });
     }
+    if (
+      JSON.stringify(extractionA.value.obsoleteFiles) !==
+      JSON.stringify(extractionB.value.obsoleteFiles)
+    ) {
+      problems.push({
+        code: "DETERMINISM_FAILED",
+        message: "Two extraction cleanup plans differ",
+      });
+    }
     for (const [relativePath, expected] of extractionA.value.files) {
       const actual = await readContained(root, relativePath);
       if (!actual.ok) problems.push(...actual.errors);
@@ -115,6 +124,18 @@ export async function verifySelf(
           message: `Stale extracted facts: ${relativePath}`,
           location: relativePath,
         });
+      }
+    }
+    for (const relativePath of extractionA.value.obsoleteFiles) {
+      const actual = await readContained(root, relativePath);
+      if (actual.ok) {
+        problems.push({
+          code: "GENERATED_OUTPUT_STALE",
+          message: `Obsolete extracted facts: ${relativePath}`,
+          location: relativePath,
+        });
+      } else if (!actual.errors.every(({ code }) => code === "PATH_NOT_FOUND")) {
+        problems.push(...actual.errors);
       }
     }
   }
