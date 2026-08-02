@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
-      EXPECTED_PARENT: 2a1247964847a6e284fe955bace8789c02bb875c
+      EXPECTED_PARENT: a3eb887f4e025ba9e5d2665cf51e25ee8388bb24
     steps:
       - uses: actions/checkout@v6
         with:
@@ -105,25 +105,40 @@ jobs:
           ! grep -Fq 'does not plan a transaction before candidate evidence is validated' tests/invariants/remediation-contracts.test.ts
 
           git rm .github/release-integration-diagnostic.txt
+          git rm .github/release-integration-failure.txt
           git rm .github/workflows/diagnose-release-sync.yml
           git rm .github/workflows/integrate-main-release.yml
       - name: Regenerate and verify integrated source
         shell: bash
         run: |
           set -euo pipefail
-          echo verify > /tmp/integration-phase
+          exec > >(tee /tmp/integration-verify.log) 2>&1
+          phase() { echo "$1" > /tmp/integration-phase; }
+          phase restore-lock
           node scripts/restore-verified-lockfile.mjs
+          phase install
           corepack pnpm install --frozen-lockfile
+          phase extract
           corepack pnpm lore extract
+          phase project
           corepack pnpm lore project
+          phase typecheck
           corepack pnpm typecheck
+          phase lint
           corepack pnpm lint
+          phase test
           corepack pnpm test
+          phase build
           corepack pnpm build
+          phase extract-check
           corepack pnpm lore extract --check
+          phase validate
           corepack pnpm lore validate
+          phase project-check
           corepack pnpm lore project --check
+          phase verify-self
           corepack pnpm lore verify-self
+          phase cleanup
           rm pnpm-lock.yaml
           git add -A
           git diff --check --cached
@@ -153,6 +168,7 @@ jobs:
           phase="$(cat /tmp/integration-phase 2>/dev/null || echo unknown)"
           status="$(git status --short || true)"
           local_head="$(git rev-parse HEAD)"
+          log_tail="$(tail -n 240 /tmp/integration-verify.log 2>/dev/null || true)"
           git reset --hard "$GITHUB_SHA"
           git clean -fd
           {
@@ -162,6 +178,9 @@ jobs:
             echo "status_before_reset_begin"
             printf '%s\n' "$status"
             echo "status_before_reset_end"
+            echo "verify_log_tail_begin"
+            printf '%s\n' "$log_tail"
+            echo "verify_log_tail_end"
           } > .github/release-integration-failure.txt
           git add .github/release-integration-failure.txt
           git config user.name 'github-actions[bot]'
