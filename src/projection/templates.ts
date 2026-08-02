@@ -14,7 +14,7 @@ export function renderReadme(repository: ValidatedRepository) {
 
 **LORE Organizes Repository Evidence** is an agent-neutral, Git-backed system for turning repository evidence and reviewed semantic records into human documentation and bounded maintainer context.
 
-> **Project status:** pre-1.0 and under active development. Schemas, commands, and public APIs may change before the first stable release.
+> **Project status:** pre-1.0 and under active development. The documented CLI is the supported public surface. Commands and schemas may change before 1.0.
 
 ## What LORE does
 
@@ -29,28 +29,31 @@ LORE does not host an LLM, require a model provider, run autonomous schedules, u
 
 ## Requirements
 
+For the installed CLI:
+
 - Git
 - Node.js 22 or newer
-- Corepack
-- pnpm 10.14.0
 
-## Quick start
+## Install
+
+Install LORE as a development dependency in the repository it will maintain:
 
 \`\`\`bash
-node scripts/restore-verified-lockfile.mjs
-corepack enable
-pnpm install --frozen-lockfile
-pnpm typecheck
-pnpm lint
-pnpm test
-pnpm build
-pnpm lore --help
-pnpm lore verify-self
+npm install --save-dev @laurajoyhutchins/lore
+npm exec -- lore --help
+npm exec -- lore version --json
 \`\`\`
 
-The standard \`pnpm-lock.yaml\` is restored byte-for-byte from the content-addressed members under \`artifacts/verified-lockfile/\`. The release gate verifies every member, the reconstructed SHA-256, and the Git blob identity before installation, then removes a gate-created lockfile before checking for a clean tree.
+Initialize a Git repository with LORE's trust root, schemas, and maintainer skill:
 
-The repository currently keeps \`"private": true\` in \`package.json\` to prevent accidental npm publication. That does not prevent the GitHub repository itself from being public.
+\`\`\`bash
+npm exec -- lore init --id example-repository --name "Example Repository"
+npm exec -- lore extract
+npm exec -- lore validate
+npm exec -- lore project
+\`\`\`
+
+The npm package is **CLI-only**. Internal TypeScript modules, generated declaration shapes, and source paths are not supported library APIs. Use the documented \`lore\` commands and their documented machine-readable output.
 
 ## Core workflow
 
@@ -64,7 +67,25 @@ The repository currently keeps \`"private": true\` in \`package.json\` to preven
 8. \`lore diff\` and \`lore explain\` describe semantic history.
 9. \`lore verify-self\` checks that LORE's own trust root, facts, records, projections, history, and deterministic outputs remain coherent.
 
-Run \`pnpm lore --help\` for the command list. LORE is self-hosting: this README and the files under \`docs/generated/\` are projections produced by LORE itself.
+Run \`npm exec -- lore --help\` for the command list. LORE is self-hosting: this README and the files under \`docs/generated/\` are projections produced by LORE itself.
+
+## Source development
+
+Contributors building LORE from source also need Corepack and pnpm 10.14.0:
+
+\`\`\`bash
+node scripts/restore-verified-lockfile.mjs
+corepack enable
+corepack pnpm install --frozen-lockfile
+corepack pnpm typecheck
+corepack pnpm lint
+corepack pnpm test
+corepack pnpm build
+corepack pnpm lore --help
+corepack pnpm lore verify-self
+\`\`\`
+
+The standard \`pnpm-lock.yaml\` is restored byte-for-byte from the content-addressed members under \`artifacts/verified-lockfile/\`. The release gate verifies every member, the reconstructed SHA-256, and the Git blob identity before installation, then removes gate-created temporary state before checking for a clean tree.
 
 ## Trust model
 
@@ -76,6 +97,8 @@ Generated prose is useful but non-authoritative. The source of truth is the comb
 
 - [Bootstrap trust root](BOOTSTRAP.md)
 - [Design specification](docs/superpowers/specs/2026-07-28-lore-design.md)
+- [Release operations](docs/releasing.md)
+- [Public release readiness](docs/public-release-readiness.md)
 - [Generated architecture](docs/generated/architecture.md)
 - [Generated component catalog](docs/generated/component-catalog.md)
 - [Generated current decisions](docs/generated/current-decisions.md)

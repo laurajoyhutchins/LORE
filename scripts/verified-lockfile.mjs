@@ -12,9 +12,9 @@ import { fileURLToPath } from "node:url";
 import { gunzipSync } from "node:zlib";
 
 export const EXPECTED_LOCKFILE_SHA256 =
-  "e5e1747bac45b623c375226759fce20857b50ee615926dce1aefd282104ee57d";
+  "bbda9e0c90ce2996f8fc510b1414321957e879d72443a68d850baa61d17aa1e6";
 export const EXPECTED_LOCKFILE_GIT_BLOB =
-  "7aec11b06bef06188262e0ca8ae44b8e35f158c9";
+  "df207b5d79375bc28d5481c7d1f106952e77adbe";
 export const EXPECTED_LOCKFILE_BYTES = 62_769;
 
 const SCRIPT_DIRECTORY = path.dirname(fileURLToPath(import.meta.url));

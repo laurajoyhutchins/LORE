@@ -1,17 +1,19 @@
 #!/usr/bin/env node
 
 import { spawnSync } from "node:child_process";
-import { lstatSync, readFileSync } from "node:fs";
+import { lstatSync, readFileSync, readdirSync } from "node:fs";
 import os from "node:os";
+import path from "node:path";
 import process from "node:process";
+import { removeGateTemporaryPaths } from "./lib/release-gate-state.mjs";
 import {
   committedLockArtifactPaths,
   ensureVerifiedLockfile,
-  removeRestoredLockfile,
 } from "./verified-lockfile.mjs";
 
 const refreshGenerated = process.argv.includes("--refresh-generated");
 const skipInstall = process.argv.includes("--skip-install");
+const skipInstalledPackage = process.argv.includes("--skip-installed-package");
 const pnpmExecutable = process.env.LORE_PNPM_EXECUTABLE;
 const offlineStore = process.env.LORE_PNPM_OFFLINE_STORE;
 let restoredLockfile;
@@ -152,10 +154,50 @@ function pnpmVersion() {
     : run("corepack", ["pnpm", "--version"], { capture: true });
 }
 
-function cleanupRestoredLockfile() {
-  if (!restoredLockfile?.created) return;
-  removeRestoredLockfile(restoredLockfile.destination);
+function cleanupTemporaryState() {
+  removeGateTemporaryPaths({
+    lockfileCreated: restoredLockfile?.created === true,
+  });
   restoredLockfile = undefined;
+}
+
+function readPackageVersion() {
+  const manifest = JSON.parse(readFileSync("package.json", "utf8"));
+  if (typeof manifest.version !== "string" || manifest.version === "") {
+    fail("package.json does not contain a release version");
+  }
+  return manifest.version;
+}
+
+function verifyInstalledPackage(head) {
+  const outputDirectory = ".release-artifacts";
+  const version = readPackageVersion();
+  pnpm([
+    "release:package",
+    "--tag",
+    `v${version}`,
+    "--commit",
+    head,
+    "--output",
+    outputDirectory,
+  ]);
+  const tarballs = readdirSync(outputDirectory)
+    .filter((name) => name.endsWith(".tgz"))
+    .sort();
+  if (tarballs.length !== 1) {
+    fail(`release package produced ${tarballs.length} tarballs; expected exactly one`);
+  }
+  pnpm([
+    "release:smoke",
+    "--tarball",
+    path.join(outputDirectory, tarballs[0]),
+    "--evidence",
+    path.join(outputDirectory, "release-evidence.json"),
+    "--mode",
+    "all",
+    "--report",
+    path.join(outputDirectory, `smoke-${os.platform()}.json`),
+  ]);
 }
 
 function main() {
@@ -205,7 +247,7 @@ function main() {
   if (refreshGenerated) {
     pnpm(["lore", "extract"]);
     pnpm(["lore", "project"]);
-    cleanupRestoredLockfile();
+    cleanupTemporaryState();
     const status = run("git", ["status", "--short"], { capture: true });
     process.stdout.write(
       status === ""
@@ -219,11 +261,12 @@ function main() {
   pnpm(["lint"]);
   pnpm(["test"]);
   pnpm(["build"]);
+  if (!skipInstalledPackage) verifyInstalledPackage(head);
   pnpm(["lore", "extract", "--check"]);
   pnpm(["lore", "validate"]);
   pnpm(["lore", "project", "--check"]);
   pnpm(["lore", "verify-self"]);
-  cleanupRestoredLockfile();
+  cleanupTemporaryState();
   verifyCleanTree();
 
   process.stdout.write(`VERIFIED_PUBLICATION_READY ${head}\n`);
@@ -233,7 +276,7 @@ try {
   main();
 } catch (error) {
   try {
-    cleanupRestoredLockfile();
+    cleanupTemporaryState();
   } catch (cleanupError) {
     process.stderr.write(
       `PUBLIC_RELEASE_GATE_CLEANUP_FAILED: ${

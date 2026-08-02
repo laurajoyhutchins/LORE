@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 
+import { realpathSync } from "node:fs";
 import { readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
 import { loadManifest } from "../config/load-manifest.js";
 import { createMaintainerContext } from "../context/create-context.js";
@@ -25,6 +27,7 @@ import { hydrateTask } from "../hydration/hydrate.js";
 import { initializeRepository } from "../init/initialize.js";
 import { projectRepository } from "../projection/project.js";
 import { validateProposal } from "../proposals/validate-proposal.js";
+import { createVersionInfo } from "../release/metadata.js";
 import { createSchemaRegistry } from "../schemas/schema-registry.js";
 import { parseYamlDocument, stableYaml } from "../serialization/yaml.js";
 import { applyTransaction } from "../transactions/apply-transaction.js";
@@ -32,6 +35,7 @@ import { planTransaction } from "../transactions/plan-transaction.js";
 import { validateRepository } from "../validation/validate-repository.js";
 import { verifySelf } from "../verification/verify-self.js";
 import { HELP_TEXT, isLoreCommand } from "./output.js";
+import { formatVersion } from "./version.js";
 
 export interface CliIo {
   stdout(message: string): void;
@@ -128,6 +132,20 @@ async function generatedMatches(
   return ok(current.value === expected);
 }
 
+export function isCliEntryPoint(
+  moduleUrl: string,
+  executablePath: string | undefined,
+  canonicalizePath: (candidate: string) => string = realpathSync,
+): boolean {
+  if (executablePath === undefined) return false;
+  const modulePath = fileURLToPath(moduleUrl);
+  try {
+    return canonicalizePath(modulePath) === canonicalizePath(executablePath);
+  } catch {
+    return moduleUrl === pathToFileURL(executablePath).href;
+  }
+}
+
 export async function runCli(argv: string[], io: CliIo = DEFAULT_IO): Promise<number> {
   let parsed: ReturnType<typeof parseArgs>;
   try {
@@ -161,6 +179,15 @@ export async function runCli(argv: string[], io: CliIo = DEFAULT_IO): Promise<nu
 
   const root = process.cwd();
   try {
+    if (command === "version") {
+      const args = requirePositionals(command, positionals, 0);
+      if (!args.ok) return printProblems(io, args);
+      io.stdout(
+        formatVersion(await createVersionInfo(), parsed.values.json === true),
+      );
+      return 0;
+    }
+
     if (command === "init") {
       const args = requirePositionals(command, positionals, 0);
       if (!args.ok) return printProblems(io, args);
@@ -322,6 +349,6 @@ export async function runCli(argv: string[], io: CliIo = DEFAULT_IO): Promise<nu
   }
 }
 
-if (process.argv[1] && import.meta.url === new URL(process.argv[1], "file:").href) {
+if (isCliEntryPoint(import.meta.url, process.argv[1])) {
   process.exitCode = await runCli(process.argv.slice(2));
 }

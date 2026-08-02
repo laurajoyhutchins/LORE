@@ -145,9 +145,15 @@ describe("remediation contracts", () => {
     const first = restore();
     expect(first.status).toBe(0);
     const bytes = await readFile(path.join(root, "pnpm-lock.yaml"));
+    const manifest = JSON.parse(
+      await readFile(
+        path.join(root, "artifacts", "verified-lockfile", "manifest.json"),
+        "utf8",
+      ),
+    ) as { sha256: string };
     const { createHash } = await import("node:crypto");
     expect(createHash("sha256").update(bytes).digest("hex")).toBe(
-      "e5e1747bac45b623c375226759fce20857b50ee615926dce1aefd282104ee57d",
+      manifest.sha256,
     );
 
     const second = restore();

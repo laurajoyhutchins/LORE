@@ -1,5 +1,11 @@
+import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { describe, expect, it, vi } from "vitest";
-import { runCli, type CliIo } from "../../../src/cli/main.js";
+import {
+  isCliEntryPoint,
+  runCli,
+  type CliIo,
+} from "../../../src/cli/main.js";
 
 describe("runCli", () => {
   it("prints stable help for --help", async () => {
@@ -14,9 +20,42 @@ describe("runCli", () => {
     expect(stdout).toHaveBeenCalledWith(
       expect.stringContaining("LORE Organizes Repository Evidence"),
     );
+    expect(stdout).toHaveBeenCalledWith(expect.stringContaining("version"));
     expect(stdout).toHaveBeenCalledWith(
       expect.stringContaining("verify-self"),
     );
+  });
+
+  it("reports the installed package outside a LORE repository", async () => {
+    const stdout = vi.fn();
+    const stderr = vi.fn();
+
+    expect(await runCli(["version"], { stdout, stderr })).toBe(0);
+    expect(stderr).not.toHaveBeenCalled();
+    expect(stdout).toHaveBeenCalledWith(
+      "@laurajoyhutchins/lore 0.0.0-bootstrap.0",
+    );
+  });
+
+  it("reports stable version JSON", async () => {
+    const stdout = vi.fn();
+
+    expect(
+      await runCli(["version", "--json"], { stdout, stderr: vi.fn() }),
+    ).toBe(0);
+    expect(JSON.parse(String(stdout.mock.calls[0]?.[0]))).toEqual({
+      name: "@laurajoyhutchins/lore",
+      version: "0.0.0-bootstrap.0",
+      node: process.versions.node,
+      schema_versions: {
+        manifest: 1,
+        record: 1,
+        proposal: 1,
+        task: 1,
+        hydration: 1,
+        transaction: 1,
+      },
+    });
   });
 
   it("returns usage failure for an unknown command", async () => {
@@ -30,4 +69,30 @@ describe("runCli", () => {
       expect.stringContaining("Unknown command: not-a-command"),
     );
   });
+});
+
+it("detects the executable entrypoint through a platform-safe file URL", () => {
+  const executablePath = path.resolve("dist/cli/main.js");
+  const moduleUrl = pathToFileURL(executablePath).href;
+  expect(isCliEntryPoint(moduleUrl, executablePath)).toBe(true);
+  expect(isCliEntryPoint(moduleUrl, undefined)).toBe(false);
+  expect(isCliEntryPoint(moduleUrl, path.resolve("dist/cli/other.js"))).toBe(
+    false,
+  );
+});
+
+it("detects a package entrypoint invoked through a bin symlink", () => {
+  const modulePath = path.resolve(
+    "node_modules/@laurajoyhutchins/lore/dist/cli/main.js",
+  );
+  const executablePath = path.resolve("node_modules/.bin/lore");
+  const canonicalize = vi.fn((candidate: string) =>
+    candidate === executablePath ? modulePath : candidate,
+  );
+
+  expect(
+    isCliEntryPoint(pathToFileURL(modulePath).href, executablePath, canonicalize),
+  ).toBe(true);
+  expect(canonicalize).toHaveBeenCalledWith(modulePath);
+  expect(canonicalize).toHaveBeenCalledWith(executablePath);
 });

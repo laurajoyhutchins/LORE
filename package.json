@@ -1,7 +1,6 @@
 {
-  "name": "lore",
-  "version": "0.0.0",
-  "private": true,
+  "name": "@laurajoyhutchins/lore",
+  "version": "0.0.0-bootstrap.0",
   "license": "Apache-2.0",
   "description": "Agent-neutral, Git-backed repository evidence and documentation system.",
   "keywords": [
@@ -25,11 +24,23 @@
   "bin": {
     "lore": "./dist/cli/main.js"
   },
+  "files": [
+    "dist/",
+    "BOOTSTRAP.md",
+    "schemas/",
+    "skills/maintain-repository-documentation/",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "engines": {
     "node": ">=22"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.build.json && node scripts/prepare-package.mjs",
+    "prepack": "corepack pnpm build",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
@@ -37,11 +48,14 @@
     "lore": "tsx src/cli/main.ts",
     "release:refresh": "node scripts/public-release-gate.mjs --refresh-generated",
     "release:verify": "node scripts/public-release-gate.mjs",
-    "release:restore-lock": "node scripts/restore-verified-lockfile.mjs"
+    "release:restore-lock": "node scripts/restore-verified-lockfile.mjs",
+    "release:package": "node scripts/build-package-artifact.mjs",
+    "release:smoke": "node scripts/smoke-installed-package.mjs"
   },
   "dependencies": {
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
+    "typescript": "^5.9.2",
     "yaml": "^2.8.1"
   },
   "devDependencies": {
@@ -49,7 +63,6 @@
     "@types/node": "^22.17.0",
     "eslint": "^9.31.0",
     "tsx": "^4.20.3",
-    "typescript": "^5.9.2",
     "typescript-eslint": "^8.38.0",
     "vitest": "^3.2.4"
   }

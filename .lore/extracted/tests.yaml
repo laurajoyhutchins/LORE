@@ -1,6 +1,9 @@
 extractor: vitest-tests
 schema_version: 1
 tests:
+  - file: tests/integration/package/build-layout.test.ts
+    kind: it
+    name: emits runtime JavaScript without tests, maps, or declarations
   - file: tests/invariants/remediation-contracts.test.ts
     kind: it
     name: does not overwrite a different destination lockfile
@@ -72,7 +75,19 @@ tests:
     name: repository filesystem containment
   - file: tests/unit/cli/main.test.ts
     kind: it
+    name: detects a package entrypoint invoked through a bin symlink
+  - file: tests/unit/cli/main.test.ts
+    kind: it
+    name: detects the executable entrypoint through a platform-safe file URL
+  - file: tests/unit/cli/main.test.ts
+    kind: it
     name: prints stable help for --help
+  - file: tests/unit/cli/main.test.ts
+    kind: it
+    name: reports stable version JSON
+  - file: tests/unit/cli/main.test.ts
+    kind: it
+    name: reports the installed package outside a LORE repository
   - file: tests/unit/cli/main.test.ts
     kind: it
     name: returns usage failure for an unknown command
@@ -118,6 +133,12 @@ tests:
   - file: tests/unit/init/initialize.test.ts
     kind: it
     name: rejects a symbolic-link destination
+  - file: tests/unit/package/package-metadata.test.ts
+    kind: it
+    name: defines the CLI-only bootstrap package
+  - file: tests/unit/projection/templates.test.ts
+    kind: it
+    name: documents the installed CLI-only package
   - file: tests/unit/projection/templates.test.ts
     kind: it
     name: keeps the checked-in repository card independent of HEAD
