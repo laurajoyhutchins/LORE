@@ -1,4 +1,4 @@
-name: Integrate main into versioned release
+name: Diagnose versioned release integration
 
 on:
   push:
@@ -10,342 +10,53 @@ permissions:
   contents: write
 
 concurrency:
-  group: integrate-main-release
+  group: diagnose-versioned-release-integration
   cancel-in-progress: false
 
 jobs:
-  integrate:
+  diagnose:
     if: ${{ github.repository == 'laurajoyhutchins/LORE' && github.ref == 'refs/heads/feat/versioned-cli-release' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 10
     env:
-      EXPECTED_PARENT: 82f37cc47723eb7ccf9e1990aaf6a63a7f0ebea2
+      EXPECTED_PARENT: d4fe7c355443d28b08cb81bcc5d7ec0c5f458cc7
     steps:
       - uses: actions/checkout@v6
         with:
           ref: feat/versioned-cli-release
           fetch-depth: 0
           persist-credentials: true
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 22.14.0
-          package-manager-cache: false
-      - name: Verify one-shot authority boundary
+      - name: Capture merge diagnostics
         shell: bash
         run: |
           set -euo pipefail
           test "$(git rev-parse 'HEAD^1^{commit}')" = "$EXPECTED_PARENT"
-          test "$(git branch --show-current)" = "feat/versioned-cli-release"
-      - name: Merge current main and resolve bounded overlaps
-        shell: bash
-        run: |
-          set -euo pipefail
           git fetch origin main
           set +e
-          git merge --no-commit --no-ff origin/main
+          git merge --no-commit --no-ff origin/main >merge.stdout 2>merge.stderr
           merge_status=$?
           set -e
-          test "$merge_status" -eq 0 || test "$merge_status" -eq 1
-
-          mapfile -t unmerged < <(git diff --name-only --diff-filter=U | sort)
-          allowed=(
-            .github/workflows/ci.yml
-            .lore/extracted/components.yaml
-            .lore/extracted/relationships.yaml
-            .lore/extracted/repository.yaml
-            .lore/extracted/tests.yaml
-            src/cli/main.ts
-            tests/invariants/remediation-contracts.test.ts
-          )
-          for path in "${unmerged[@]}"; do
-            printf '%s\n' "${allowed[@]}" | grep -Fxq "$path" || {
-              echo "UNEXPECTED_MERGE_CONFLICT: $path" >&2
-              exit 1
-            }
-          done
-
-          is_unmerged() {
-            git diff --name-only --diff-filter=U | grep -Fxq "$1"
-          }
-
-          for path in \
-            .lore/extracted/components.yaml \
-            .lore/extracted/relationships.yaml \
-            .lore/extracted/repository.yaml \
-            .lore/extracted/tests.yaml; do
-            if is_unmerged "$path"; then
-              git checkout --ours -- "$path"
-              git add "$path"
-            fi
-          done
-
-          cat > .github/workflows/ci.yml <<'YAML'
-          name: CI
-
-          on:
-            push:
-              branches: [main]
-            pull_request:
-
-          permissions:
-            contents: read
-
-          concurrency:
-            group: ci-${{ github.workflow }}-${{ github.ref }}
-            cancel-in-progress: true
-
-          jobs:
-            verify-head:
-              name: Verify exact head
-              runs-on: ubuntu-latest
-              timeout-minutes: 30
-              steps:
-                - uses: actions/checkout@v6
-                  with:
-                    repository: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name || github.repository }}
-                    ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
-                    fetch-depth: 0
-                    persist-credentials: false
-                - uses: actions/setup-node@v6
-                  with:
-                    node-version: 22.14.0
-                    package-manager-cache: false
-                - run: node scripts/public-release-gate.mjs
-
-            verify-merge:
-              name: Verify proposed merge
-              if: github.event_name == 'pull_request'
-              runs-on: ubuntu-latest
-              timeout-minutes: 30
-              steps:
-                - uses: actions/checkout@v6
-                  with:
-                    fetch-depth: 0
-                    persist-credentials: false
-                - uses: actions/setup-node@v6
-                  with:
-                    node-version: 22.14.0
-                    package-manager-cache: false
-                - run: node scripts/public-release-gate.mjs
-          YAML
-          git add .github/workflows/ci.yml
-
-          if is_unmerged src/cli/main.ts; then
-            git checkout --ours -- src/cli/main.ts
-          fi
-          python <<'PY'
-          from pathlib import Path
-
-          path = Path('src/cli/main.ts')
-          text = path.read_text()
-          marker = '        for (const relativePath of extraction.value.obsoleteFiles) {'
-          if marker not in text:
-              anchor = '''        for (const [relativePath, expected] of extraction.value.files) {
-                  const matches = await generatedMatches(root, relativePath, expected);
-                  if (!matches.ok) return printProblems(io, matches);
-                  if (!matches.value) {
-                    io.stderr(`GENERATED_OUTPUT_STALE: ${relativePath}`);
-                    return 14;
-                  }
-                }
-          '''
-              insertion = anchor + '''        for (const relativePath of extraction.value.obsoleteFiles) {
-                  const stale = await readContainedText(root, relativePath);
-                  if (stale.ok) {
-                    io.stderr(`GENERATED_OUTPUT_STALE: ${relativePath}`);
-                    return 14;
-                  }
-                  if (!stale.errors.every(({ code }) => code === "PATH_NOT_FOUND")) {
-                    return printProblems(io, stale);
-                  }
-                }
-          '''
-              if text.count(anchor) != 1:
-                  raise SystemExit('CLI_EXTRACT_CHECK_ANCHOR_INVALID')
-              text = text.replace(anchor, insertion)
-          path.write_text(text)
-          PY
-          git add src/cli/main.ts
-
-          if is_unmerged tests/invariants/remediation-contracts.test.ts; then
-            git checkout --ours -- tests/invariants/remediation-contracts.test.ts
-          fi
-          python <<'PY'
-          from pathlib import Path
-
-          path = Path('tests/invariants/remediation-contracts.test.ts')
-          text = path.read_text()
-          if 'projects candidate effective statuses when planning a transaction' not in text:
-              replacements = [
-                  (
-                      'import { cp, mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises";\n',
-                      'import { execFile } from "node:child_process";\nimport { cp, mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises";\n',
-                  ),
-                  (
-                      'import path from "node:path";\n',
-                      'import path from "node:path";\nimport { promisify } from "node:util";\n',
-                  ),
-                  (
-                      'import type { ValidatedRepository } from "../../src/domain/types.js";\n',
-                      '''import type {
-            LoreManifest,
-            LoreProposal,
-            SemanticRecord,
-            ValidatedRepository,
-          } from "../../src/domain/types.js";
-          ''',
-                  ),
-                  (
-                      'import { validateProposal } from "../../src/proposals/validate-proposal.js";\n',
-                      'import { validateProposal } from "../../src/proposals/validate-proposal.js";\nimport { planTransaction } from "../../src/transactions/plan-transaction.js";\n',
-                  ),
-                  (
-                      'import { verifySelf } from "../../src/verification/verify-self.js";\n\ndescribe(',
-                      'import { verifySelf } from "../../src/verification/verify-self.js";\n\nconst exec = promisify(execFile);\n\ndescribe(',
-                  ),
-              ]
-              for old, new in replacements:
-                  if text.count(old) != 1:
-                      raise SystemExit(f'REMEDIATION_IMPORT_ANCHOR_INVALID: {old!r}')
-                  text = text.replace(old, new)
-
-              old = '''  it("does not plan a transaction before candidate evidence is validated", async () => {
-              const source = await readFile("src/transactions/plan-transaction.ts", "utf8");
-              expect(source).toContain("validateEvidence");
-            });'''
-              new = '''  it("projects candidate effective statuses when planning a transaction", async () => {
-              const root = await mkdtemp(path.join(tmpdir(), "lore-plan-"));
-              const run = (args: string[]) => exec("git", args, { cwd: root });
-              await run(["init"]);
-              await run(["config", "user.name", "LORE Test"]);
-              await run(["config", "user.email", "lore-test@example.invalid"]);
-              await writeFile(path.join(root, "evidence.txt"), "candidate state evidence\\n");
-              await run(["add", "evidence.txt"]);
-              await run(["commit", "-m", "fixture"]);
-              const revision = (await run(["rev-parse", "HEAD"])).stdout.trim();
-
-              const manifest: LoreManifest = {
-                schema_version: 1,
-                repository: { id: "fixture", name: "Fixture", root: "." },
-                paths: {
-                  extracted: ".lore/extracted",
-                  records: ".lore/records",
-                  proposals: ".lore/proposals",
-                  transactions: ".lore/transactions",
-                  generated_docs: "docs/generated",
-                  skills: "skills",
-                },
-                extractors: [],
-                projections: [
-                  {
-                    id: "component-catalog",
-                    output: "docs/generated/component-catalog.md",
-                  },
-                ],
-                maintenance: {
-                  skill: "skills/maintain-repository-documentation/SKILL.md",
-                  proposal_schema: "skills/maintain-repository-documentation/schemas/proposal.schema.json",
-                },
-                hydration: { max_records: 20, max_characters: 40000 },
-              };
-              const record: SemanticRecord = {
-                schema_version: 1,
-                id: "component.fixture",
-                kind: "component",
-                revision: 1,
-                status: "active",
-                title: "Fixture component",
-                summary: "A component used to verify candidate projections.",
-                scope: { repository: "fixture", components: [] },
-                evidence: [{ revision, path: "evidence.txt" }],
-                disclosure: { audiences: ["maintainer"], tags: ["fixture"], weight: 50 },
-                provenance: { source: "bootstrap", transaction: null, producer: "test" },
-                supersedes: null,
-                payload: {},
-              };
-              const repository: ValidatedRepository = {
-                root,
-                manifest,
-                revision,
-                records: [record],
-                effectiveStatus: new Map([
-                  ["lore://fixture/component/component.fixture@1", "active"],
-                ]),
-                extracted: {},
-              };
-              const proposal: LoreProposal = {
-                protocol: "lore-proposal/v1",
-                proposal_id: "proposal.candidate-status",
-                base_revision: revision,
-                skill: { path: manifest.maintenance.skill, digest: "fixture" },
-                result: "changes_proposed",
-                operations: [
-                  {
-                    operation: "transition_record",
-                    record_id: record.id,
-                    from: "active",
-                    to: "deprecated",
-                    evidence: [{ revision, path: "evidence.txt" }],
-                  },
-                ],
-                uncertainties: [],
-              };
-
-              const result = await planTransaction(root, proposal, repository);
-
-              expect(result.ok).toBe(true);
-              if (!result.ok) return;
-              const catalog = result.value.generatedOutputs.get(
-                "docs/generated/component-catalog.md",
-              );
-              expect(catalog).toContain("| Fixture component | superseded |");
-              expect(catalog).toContain("| Fixture component | deprecated |");
-              expect(catalog).not.toContain("undefined");
-            });'''
-              if text.count(old) != 1:
-                  raise SystemExit('REMEDIATION_TEST_ANCHOR_INVALID')
-              text = text.replace(old, new)
-          path.write_text(text)
-          PY
-          git add tests/invariants/remediation-contracts.test.ts
-
-          remaining="$(git diff --name-only --diff-filter=U)"
-          test -z "$remaining" || {
-            echo "UNRESOLVED_MERGE_CONFLICTS" >&2
-            printf '%s\n' "$remaining" >&2
-            exit 1
-          }
-
-          git rm .github/workflows/diagnose-release-sync.yml
-          git rm .github/workflows/integrate-main-release.yml
-      - name: Regenerate and verify integrated source
-        shell: bash
-        run: |
-          set -euo pipefail
-          node scripts/restore-verified-lockfile.mjs
-          corepack pnpm install --frozen-lockfile
-          corepack pnpm lore extract
-          corepack pnpm lore project
-          corepack pnpm typecheck
-          corepack pnpm lint
-          corepack pnpm test
-          corepack pnpm build
-          corepack pnpm lore extract --check
-          corepack pnpm lore validate
-          corepack pnpm lore project --check
-          corepack pnpm lore verify-self
-          rm pnpm-lock.yaml
-          git add -A
-          git diff --check --cached
-      - name: Commit integrated release head
-        shell: bash
-        run: |
-          set -euo pipefail
+          {
+            echo "head=$(git rev-parse HEAD)"
+            echo "main=$(git rev-parse origin/main)"
+            echo "merge_exit=$merge_status"
+            echo "unmerged_begin"
+            git diff --name-only --diff-filter=U | sort
+            echo "unmerged_end"
+            echo "status_begin"
+            git status --short
+            echo "status_end"
+            echo "stdout_begin"
+            cat merge.stdout
+            echo "stdout_end"
+            echo "stderr_begin"
+            cat merge.stderr
+            echo "stderr_end"
+          } > /tmp/release-integration-diagnostic.txt
+          git merge --abort >/dev/null 2>&1 || true
+          cp /tmp/release-integration-diagnostic.txt .github/release-integration-diagnostic.txt
+          git add .github/release-integration-diagnostic.txt
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'Merge main consumer fixes into versioned CLI release'
-      - name: Run complete publication gate on committed merge
-        run: node scripts/public-release-gate.mjs
-      - name: Push verified merge commit
-        shell: bash
-        run: git push origin HEAD:feat/versioned-cli-release
+          git commit -m 'ci: record release integration diagnostics'
+          git push origin HEAD:feat/versioned-cli-release
