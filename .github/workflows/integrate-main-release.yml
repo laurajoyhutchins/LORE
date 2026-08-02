@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
-      EXPECTED_PARENT: c53d222c9547c494dc9d85e0c6e2f09fbea4e44c
+      EXPECTED_PARENT: d80043bc9af35adb46608af1b5ca0ba848e64758
     steps:
       - uses: actions/checkout@v6
         with:
@@ -30,7 +30,7 @@ jobs:
         with:
           node-version: 22.14.0
           package-manager-cache: false
-      - name: Merge current main
+      - name: Merge current main without workflow changes
         shell: bash
         run: |
           set -euo pipefail
@@ -46,74 +46,22 @@ jobs:
           test "$merge_status" -eq 1
           test "$(git diff --name-only --diff-filter=U)" = ".lore/extracted/repository.yaml"
           git checkout --ours -- .lore/extracted/repository.yaml
-          git add .lore/extracted/repository.yaml
+          git checkout --ours -- .github/workflows/ci.yml
+          git add .lore/extracted/repository.yaml .github/workflows/ci.yml
 
           grep -Fq 'extraction.value.obsoleteFiles' src/cli/main.ts
           grep -Fq 'projects candidate effective statuses when planning a transaction' tests/invariants/remediation-contracts.test.ts
           grep -Fq 'exact-head and proposed-merge verification' tests/release/release-workflow.test.mjs
-
-          git rm .github/release-integration-diagnostic.txt
-          git rm .github/release-integration-failure.txt
-          git rm .github/workflows/diagnose-release-sync.yml
-          git rm .github/workflows/integrate-main-release.yml
-      - name: Install verified dependencies
-        shell: bash
-        run: |
-          set -euo pipefail
-          exec > >(tee /tmp/integration-verify.log) 2>&1
-          echo restore-lock > /tmp/integration-phase
-          node scripts/restore-verified-lockfile.mjs
-          echo install > /tmp/integration-phase
-          corepack pnpm install --frozen-lockfile
-      - name: Normalize permanent CI authority
-        shell: bash
-        run: |
-          set -euo pipefail
-          echo normalize-ci > /tmp/integration-phase
-          node --input-type=module <<'NODE'
-          import { readFile, writeFile } from 'node:fs/promises';
-          import { parse, stringify } from 'yaml';
-
-          const path = '.github/workflows/ci.yml';
-          const workflow = parse(await readFile(path, 'utf8'));
-          const head = workflow.jobs?.['verify-head'];
-          const merge = workflow.jobs?.['verify-merge'];
-          if (!head || !merge) throw new Error('CI_LANES_MISSING');
-
-          for (const job of [head, merge]) {
-            job['timeout-minutes'] = 30;
-            const checkout = job.steps?.find((step) =>
-              String(step.uses ?? '').startsWith('actions/checkout@'),
-            );
-            const setup = job.steps?.find((step) =>
-              String(step.uses ?? '').startsWith('actions/setup-node@'),
-            );
-            if (!checkout || !setup) throw new Error('CI_REQUIRED_STEP_MISSING');
-            checkout.uses = 'actions/checkout@v6';
-            checkout.with ??= {};
-            checkout.with['fetch-depth'] = 0;
-            checkout.with['persist-credentials'] = false;
-            setup.uses = 'actions/setup-node@v6';
-            setup.with ??= {};
-            setup.with['node-version'] = '22.14.0';
-            setup.with['package-manager-cache'] = false;
-          }
-
-          const mergeCheckout = merge.steps.find((step) =>
-            String(step.uses ?? '').startsWith('actions/checkout@'),
-          );
-          delete mergeCheckout.with.ref;
-          delete mergeCheckout.with.repository;
-
-          await writeFile(path, stringify(workflow, { lineWidth: 0 }));
-          NODE
-          git add .github/workflows/ci.yml
       - name: Regenerate and verify integrated source
         shell: bash
         run: |
           set -euo pipefail
-          exec > >(tee -a /tmp/integration-verify.log) 2>&1
+          exec > >(tee /tmp/integration-verify.log) 2>&1
           phase() { echo "$1" > /tmp/integration-phase; }
+          phase restore-lock
+          node scripts/restore-verified-lockfile.mjs
+          phase install
+          corepack pnpm install --frozen-lockfile
           phase extract
           corepack pnpm lore extract
           phase project
@@ -138,6 +86,7 @@ jobs:
           rm pnpm-lock.yaml
           git add -A
           git diff --check --cached
+          test -z "$(git diff --cached --name-only "$GITHUB_SHA" -- .github/workflows)"
       - name: Commit integrated release head
         shell: bash
         run: |
