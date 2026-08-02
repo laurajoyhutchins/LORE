@@ -1,123 +1,28 @@
-phase=push
-workflow_sha=352622fd384b906265a1269a53e0b42181fa29f9
-local_head_before_reset=5cc7750f0ef5bc965a6bffce3f2704dc4ab40127
+phase=merge
+workflow_sha=848b214617012489600e601dccd9b583aca8923f
+local_head_before_reset=848b214617012489600e601dccd9b583aca8923f
 status_before_reset_begin
-
+UU .github/workflows/ci.yml
+M  .lore/extracted/components.yaml
+M  .lore/extracted/relationships.yaml
+UU .lore/extracted/repository.yaml
+A  .lore/extracted/scripts.yaml
+M  .lore/extracted/tests.yaml
+M  docs/superpowers/specs/2026-07-28-lore-design.md
+M  lore.yaml
+M  schemas/extracted-facts.schema.json
+M  src/cli/main.ts
+M  src/config/load-manifest.ts
+M  src/domain/types.ts
+M  src/extraction/extract.ts
+A  src/extraction/extractor-configuration.ts
+M  src/transactions/plan-transaction.ts
+M  src/validation/validate-repository.ts
+M  src/verification/verify-self.ts
+M  tests/invariants/remediation-contracts.test.ts
+M  tests/unit/extraction/extract.test.ts
+M  tests/unit/schemas/schema-registry.test.ts
 status_before_reset_end
 verify_log_tail_begin
-Restored verified lockfile at /home/runner/work/LORE/LORE/pnpm-lock.yaml
-SHA-256: bbda9e0c90ce2996f8fc510b1414321957e879d72443a68d850baa61d17aa1e6
-Git blob: df207b5d79375bc28d5481c7d1f106952e77adbe
-Lockfile is up to date, resolution step is skipped
-Progress: resolved 1, reused 0, downloaded 0, added 0
-Packages: +162
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-Progress: resolved 162, reused 0, downloaded 162, added 162, done
 
-dependencies:
-+ ajv 8.20.0
-+ ajv-formats 3.0.1
-+ typescript 5.9.3
-+ yaml 2.9.0
-
-devDependencies:
-+ @eslint/js 9.39.5
-+ @types/node 22.20.1
-+ eslint 9.39.5
-+ tsx 4.23.1
-+ typescript-eslint 8.65.0
-+ vitest 3.2.7
-
-╭ Warning ─────────────────────────────────────────────────────────────────────╮
-│                                                                              │
-│   Ignored build scripts: esbuild.                                            │
-│   Run "pnpm approve-builds" to pick which dependencies should be allowed     │
-│   to run scripts.                                                            │
-│                                                                              │
-╰──────────────────────────────────────────────────────────────────────────────╯
-
-Done in 1.3s using pnpm v10.14.0
-
-> @laurajoyhutchins/lore@0.0.0-bootstrap.0 lore /home/runner/work/LORE/LORE
-> tsx src/cli/main.ts extract
-
-
-> @laurajoyhutchins/lore@0.0.0-bootstrap.0 lore /home/runner/work/LORE/LORE
-> tsx src/cli/main.ts project
-
-
-> @laurajoyhutchins/lore@0.0.0-bootstrap.0 typecheck /home/runner/work/LORE/LORE
-> tsc -p tsconfig.json --noEmit
-
-
-> @laurajoyhutchins/lore@0.0.0-bootstrap.0 lint /home/runner/work/LORE/LORE
-> eslint .
-
-
-> @laurajoyhutchins/lore@0.0.0-bootstrap.0 test /home/runner/work/LORE/LORE
-> vitest run
-
-
-[1m[46m RUN [49m[22m [36mv3.2.7 [39m[90m/home/runner/work/LORE/LORE[39m
-
- [32m✓[39m tests/release/package-contract.test.mjs [2m([22m[2m13 tests[22m[2m)[22m[32m 46[2mms[22m[39m
- [32m✓[39m tests/release/installed-smoke.test.mjs [2m([22m[2m9 tests[22m[2m)[22m[32m 10[2mms[22m[39m
- [32m✓[39m tests/unit/extraction/extract.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 66[2mms[22m[39m
- [32m✓[39m tests/release/release-workflow.test.mjs [2m([22m[2m4 tests[22m[2m)[22m[32m 56[2mms[22m[39m
- [32m✓[39m tests/release/tarball.test.mjs [2m([22m[2m10 tests[22m[2m)[22m[32m 9[2mms[22m[39m
- [32m✓[39m tests/invariants/remediation-contracts.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 370[2mms[22m[39m
- [32m✓[39m tests/release/github-release-assets.test.mjs [2m([22m[2m10 tests[22m[2m)[22m[32m 15[2mms[22m[39m
- [32m✓[39m tests/security/repository-paths.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 12[2mms[22m[39m
- [32m✓[39m tests/security/git-client.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 233[2mms[22m[39m
- [32m✓[39m tests/unit/init/initialize.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 66[2mms[22m[39m
- [32m✓[39m tests/release/finalize-release-evidence.test.mjs [2m([22m[2m6 tests[22m[2m)[22m[32m 6[2mms[22m[39m
- [32m✓[39m tests/unit/cli/main.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 29[2mms[22m[39m
- [32m✓[39m tests/release/npm-registry.test.mjs [2m([22m[2m12 tests[22m[2m)[22m[32m 5[2mms[22m[39m
- [32m✓[39m tests/unit/schemas/schema-registry.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 214[2mms[22m[39m
- [32m✓[39m tests/release/release-gate-state.test.mjs [2m([22m[2m3 tests[22m[2m)[22m[32m 15[2mms[22m[39m
- [32m✓[39m tests/release/smoke-command-policy.test.mjs [2m([22m[2m4 tests[22m[2m)[22m[32m 6[2mms[22m[39m
- [32m✓[39m tests/unit/projection/templates.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 3[2mms[22m[39m
- [32m✓[39m tests/unit/package/package-metadata.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
- [32m✓[39m tests/release/npm-pack-output.test.mjs [2m([22m[2m8 tests[22m[2m)[22m[32m 5[2mms[22m[39m
- [32m✓[39m tests/release/verified-lockfile-artifact.test.mjs [2m([22m[2m2 tests[22m[2m)[22m[32m 111[2mms[22m[39m
- [32m✓[39m tests/unit/hydration/hydrate.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
- [32m✓[39m tests/integration/package/build-layout.test.ts [2m([22m[2m1 test[22m[2m)[22m[33m 1706[2mms[22m[39m
-   [33m[2m✓[22m[39m emits runtime JavaScript without tests, maps, or declarations [33m 1705[2mms[22m[39m
-
-[2m Test Files [22m [1m[32m22 passed[39m[22m[90m (22)[39m
-[2m      Tests [22m [1m[32m125 passed[39m[22m[90m (125)[39m
-[2m   Start at [22m 16:51:57
-[2m   Duration [22m 5.05s[2m (transform 688ms, setup 0ms, collect 3.86s, tests 2.99s, environment 8ms, prepare 2.02s)[22m
-
-
-> @laurajoyhutchins/lore@0.0.0-bootstrap.0 build /home/runner/work/LORE/LORE
-> tsc -p tsconfig.build.json && node scripts/prepare-package.mjs
-
-
-> @laurajoyhutchins/lore@0.0.0-bootstrap.0 lore /home/runner/work/LORE/LORE
-> tsx src/cli/main.ts extract --check
-
-
-> @laurajoyhutchins/lore@0.0.0-bootstrap.0 lore /home/runner/work/LORE/LORE
-> tsx src/cli/main.ts validate
-
-VALID
-
-> @laurajoyhutchins/lore@0.0.0-bootstrap.0 lore /home/runner/work/LORE/LORE
-> tsx src/cli/main.ts project --check
-
-
-> @laurajoyhutchins/lore@0.0.0-bootstrap.0 lore /home/runner/work/LORE/LORE
-> tsx src/cli/main.ts verify-self
-
-determinism: passed
-evidence: passed
-extraction: passed
-history: passed
-hydration: passed
-manifest: passed
-projections: passed
-proposals: passed
-records: passed
-skill: passed
 verify_log_tail_end
