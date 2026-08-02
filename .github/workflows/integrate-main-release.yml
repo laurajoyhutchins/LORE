@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
-      EXPECTED_PARENT: d4fe7c355443d28b08cb81bcc5d7ec0c5f458cc7
+      EXPECTED_PARENT: abe41fa0f68a38a97fc4edfe2f88f50a1a2cf248
     steps:
       - uses: actions/checkout@v6
         with:
@@ -31,6 +31,8 @@ jobs:
         run: |
           set -euo pipefail
           test "$(git rev-parse 'HEAD^1^{commit}')" = "$EXPECTED_PARENT"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git fetch origin main
           set +e
           git merge --no-commit --no-ff origin/main >merge.stdout 2>merge.stderr
@@ -54,9 +56,8 @@ jobs:
             echo "stderr_end"
           } > /tmp/release-integration-diagnostic.txt
           git merge --abort >/dev/null 2>&1 || true
+          rm -f merge.stdout merge.stderr
           cp /tmp/release-integration-diagnostic.txt .github/release-integration-diagnostic.txt
           git add .github/release-integration-diagnostic.txt
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'ci: record release integration diagnostics'
+          git commit -m 'ci: refresh release integration diagnostics'
           git push origin HEAD:feat/versioned-cli-release
