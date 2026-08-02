@@ -8,16 +8,3 @@ repository:
   name: LORE
   package_manager: pnpm
 schema_version: 1
-scripts:
-  build: tsc -p tsconfig.build.json && node scripts/prepare-package.mjs
-  lint: eslint .
-  lore: tsx src/cli/main.ts
-  prepack: corepack pnpm build
-  release:package: node scripts/build-package-artifact.mjs
-  release:refresh: node scripts/public-release-gate.mjs --refresh-generated
-  release:restore-lock: node scripts/restore-verified-lockfile.mjs
-  release:smoke: node scripts/smoke-installed-package.mjs
-  release:verify: node scripts/public-release-gate.mjs
-  test: vitest run
-  test:watch: vitest
-  typecheck: tsc -p tsconfig.json --noEmit

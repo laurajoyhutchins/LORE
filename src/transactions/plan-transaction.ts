@@ -12,7 +12,10 @@ import type {
 import { validateEvidence } from "../evidence/validate-evidence.js";
 import { createGitClient } from "../git/git-client.js";
 import { projectRepository } from "../projection/project.js";
-import { validateRecordSet } from "../records/validate-records.js";
+import {
+  deriveEffectiveStatuses,
+  validateRecordSet,
+} from "../records/validate-records.js";
 import { transactionId } from "./receipt.js";
 
 function isGeneratedEvidence(record: SemanticRecord, repository: ValidatedRepository): boolean {
@@ -118,6 +121,10 @@ export async function planTransaction(
   const candidate: ValidatedRepository = {
     ...repository,
     records: allRecords,
+    effectiveStatus: deriveEffectiveStatuses(
+      allRecords,
+      repository.manifest.repository.id,
+    ),
   };
   const outputs = await projectRepository(candidate);
   if (!outputs.ok) return outputs;
