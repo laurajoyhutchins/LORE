@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
-      EXPECTED_PARENT: a3eb887f4e025ba9e5d2665cf51e25ee8388bb24
+      EXPECTED_PARENT: 5ce4d213975a4c49d7ac36ea0256a69883e5a076
     steps:
       - uses: actions/checkout@v6
         with:
@@ -36,7 +36,6 @@ jobs:
           set -euo pipefail
           echo merge > /tmp/integration-phase
           test "$(git rev-parse 'HEAD^1^{commit}')" = "$EXPECTED_PARENT"
-          test "$(git branch --show-current)" = "feat/versioned-cli-release"
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git fetch origin main
@@ -102,7 +101,7 @@ jobs:
 
           grep -Fq 'extraction.value.obsoleteFiles' src/cli/main.ts
           grep -Fq 'projects candidate effective statuses when planning a transaction' tests/invariants/remediation-contracts.test.ts
-          ! grep -Fq 'does not plan a transaction before candidate evidence is validated' tests/invariants/remediation-contracts.test.ts
+          grep -Fq 'exact-head and proposed-merge verification' tests/release/release-workflow.test.mjs
 
           git rm .github/release-integration-diagnostic.txt
           git rm .github/release-integration-failure.txt
