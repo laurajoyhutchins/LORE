@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
-      EXPECTED_PARENT: d80043bc9af35adb46608af1b5ca0ba848e64758
+      EXPECTED_PARENT: 9a95d944ae1b4d95d553fd89e0447231517dfd49
     steps:
       - uses: actions/checkout@v6
         with:
@@ -44,7 +44,9 @@ jobs:
           merge_status=$?
           set -e
           test "$merge_status" -eq 1
-          test "$(git diff --name-only --diff-filter=U)" = ".lore/extracted/repository.yaml"
+          expected_conflicts="$(printf '%s\n' '.github/workflows/ci.yml' '.lore/extracted/repository.yaml')"
+          actual_conflicts="$(git diff --name-only --diff-filter=U | sort)"
+          test "$actual_conflicts" = "$expected_conflicts"
           git checkout --ours -- .lore/extracted/repository.yaml
           git checkout --ours -- .github/workflows/ci.yml
           git add .lore/extracted/repository.yaml .github/workflows/ci.yml
