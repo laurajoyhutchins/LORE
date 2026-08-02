@@ -1,0 +1,29 @@
+phase=verify
+workflow_sha=95da844d64f54a54f690f0c1bced84404ec4570b
+local_head_before_reset=95da844d64f54a54f690f0c1bced84404ec4570b
+status_before_reset_begin
+D  .github/release-integration-diagnostic.txt
+M  .github/workflows/ci.yml
+D  .github/workflows/diagnose-release-sync.yml
+D  .github/workflows/integrate-main-release.yml
+M  .lore/extracted/components.yaml
+M  .lore/extracted/relationships.yaml
+ M .lore/extracted/repository.yaml
+AM .lore/extracted/scripts.yaml
+M  .lore/extracted/tests.yaml
+M  docs/superpowers/specs/2026-07-28-lore-design.md
+M  lore.yaml
+M  schemas/extracted-facts.schema.json
+M  src/cli/main.ts
+M  src/config/load-manifest.ts
+M  src/domain/types.ts
+M  src/extraction/extract.ts
+A  src/extraction/extractor-configuration.ts
+M  src/transactions/plan-transaction.ts
+M  src/validation/validate-repository.ts
+M  src/verification/verify-self.ts
+M  tests/invariants/remediation-contracts.test.ts
+M  tests/unit/extraction/extract.test.ts
+M  tests/unit/schemas/schema-registry.test.ts
+?? pnpm-lock.yaml
+status_before_reset_end
