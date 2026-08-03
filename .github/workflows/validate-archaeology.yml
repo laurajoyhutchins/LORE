@@ -1,0 +1,37 @@
+name: Validate archaeology
+
+on:
+  pull_request:
+    paths:
+      - '.deciduous/**'
+      - 'docs/archaeology/**'
+      - 'scripts/validate_archaeology.py'
+      - 'tests/test_archaeology.py'
+      - '.github/workflows/validate-archaeology.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - '.deciduous/**'
+      - 'docs/archaeology/**'
+      - 'scripts/validate_archaeology.py'
+      - 'tests/test_archaeology.py'
+      - '.github/workflows/validate-archaeology.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - name: Validate canonical source and evidence
+        run: python scripts/validate_archaeology.py
+      - name: Run archaeology tests
+        run: python -m unittest discover -s tests -p 'test_archaeology.py' -v
