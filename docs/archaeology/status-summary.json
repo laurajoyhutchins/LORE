@@ -1,0 +1,27 @@
+{
+  "arc_count": 2,
+  "current_node_count": 10,
+  "edge_count": 17,
+  "edge_types": {
+    "chosen": 1,
+    "enables": 3,
+    "leads_to": 8,
+    "rejected": 3,
+    "requires": 2
+  },
+  "native_node_types": {
+    "action": 2,
+    "decision": 6,
+    "goal": 2,
+    "option": 4,
+    "outcome": 2
+  },
+  "native_statuses": {
+    "active": 10,
+    "completed": 3,
+    "rejected": 3
+  },
+  "node_count": 16,
+  "partial": true,
+  "schema": "lore-archaeology-status-v1"
+}
