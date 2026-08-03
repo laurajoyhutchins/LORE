@@ -3,3 +3,8 @@ dist/
 coverage/
 *.log
 .DS_Store
+__pycache__/
+*.py[cod]
+.deciduous/deciduous.db
+.deciduous/deciduous.db-shm
+.deciduous/deciduous.db-wal
