@@ -7,6 +7,12 @@ on:
     paths:
       - '.github/archaeology-payload.part-*'
       - '.github/workflows/bootstrap-archaeology.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/archaeology-payload.part-*'
+      - '.github/workflows/bootstrap-archaeology.yml'
 
 permissions:
   contents: write
