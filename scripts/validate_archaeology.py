@@ -41,7 +41,7 @@ def load_source() -> tuple[list[dict], list[dict], set[str]]:
     for path in paths:
         text = path.read_text(encoding="utf-8")
         data = json.loads(text)
-        canonical = json.dumps(data, indent=2, sort_keys=True) + "\n"
+        canonical = json.dumps(data, indent=2, ensure_ascii=False) + "\n"
         if text != canonical:
             fail(f"non-canonical JSON: {path.relative_to(ROOT)}")
         if data.get("schema") != "lore-deciduous-source-v1":
