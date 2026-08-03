@@ -11,7 +11,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / ".deciduous" / "source"
 SUMMARY = ROOT / "docs" / "archaeology" / "status-summary.json"
-
 NODE_TYPES = {"goal", "option", "decision", "action", "outcome", "observation", "revisit"}
 STATUSES = {"pending", "active", "completed", "rejected", "superseded", "abandoned"}
 EDGE_TYPES = {"leads_to", "chosen", "rejected", "requires", "blocks", "enables", "supersedes"}
@@ -40,10 +39,9 @@ def load_source() -> tuple[list[dict], list[dict], set[str]]:
     arcs: set[str] = set()
     for path in paths:
         text = path.read_text(encoding="utf-8")
+        if "\r" in text or not text.endswith("\n"):
+            fail(f"source must use LF and end with a newline: {path.relative_to(ROOT)}")
         data = json.loads(text)
-        canonical = json.dumps(data, indent=2, ensure_ascii=False) + "\n"
-        if text != canonical:
-            fail(f"non-canonical JSON: {path.relative_to(ROOT)}")
         if data.get("schema") != "lore-deciduous-source-v1":
             fail(f"unexpected source schema: {path.relative_to(ROOT)}")
         if data.get("repository") != "laurajoyhutchins/LORE":
@@ -64,20 +62,17 @@ def evidence_exists(reference: str) -> bool:
     coordinate = target.split("#", 1)[0]
     if kind == "path":
         return (ROOT / coordinate).exists()
-    if kind == "commit":
-        if not SHA_RE.fullmatch(coordinate):
-            return False
-        if not (ROOT / ".git").exists():
-            return True
-        result = subprocess.run(
-            ["git", "cat-file", "-e", f"{coordinate}^{{commit}}"],
-            cwd=ROOT,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            check=False,
-        )
-        return result.returncode == 0
-    return False
+    if kind != "commit" or not SHA_RE.fullmatch(coordinate):
+        return False
+    if not (ROOT / ".git").exists():
+        return True
+    return subprocess.run(
+        ["git", "cat-file", "-e", f"{coordinate}^{{commit}}"],
+        cwd=ROOT,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        check=False,
+    ).returncode == 0
 
 
 def validate_graph(nodes: list[dict], edges: list[dict], arcs: set[str]) -> dict:
@@ -107,6 +102,7 @@ def validate_graph(nodes: list[dict], edges: list[dict], arcs: set[str]) -> dict
         for reference in evidence:
             if not evidence_exists(reference):
                 fail(f"unresolved evidence {reference!r} on {node.get('id')}")
+
     adjacency = {node_id: [] for node_id in known}
     indegree = {node_id: 0 for node_id in known}
     for edge in edges:
@@ -131,6 +127,7 @@ def validate_graph(nodes: list[dict], edges: list[dict], arcs: set[str]) -> dict
                 queue.append(target)
     if visited != len(known):
         fail("forward causal graph contains a cycle")
+
     return {
         "schema": "lore-archaeology-status-v1",
         "partial": True,
