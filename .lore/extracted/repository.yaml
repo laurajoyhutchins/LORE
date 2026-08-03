@@ -4,6 +4,7 @@ repository:
   languages:
     - JavaScript
     - Markdown
+    - Python
     - TypeScript
   name: LORE
   package_manager: pnpm
