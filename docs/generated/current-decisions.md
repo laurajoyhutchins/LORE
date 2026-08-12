@@ -5,6 +5,10 @@
 
 Maintainers communicate through public context and proposal protocols.
 
+Evidence: `docs/superpowers/specs/2026-07-28-lore-design.md` at `f663e319ff85a24b2e67b29d55cf897785ce4dea`.
+
 ## Git-backed storage
 
 Git is the durable store for facts, records, transactions, and projections.
+
+Evidence: `docs/superpowers/specs/2026-07-28-lore-design.md` at `f663e319ff85a24b2e67b29d55cf897785ce4dea`.

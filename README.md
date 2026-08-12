@@ -84,6 +84,13 @@ Generated prose is useful but non-authoritative. The source of truth is the comb
 
 ## Documentation
 
+- [Adopt LORE](docs/generated/tutorials/adopt-lore.md)
+- [Maintain repository knowledge](docs/generated/how-to/maintain-knowledge.md)
+- [Review a proposal](docs/generated/how-to/review-a-proposal.md)
+- [CLI reference](docs/generated/reference/cli.md)
+- [Data model reference](docs/generated/reference/data-model.md)
+- [Trust model](docs/generated/explanation/trust-model.md)
+- [Authority and file ownership](docs/generated/explanation/authority-and-file-ownership.md)
 - [Bootstrap trust root](BOOTSTRAP.md)
 - [Design specification](docs/superpowers/specs/2026-07-28-lore-design.md)
 - [Release operations](docs/releasing.md)
@@ -91,6 +98,7 @@ Generated prose is useful but non-authoritative. The source of truth is the comb
 - [Generated architecture](docs/generated/architecture.md)
 - [Generated component catalog](docs/generated/component-catalog.md)
 - [Generated current decisions](docs/generated/current-decisions.md)
+- [Generated maintainer guide](docs/generated/maintainer-guide.md)
 - [Maintainer skill](skills/maintain-repository-documentation/SKILL.md)
 - [Contribution guide](CONTRIBUTING.md)
 - [Security policy](SECURITY.md)
