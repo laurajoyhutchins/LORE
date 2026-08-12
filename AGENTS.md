@@ -6,7 +6,7 @@ LORE, “LORE Organizes Repository Evidence,” is an agent-neutral, Git-backed 
 
 ## Non-goals
 
-Do not turn LORE into an LLM host, agent runtime, scheduler, memory database, vector database, generic documentation generator, issue tracker, multi-tenant service, authorization system based on agent identity, or system that treats generated prose as canonical knowledge.
+Do not turn LORE into an LLM host, agent runtime, scheduler, memory database, vector database, generic documentation generator, issue tracker, multi-tenant service, authorization system based on agent identity, or system that treats generated prose as authoritative knowledge.
 
 ## Trust model
 
