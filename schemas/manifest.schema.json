@@ -70,7 +70,14 @@
               "architecture",
               "component-catalog",
               "current-decisions",
-              "maintainer-guide"
+              "maintainer-guide",
+              "trust-model",
+              "authority-and-file-ownership",
+              "adoption-tutorial",
+              "maintenance-workflow",
+              "proposal-review",
+              "cli-reference",
+              "data-model-reference"
             ]
           },
           "output": { "type": "string", "minLength": 1 }

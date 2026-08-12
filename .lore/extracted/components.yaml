@@ -120,12 +120,19 @@ components:
       - projectRepository
     path: src/projection/project.ts
   - exports:
+      - renderAdoptionTutorial
       - renderArchitecture
+      - renderAuthorityAndFileOwnership
       - renderCatalog
+      - renderCliReference
+      - renderDataModelReference
       - renderDecisions
       - renderGuide
+      - renderMaintenanceWorkflow
+      - renderProposalReview
       - renderReadme
       - renderRepositoryCard
+      - renderTrustModel
     path: src/projection/templates.ts
   - exports:
       - validateProposal

@@ -142,6 +142,12 @@ tests:
   - file: tests/unit/projection/templates.test.ts
     kind: it
     name: keeps the checked-in repository card independent of HEAD
+  - file: tests/unit/projection/templates.test.ts
+    kind: it
+    name: projects adoption, CLI, and data-model references deterministically
+  - file: tests/unit/projection/templates.test.ts
+    kind: it
+    name: projects product documentation from accepted records and repository contracts
   - file: tests/unit/schemas/schema-registry.test.ts
     kind: it
     name: compiles strict schemas and validates the repository manifest and task fixture

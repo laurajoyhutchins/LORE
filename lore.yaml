@@ -35,6 +35,20 @@ projections:
   output: docs/generated/current-decisions.md
 - id: maintainer-guide
   output: docs/generated/maintainer-guide.md
+- id: trust-model
+  output: docs/generated/explanation/trust-model.md
+- id: authority-and-file-ownership
+  output: docs/generated/explanation/authority-and-file-ownership.md
+- id: adoption-tutorial
+  output: docs/generated/tutorials/adopt-lore.md
+- id: maintenance-workflow
+  output: docs/generated/how-to/maintain-knowledge.md
+- id: proposal-review
+  output: docs/generated/how-to/review-a-proposal.md
+- id: cli-reference
+  output: docs/generated/reference/cli.md
+- id: data-model-reference
+  output: docs/generated/reference/data-model.md
 repository:
   id: lore
   name: LORE

@@ -2,4 +2,21 @@
 # Repository card
 
 - ID: `lore`
+- Purpose: Agent-neutral Git-backed repository documentation system.
 - Records: 10
+- Active components: 4
+- Active decisions: 2
+- Active constraints: 1
+- Active findings: 1
+- Active procedures: 1
+
+## Major components
+
+- **CLI:** Command dispatcher for LORE workflows. Evidence: `docs/superpowers/specs/2026-07-28-lore-design.md` at `f663e319ff85a24b2e67b29d55cf897785ce4dea`.
+- **Extraction:** Deterministic repository fact extraction. Evidence: `docs/superpowers/specs/2026-07-28-lore-design.md` at `f663e319ff85a24b2e67b29d55cf897785ce4dea`.
+- **Transactions:** Append-only proposal planning and transactional application. Evidence: `docs/superpowers/specs/2026-07-28-lore-design.md` at `f663e319ff85a24b2e67b29d55cf897785ce4dea`.
+- **Validation:** Repository, record, evidence, and schema validation. Evidence: `docs/superpowers/specs/2026-07-28-lore-design.md` at `f663e319ff85a24b2e67b29d55cf897785ce4dea`.
+
+## Verification
+
+Run `lore validate`, `lore project --check`, and `lore verify-self` from a clean repository checkout.
