@@ -168,7 +168,7 @@ The standard \`pnpm-lock.yaml\` is restored byte-for-byte from the content-addre
 
 Repository documents, paths, Git revisions, source files, and maintainer proposals are untrusted inputs. LORE is designed to fail closed when it cannot prove schema validity, repository containment, evidence provenance, revision identity, append-only history, transactional integrity, or deterministic output.
 
-Generated prose is useful but non-authoritative. The source of truth is the combination of source code, \`lore.yaml\`, schemas, extracted facts, accepted semantic records, accepted transactions, and the included maintenance skill.
+Generated prose is useful but non-authoritative. Authority is explicit by concern: source code owns implemented behavior; \`lore.yaml\` and schemas own repository and protocol contracts; extracted facts are deterministic observations of repository state; accepted semantic records own reviewed knowledge; accepted transactions are immutable receipts of applied proposals; and the maintenance skill owns the maintainer protocol.
 
 ## Documentation
 
@@ -542,7 +542,7 @@ Do not continue if the base revision, referenced skill digest, schema, evidence,
 - Is the selected record kind correct: repository, component, relationship, decision, finding, constraint, or procedure?
 - Does an existing stable record ID already represent the concept?
 - Is the proposed revision exactly the next positive revision?
-- Does \`supersedes\` identify the correct prior canonical record?
+- Does \`supersedes\` identify the correct prior accepted record?
 - Are active decisions and constraints reconciled rather than silently contradicted?
 - Are uncertainty and unsupported environments recorded explicitly?
 - Is the proposal narrower than the evidence, or broader than the task requires?
