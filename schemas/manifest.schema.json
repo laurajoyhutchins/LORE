@@ -77,7 +77,9 @@
               "maintenance-workflow",
               "proposal-review",
               "cli-reference",
-              "data-model-reference"
+              "data-model-reference",
+              "why-this-repository",
+              "deciduous-compat"
             ]
           },
           "output": { "type": "string", "minLength": 1 }

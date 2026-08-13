@@ -49,6 +49,10 @@ projections:
   output: docs/generated/reference/cli.md
 - id: data-model-reference
   output: docs/generated/reference/data-model.md
+- id: why-this-repository
+  output: docs/generated/why-this-repository.md
+- id: deciduous-compat
+  output: docs/generated/compatibility/deciduous.json
 repository:
   id: lore
   name: LORE

@@ -1,0 +1,137 @@
+{
+  "schema": "lore-deciduous-compat/v1",
+  "repository": "lore",
+  "nodes": [
+    {
+      "id": "lore://lore/component/component.cli@1",
+      "type": "component",
+      "status": "active",
+      "title": "CLI",
+      "description": "Command dispatcher for LORE workflows.",
+      "evidence": [
+        {
+          "revision": "f663e319ff85a24b2e67b29d55cf897785ce4dea",
+          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
+        }
+      ]
+    },
+    {
+      "id": "lore://lore/component/component.extraction@1",
+      "type": "component",
+      "status": "active",
+      "title": "Extraction",
+      "description": "Deterministic repository fact extraction.",
+      "evidence": [
+        {
+          "revision": "f663e319ff85a24b2e67b29d55cf897785ce4dea",
+          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
+        }
+      ]
+    },
+    {
+      "id": "lore://lore/component/component.transactions@1",
+      "type": "component",
+      "status": "active",
+      "title": "Transactions",
+      "description": "Append-only proposal planning and transactional application.",
+      "evidence": [
+        {
+          "revision": "f663e319ff85a24b2e67b29d55cf897785ce4dea",
+          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
+        }
+      ]
+    },
+    {
+      "id": "lore://lore/component/component.validation@1",
+      "type": "component",
+      "status": "active",
+      "title": "Validation",
+      "description": "Repository, record, evidence, and schema validation.",
+      "evidence": [
+        {
+          "revision": "f663e319ff85a24b2e67b29d55cf897785ce4dea",
+          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
+        }
+      ]
+    },
+    {
+      "id": "lore://lore/constraint/constraint.no-agent-direct-mutation@1",
+      "type": "constraint",
+      "status": "active",
+      "title": "No direct mutation",
+      "description": "Maintainers cannot directly alter accepted history or generated outputs.",
+      "evidence": [
+        {
+          "revision": "f663e319ff85a24b2e67b29d55cf897785ce4dea",
+          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
+        }
+      ]
+    },
+    {
+      "id": "lore://lore/decision/decision.agent-neutral-maintainer-contract@1",
+      "type": "decision",
+      "status": "active",
+      "title": "Agent-neutral maintainer contract",
+      "description": "Maintainers communicate through public context and proposal protocols.",
+      "evidence": [
+        {
+          "revision": "f663e319ff85a24b2e67b29d55cf897785ce4dea",
+          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
+        }
+      ]
+    },
+    {
+      "id": "lore://lore/decision/decision.git-backed-storage@1",
+      "type": "decision",
+      "status": "active",
+      "title": "Git-backed storage",
+      "description": "Git is the durable store for facts, records, transactions, and projections.",
+      "evidence": [
+        {
+          "revision": "f663e319ff85a24b2e67b29d55cf897785ce4dea",
+          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
+        }
+      ]
+    },
+    {
+      "id": "lore://lore/finding/finding.bootstrap-kernel-is-hand-authored@1",
+      "type": "finding",
+      "status": "active",
+      "title": "Hand-authored kernel",
+      "description": "The initial trust root must be reviewed before self-hosting begins.",
+      "evidence": [
+        {
+          "revision": "f663e319ff85a24b2e67b29d55cf897785ce4dea",
+          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
+        }
+      ]
+    },
+    {
+      "id": "lore://lore/procedure/procedure.bootstrap-repository@1",
+      "type": "procedure",
+      "status": "active",
+      "title": "Bootstrap repository",
+      "description": "Use lore init, extract, validate, project, and verify-self.",
+      "evidence": [
+        {
+          "revision": "f663e319ff85a24b2e67b29d55cf897785ce4dea",
+          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
+        }
+      ]
+    },
+    {
+      "id": "lore://lore/repository/repository.lore@1",
+      "type": "repository",
+      "status": "active",
+      "title": "LORE",
+      "description": "Agent-neutral Git-backed repository documentation system.",
+      "evidence": [
+        {
+          "revision": "f663e319ff85a24b2e67b29d55cf897785ce4dea",
+          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
+        }
+      ]
+    }
+  ],
+  "edges": []
+}

@@ -119,6 +119,10 @@ components:
       - GENERATED_MARKER
     path: src/init/templates.ts
   - exports:
+      - renderDeciduousCompatibility
+      - renderWhyThisRepository
+    path: src/projection/causal.ts
+  - exports:
       - projectRepository
     path: src/projection/project.ts
   - exports:
@@ -195,6 +199,8 @@ components:
     path: tests/unit/init/initialize.test.ts
   - exports: []
     path: tests/unit/package/package-metadata.test.ts
+  - exports: []
+    path: tests/unit/projection/causal-projections.test.ts
   - exports: []
     path: tests/unit/projection/templates.test.ts
   - exports: []
