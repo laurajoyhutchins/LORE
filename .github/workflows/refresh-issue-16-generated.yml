@@ -22,15 +22,13 @@ jobs:
           node-version: 22.14.0
           package-manager-cache: false
       - run: node scripts/public-release-gate.mjs --refresh-generated
-      - name: Emit generated state
-        shell: bash
-        run: |
-          git status --short
-          for file in .lore/extracted/*.yaml README.md docs/generated/**/*.md docs/generated/*.md; do
-            if [ -f "$file" ] && ! git diff --quiet -- "$file"; then
-              echo "LORE_GENERATED_FILE_BEGIN $file"
-              base64 -w0 "$file"
-              echo
-              echo "LORE_GENERATED_FILE_END $file"
-            fi
-          done
+      - run: git status --short
+      - uses: actions/upload-artifact@v4
+        with:
+          name: issue-16-generated-state
+          path: |
+            .lore/extracted/components.yaml
+            .lore/extracted/relationships.yaml
+            .lore/extracted/tests.yaml
+          if-no-files-found: error
+          retention-days: 1
