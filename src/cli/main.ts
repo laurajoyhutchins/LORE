@@ -160,6 +160,7 @@ export async function runCli(argv: string[], io: CliIo = DEFAULT_IO): Promise<nu
         name: { type: "string" },
         id: { type: "string" },
         json: { type: "boolean" },
+        why: { type: "boolean" },
       },
     });
   } catch (error) {
@@ -317,7 +318,12 @@ export async function runCli(argv: string[], io: CliIo = DEFAULT_IO): Promise<nu
       const args = requirePositionals(command, positionals, 1);
       if (!args.ok) return printProblems(io, args);
       const receipts = await loadReceipts(root, repository.value.manifest.paths.transactions);
-      const result = explainRecord(args.value[0] as string, repository.value, receipts);
+      const result = explainRecord(
+        args.value[0] as string,
+        repository.value,
+        receipts,
+        parsed.values.why === true,
+      );
       if (!result.ok) return printProblems(io, result);
       io.stdout(parsed.values.json === true ? JSON.stringify(result.value, null, 2) : stableYaml(result.value));
       return 0;
