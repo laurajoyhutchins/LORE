@@ -38,6 +38,7 @@ components:
       - recordReference
     path: src/domain/references.ts
   - exports:
+      - CausalRelation
       - DemoReport
       - EvidenceReference
       - ExtractedFacts
@@ -52,6 +53,7 @@ components:
       - RecordExplanation
       - RecordKind
       - RecordStatus
+      - RelationshipPayload
       - SemanticRecord
       - TransactionPlan
       - TransactionReceipt
@@ -195,6 +197,8 @@ components:
     path: tests/unit/package/package-metadata.test.ts
   - exports: []
     path: tests/unit/projection/templates.test.ts
+  - exports: []
+    path: tests/unit/records/validate-records.test.ts
   - exports: []
     path: tests/unit/schemas/schema-registry.test.ts
   - exports: []

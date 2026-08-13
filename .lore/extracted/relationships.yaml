@@ -666,6 +666,15 @@ relationships:
   - from: tests/unit/projection/templates.test.ts
     to: vitest
     type: imports
+  - from: tests/unit/records/validate-records.test.ts
+    to: ../../../src/domain/types.js
+    type: imports
+  - from: tests/unit/records/validate-records.test.ts
+    to: ../../../src/records/validate-records.js
+    type: imports
+  - from: tests/unit/records/validate-records.test.ts
+    to: vitest
+    type: imports
   - from: tests/unit/schemas/schema-registry.test.ts
     to: ../../../src/config/load-manifest.js
     type: imports
