@@ -93,11 +93,13 @@ jobs:
           p = Path('lore.yaml')
           s = p.read_text()
           if not s.startswith('causality:'):
-            s = '''causality:
-            roots:
-            - lore://lore/constraint/constraint.durable-repository-knowledge@1
-            - lore://lore/constraint/constraint.separate-facts-meaning-and-views@1
-            ''' + s
+            s = (
+              'causality:\n'
+              '  roots:\n'
+              '  - lore://lore/constraint/constraint.durable-repository-knowledge@1\n'
+              '  - lore://lore/constraint/constraint.separate-facts-meaning-and-views@1\n'
+              + s
+            )
           p.write_text(s)
 
           p = Path('src/verification/verify-self.ts')
