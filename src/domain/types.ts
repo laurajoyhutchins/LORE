@@ -2,6 +2,8 @@ export interface ValidationProblem { code:string; message:string; location?:stri
 export type ValidationResult<T>={ok:true;value:T;warnings:ValidationProblem[]}|{ok:false;errors:ValidationProblem[]};
 export type RecordKind='repository'|'component'|'relationship'|'decision'|'finding'|'constraint'|'procedure';
 export type RecordStatus='draft'|'active'|'superseded'|'deprecated'|'resolved'|'withdrawn';
+export type CausalRelation='leads_to'|'requires'|'enables'|'chosen'|'rejected';
+export interface RelationshipPayload { from:string; to:string; relation:CausalRelation; rationale:string }
 export interface EvidenceReference { revision:string; path:string; symbol?:string; lines?:{start:number;end:number} }
 export interface SemanticRecord { schema_version:1; id:string; kind:RecordKind; revision:number; status:RecordStatus; title:string; summary:string; scope:{repository:string;components:string[]}; evidence:EvidenceReference[]; disclosure:{audiences:string[];tags:string[];weight:number}; provenance:{source:'bootstrap'|'proposal';transaction:string|null;producer:string}; supersedes:string|null; payload:Record<string,unknown> }
 export type ProjectionId='readme'|'repository-card'|'architecture'|'component-catalog'|'current-decisions'|'maintainer-guide'|'trust-model'|'authority-and-file-ownership'|'adoption-tutorial'|'maintenance-workflow'|'proposal-review'|'cli-reference'|'data-model-reference';
