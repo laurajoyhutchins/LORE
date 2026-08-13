@@ -1,8 +1,20 @@
 import { expect, it } from "vitest";
-import * as templates from "../../../src/projection/templates.js";
-
-it("exposes human and Deciduous-compatible causal projections", () => {
-  const exports = templates as Record<string, unknown>;
-  expect(exports.renderWhyThisRepository).toBeTypeOf("function");
-  expect(exports.renderDeciduousCompatibility).toBeTypeOf("function");
+import type { SemanticRecord, ValidatedRepository } from "../../../src/domain/types.js";
+import { renderDeciduousCompatibility, renderWhyThisRepository } from "../../../src/projection/templates.js";
+const sha = "0123456789abcdef0123456789abcdef01234567";
+const make = (kind: SemanticRecord["kind"], id: string): SemanticRecord => ({ schema_version:1, id, kind, revision:1, status:"active", title:id, summary:id, scope:{repository:"example",components:[]}, evidence:[{revision:sha,path:"docs/design.md"}], disclosure:{audiences:[],tags:[],weight:1}, provenance:{source:"bootstrap",transaction:null,producer:"test"}, supersedes:null, payload:{} });
+it("renders native causality and a Deciduous-compatible projection", () => {
+  const source = make("finding", "finding.source");
+  const target = make("decision", "decision.target");
+  const rel = make("relationship", "relationship.source-target");
+  const from = "lore://example/finding/finding.source@1";
+  const to = "lore://example/decision/decision.target@1";
+  rel.payload = { from, to, relation:"leads_to", rationale:"Observed evidence led to the decision." };
+  const repository = { root:".", revision:sha, records:[source,target,rel], effectiveStatus:new Map(), extracted:{}, manifest:{schema_version:1,repository:{id:"example",name:"Example",root:"."},paths:{extracted:".lore/extracted",records:".lore/records",proposals:".lore/proposals",transactions:".lore/transactions",generated_docs:"docs/generated",skills:"skills"},extractors:[],projections:[],maintenance:{skill:"skills/x",proposal_schema:"schemas/x"},hydration:{max_records:20,max_characters:40000}} } as ValidatedRepository;
+  expect(renderWhyThisRepository(repository)).toContain("Observed evidence led to the decision.");
+  const compat = renderDeciduousCompatibility(repository);
+  expect(compat).toContain('"schema": "lore-deciduous-compat/v1"');
+  expect(compat).toContain('"type": "leads_to"');
+  expect(compat).toContain(from);
+  expect(compat).toContain(to);
 });

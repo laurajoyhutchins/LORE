@@ -4,6 +4,7 @@ import type {
   ValidatedRepository,
   ValidationResult,
 } from "../domain/types.js";
+import { renderDeciduousCompatibility, renderWhyThisRepository } from "./causal.js";
 import {
   renderArchitecture,
   renderAuthorityAndFileOwnership,
@@ -220,6 +221,8 @@ export function projectRepository(
       "proposal-review": renderProposalReview,
       "cli-reference": renderCliReference,
       "data-model-reference": renderDataModelReference,
+      "why-this-repository": renderWhyThisRepository,
+      "deciduous-compat": renderDeciduousCompatibility,
     };
     const content = renderers[projection.id](repository);
     files.set(
