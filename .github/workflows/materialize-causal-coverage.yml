@@ -1,0 +1,144 @@
+name: Materialize causal coverage
+
+on:
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    if: github.event.pull_request.number == 25 && github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22.14.0
+          package-manager-cache: false
+      - name: Implement causal coverage verification
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          Path('src/verification/causal-coverage.ts').write_text('''import { recordReference } from "../domain/references.js";
+          import type { RelationshipPayload, SemanticRecord, ValidatedRepository, ValidationProblem } from "../domain/types.js";
+
+          const ref = (repository: ValidatedRepository, record: SemanticRecord) => recordReference(repository.manifest.repository.id, record);
+          const active = (repository: ValidatedRepository, record: SemanticRecord) => (repository.effectiveStatus.get(ref(repository, record)) ?? record.status) === "active";
+
+          export function verifyCausalCoverage(repository: ValidatedRepository): ValidationProblem[] {
+            const roots = repository.manifest.causality?.roots;
+            if (!roots) return [];
+            const records = repository.records.filter((record) => record.kind !== "relationship" && active(repository, record));
+            const activeRefs = new Set(records.map((record) => ref(repository, record)));
+            const problems: ValidationProblem[] = [];
+            for (const root of roots) {
+              if (!activeRefs.has(root)) problems.push({ code: "CAUSAL_ROOT_INVALID", message: `Causal root is not an active semantic record: ${root}`, record: root });
+            }
+            const adjacency = new Map<string, string[]>();
+            for (const relationship of repository.records) {
+              if (relationship.kind !== "relationship" || !active(repository, relationship)) continue;
+              const payload = relationship.payload as unknown as RelationshipPayload;
+              if (!activeRefs.has(payload.from) || !activeRefs.has(payload.to)) continue;
+              const targets = adjacency.get(payload.from) ?? [];
+              targets.push(payload.to);
+              adjacency.set(payload.from, targets);
+            }
+            const reachable = new Set<string>();
+            const visit = (value: string): void => {
+              if (reachable.has(value) || !activeRefs.has(value)) return;
+              reachable.add(value);
+              for (const target of adjacency.get(value) ?? []) visit(target);
+            };
+            for (const root of roots) visit(root);
+            for (const record of records) {
+              const value = ref(repository, record);
+              if (!reachable.has(value)) problems.push({ code: "CAUSAL_COVERAGE_MISSING", message: `Active semantic record is not reachable from a configured causal root: ${value}`, record: value });
+            }
+            return problems;
+          }
+          ''')
+
+          p = Path('src/domain/types.ts')
+          s = p.read_text()
+          old = 'hydration:{max_records:number;max_characters:number} }'
+          new = 'hydration:{max_records:number;max_characters:number}; causality?:{roots:string[]} }'
+          assert old in s
+          p.write_text(s.replace(old, new, 1))
+
+          p = Path('schemas/manifest.schema.json')
+          schema = json.loads(p.read_text())
+          schema['properties']['causality'] = {
+            'type': 'object',
+            'additionalProperties': False,
+            'required': ['roots'],
+            'properties': {
+              'roots': {
+                'type': 'array',
+                'minItems': 1,
+                'uniqueItems': True,
+                'items': {'type': 'string', 'minLength': 1},
+              }
+            },
+          }
+          p.write_text(json.dumps(schema, indent=2) + '\n')
+
+          p = Path('lore.yaml')
+          s = p.read_text()
+          if not s.startswith('causality:'):
+            s = '''causality:
+            roots:
+            - lore://lore/constraint/constraint.durable-repository-knowledge@1
+            - lore://lore/constraint/constraint.separate-facts-meaning-and-views@1
+            ''' + s
+          p.write_text(s)
+
+          p = Path('src/verification/verify-self.ts')
+          s = p.read_text()
+          if 'from "./causal-coverage.js"' not in s:
+            s = s.replace('import { validateRepository } from "../validation/validate-repository.js";\n', 'import { validateRepository } from "../validation/validate-repository.js";\nimport { verifyCausalCoverage } from "./causal-coverage.js";\n', 1)
+          s = s.replace('  determinism: "passed";\n}', '  determinism: "passed";\n  causality: "passed";\n}', 1)
+          s = s.replace('  const problems: ValidationProblem[] = [];\n', '  const problems: ValidationProblem[] = [];\n  problems.push(...verifyCausalCoverage(repository));\n', 1)
+          s = s.replace('    determinism: "passed",\n  });', '    determinism: "passed",\n    causality: "passed",\n  });', 1)
+          p.write_text(s)
+
+          Path('tests/unit/verification/causal-coverage.test.ts').write_text('''import { expect, it } from "vitest";
+          import type { SemanticRecord, ValidatedRepository } from "../../../src/domain/types.js";
+          import { verifyCausalCoverage } from "../../../src/verification/causal-coverage.js";
+          const sha = "0123456789abcdef0123456789abcdef01234567";
+          const make = (kind: SemanticRecord["kind"], id: string): SemanticRecord => ({ schema_version:1,id,kind,revision:1,status:"active",title:id,summary:id,scope:{repository:"example",components:[]},evidence:[{revision:sha,path:"docs/design.md"}],disclosure:{audiences:[],tags:[],weight:1},provenance:{source:"bootstrap",transaction:null,producer:"test"},supersedes:null,payload:{} });
+          const repository = (records: SemanticRecord[]): ValidatedRepository => ({ root:".",revision:sha,records,effectiveStatus:new Map(),extracted:{},manifest:{schema_version:1,repository:{id:"example",name:"Example",root:"."},paths:{extracted:".lore/extracted",records:".lore/records",proposals:".lore/proposals",transactions:".lore/transactions",generated_docs:"docs/generated",skills:"skills"},extractors:[],projections:[],maintenance:{skill:"skills/x",proposal_schema:"schemas/x"},hydration:{max_records:20,max_characters:40000},causality:{roots:["lore://example/constraint/constraint.root@1"]}} });
+          it("passes when every active record is reachable from a configured root", () => {
+            const root=make("constraint","constraint.root"), target=make("decision","decision.target"), edge=make("relationship","relationship.root-target");
+            edge.payload={from:"lore://example/constraint/constraint.root@1",to:"lore://example/decision/decision.target@1",relation:"leads_to",rationale:"Root leads to target."};
+            expect(verifyCausalCoverage(repository([root,target,edge]))).toEqual([]);
+          });
+          it("fails for an active semantic record outside every configured root graph", () => {
+            const problems=verifyCausalCoverage(repository([make("constraint","constraint.root"),make("decision","decision.orphan")]));
+            expect(problems.map(({code})=>code)).toContain("CAUSAL_COVERAGE_MISSING");
+          });
+          ''')
+          PY
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add src/domain/types.ts src/verification/causal-coverage.ts src/verification/verify-self.ts schemas/manifest.schema.json lore.yaml tests/unit/verification/causal-coverage.test.ts
+          git diff --cached --check
+          git commit -m "feat: verify causal coverage from explicit roots"
+      - name: Regenerate and verify
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/public-release-gate.mjs --refresh-generated
+          rm .github/workflows/materialize-causal-coverage.yml
+          git add -A
+          git diff --cached --check
+          git commit -m "chore: reconcile causal coverage generated state"
+          node scripts/public-release-gate.mjs
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
