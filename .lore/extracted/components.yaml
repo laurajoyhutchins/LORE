@@ -38,6 +38,7 @@ components:
       - recordReference
     path: src/domain/references.ts
   - exports:
+      - CausalExplanationEdge
       - CausalRelation
       - DemoReport
       - EvidenceReference
@@ -191,6 +192,8 @@ components:
     path: tests/security/repository-paths.test.ts
   - exports: []
     path: tests/unit/cli/main.test.ts
+  - exports: []
+    path: tests/unit/explain/causal-explanation.test.ts
   - exports: []
     path: tests/unit/extraction/extract.test.ts
   - exports: []

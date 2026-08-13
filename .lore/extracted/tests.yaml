@@ -94,6 +94,9 @@ tests:
   - file: tests/unit/cli/main.test.ts
     kind: describe
     name: runCli
+  - file: tests/unit/explain/causal-explanation.test.ts
+    kind: it
+    name: traces accepted causal ancestors when requested
   - file: tests/unit/extraction/extract.test.ts
     kind: it
     name: does not parse package.json when package scripts are disabled
