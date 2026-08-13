@@ -18,7 +18,7 @@ Do not continue if the base revision, referenced skill digest, schema, evidence,
 - Is the selected record kind correct: repository, component, relationship, decision, finding, constraint, or procedure?
 - Does an existing stable record ID already represent the concept?
 - Is the proposed revision exactly the next positive revision?
-- Does `supersedes` identify the correct prior canonical record?
+- Does `supersedes` identify the correct prior accepted record?
 - Are active decisions and constraints reconciled rather than silently contradicted?
 - Are uncertainty and unsupported environments recorded explicitly?
 - Is the proposal narrower than the evidence, or broader than the task requires?
