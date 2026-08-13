@@ -3,11 +3,11 @@
 
 - ID: `lore`
 - Purpose: Agent-neutral Git-backed repository documentation system.
-- Records: 10
+- Records: 33
 - Active components: 4
-- Active decisions: 2
-- Active constraints: 1
-- Active findings: 1
+- Active decisions: 4
+- Active constraints: 3
+- Active findings: 4
 - Active procedures: 1
 
 ## Major components

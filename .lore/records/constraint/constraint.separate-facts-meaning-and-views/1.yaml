@@ -1,0 +1,26 @@
+disclosure:
+  audiences:
+    - maintainer
+  tags:
+    - causal-history
+    - constraint
+  weight: 90
+evidence:
+  - path: docs/superpowers/specs/2026-07-28-lore-design.md
+    revision: febd06c201868fe16c0ffed3866b5cbf92c37abc
+id: constraint.separate-facts-meaning-and-views
+kind: constraint
+payload: {}
+provenance:
+  producer: ChatGPT GPT-5.6 Sol
+  source: proposal
+  transaction: tx-16c5e178bfa8eb5ea4e63d4d
+revision: 1
+schema_version: 1
+scope:
+  components: []
+  repository: lore
+status: active
+summary: Deterministic observations, reviewed semantic meaning, and generated views must remain distinct authority layers.
+supersedes: null
+title: Separate facts, meaning, and views

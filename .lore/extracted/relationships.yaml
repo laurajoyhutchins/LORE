@@ -1,26 +1,5 @@
 extractor: typescript-imports
 relationships:
-  - from: scripts/refresh-hydration-snapshots.ts
-    to: ../src/domain/types.js
-    type: imports
-  - from: scripts/refresh-hydration-snapshots.ts
-    to: ../src/hydration/hydrate.js
-    type: imports
-  - from: scripts/refresh-hydration-snapshots.ts
-    to: ../src/schemas/schema-registry.js
-    type: imports
-  - from: scripts/refresh-hydration-snapshots.ts
-    to: ../src/serialization/yaml.js
-    type: imports
-  - from: scripts/refresh-hydration-snapshots.ts
-    to: ../src/validation/validate-repository.js
-    type: imports
-  - from: scripts/refresh-hydration-snapshots.ts
-    to: node:fs/promises
-    type: imports
-  - from: scripts/refresh-hydration-snapshots.ts
-    to: node:path
-    type: imports
   - from: src/cli/main.ts
     to: ../config/load-manifest.js
     type: imports

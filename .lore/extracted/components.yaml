@@ -1,6 +1,4 @@
 components:
-  - exports: []
-    path: scripts/refresh-hydration-snapshots.ts
   - exports:
       - CliIo
       - isCliEntryPoint

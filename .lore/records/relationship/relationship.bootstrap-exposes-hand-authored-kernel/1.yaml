@@ -1,0 +1,30 @@
+disclosure:
+  audiences:
+    - maintainer
+  tags:
+    - causal-history
+    - relationship
+  weight: 90
+evidence:
+  - path: docs/superpowers/specs/2026-07-28-lore-design.md
+    revision: febd06c201868fe16c0ffed3866b5cbf92c37abc
+id: relationship.bootstrap-exposes-hand-authored-kernel
+kind: relationship
+payload:
+  from: lore://lore/procedure/procedure.bootstrap-repository@1
+  rationale: Self-hosting begins from an explicit hand-authored bootstrap kernel that must be reviewed before generated self-description can be trusted.
+  relation: leads_to
+  to: lore://lore/finding/finding.bootstrap-kernel-is-hand-authored@1
+provenance:
+  producer: ChatGPT GPT-5.6 Sol
+  source: proposal
+  transaction: tx-16c5e178bfa8eb5ea4e63d4d
+revision: 1
+schema_version: 1
+scope:
+  components: []
+  repository: lore
+status: active
+summary: Self-hosting begins from an explicit hand-authored bootstrap kernel that must be reviewed before generated self-description can be trusted.
+supersedes: null
+title: Bootstrap Exposes Hand Authored Kernel

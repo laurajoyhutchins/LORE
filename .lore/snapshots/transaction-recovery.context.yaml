@@ -19,7 +19,27 @@ evidence:
     revision: f663e319ff85a24b2e67b29d55cf897785ce4dea
   - path: docs/superpowers/specs/2026-07-28-lore-design.md
     revision: f663e319ff85a24b2e67b29d55cf897785ce4dea
-omitted_record_count: 0
+  - path: docs/superpowers/specs/2026-07-28-lore-design.md
+    revision: febd06c201868fe16c0ffed3866b5cbf92c37abc
+  - path: docs/superpowers/specs/2026-07-28-lore-design.md
+    revision: febd06c201868fe16c0ffed3866b5cbf92c37abc
+  - path: docs/superpowers/specs/2026-07-28-lore-design.md
+    revision: febd06c201868fe16c0ffed3866b5cbf92c37abc
+  - path: docs/superpowers/specs/2026-07-28-lore-design.md
+    revision: febd06c201868fe16c0ffed3866b5cbf92c37abc
+  - path: docs/superpowers/specs/2026-07-28-lore-design.md
+    revision: febd06c201868fe16c0ffed3866b5cbf92c37abc
+  - path: docs/superpowers/specs/2026-07-28-lore-design.md
+    revision: febd06c201868fe16c0ffed3866b5cbf92c37abc
+  - path: docs/superpowers/specs/2026-07-28-lore-design.md
+    revision: febd06c201868fe16c0ffed3866b5cbf92c37abc
+  - path: docs/superpowers/specs/2026-07-28-lore-design.md
+    revision: febd06c201868fe16c0ffed3866b5cbf92c37abc
+  - path: docs/superpowers/specs/2026-07-28-lore-design.md
+    revision: febd06c201868fe16c0ffed3866b5cbf92c37abc
+  - path: docs/superpowers/specs/2026-07-28-lore-design.md
+    revision: febd06c201868fe16c0ffed3866b5cbf92c37abc
+omitted_record_count: 13
 repository_revision: <repository-revision>
 schema_version: 1
 selected:
@@ -357,6 +377,343 @@ selected:
       title: LORE
     reference: lore://lore/repository/repository.lore@1
     score: 44
+  - reasons:
+      - audience match
+      - active decision
+      - record weight
+    record:
+      disclosure:
+        audiences:
+          - maintainer
+        tags:
+          - causal-history
+          - decision
+        weight: 90
+      evidence:
+        - path: docs/superpowers/specs/2026-07-28-lore-design.md
+          revision: febd06c201868fe16c0ffed3866b5cbf92c37abc
+      id: decision.repository-local-knowledge-protocol
+      kind: decision
+      payload: {}
+      provenance:
+        producer: ChatGPT GPT-5.6 Sol
+        source: proposal
+        transaction: tx-16c5e178bfa8eb5ea4e63d4d
+      revision: 1
+      schema_version: 1
+      scope:
+        components: []
+        repository: lore
+      status: active
+      summary: LORE stores reviewed semantic knowledge, evidence, transactions, and deterministic views inside the repository under explicit contracts.
+      supersedes: null
+      title: Repository-local knowledge protocol
+    reference: lore://lore/decision/decision.repository-local-knowledge-protocol@1
+    score: 34
+  - reasons:
+      - audience match
+      - active decision
+      - record weight
+    record:
+      disclosure:
+        audiences:
+          - maintainer
+        tags:
+          - causal-history
+          - decision
+        weight: 90
+      evidence:
+        - path: docs/superpowers/specs/2026-07-28-lore-design.md
+          revision: febd06c201868fe16c0ffed3866b5cbf92c37abc
+      id: decision.separate-authority-layers
+      kind: decision
+      payload: {}
+      provenance:
+        producer: ChatGPT GPT-5.6 Sol
+        source: proposal
+        transaction: tx-16c5e178bfa8eb5ea4e63d4d
+      revision: 1
+      schema_version: 1
+      scope:
+        components: []
+        repository: lore
+      status: active
+      summary: LORE gives extracted facts, semantic records, proposals, transactions, and projections distinct mutation and authority rules.
+      supersedes: null
+      title: Separate authority layers
+    reference: lore://lore/decision/decision.separate-authority-layers@1
+    score: 34
+  - reasons:
+      - audience match
+      - active finding
+      - record weight
+    record:
+      disclosure:
+        audiences:
+          - maintainer
+        tags:
+          - causal-history
+          - finding
+        weight: 90
+      evidence:
+        - path: docs/superpowers/specs/2026-07-28-lore-design.md
+          revision: febd06c201868fe16c0ffed3866b5cbf92c37abc
+      id: finding.collapsed-document-authority-is-insufficient
+      kind: finding
+      payload: {}
+      provenance:
+        producer: ChatGPT GPT-5.6 Sol
+        source: proposal
+        transaction: tx-16c5e178bfa8eb5ea4e63d4d
+      revision: 1
+      schema_version: 1
+      scope:
+        components: []
+        repository: lore
+      status: active
+      summary: A single prose document cannot safely distinguish replaceable extracted facts from append-only reviewed semantic meaning.
+      supersedes: null
+      title: Collapsed document authority is insufficient
+    reference: lore://lore/finding/finding.collapsed-document-authority-is-insufficient@1
+    score: 34
+  - reasons:
+      - audience match
+      - active finding
+      - record weight
+    record:
+      disclosure:
+        audiences:
+          - maintainer
+        tags:
+          - causal-history
+          - finding
+        weight: 90
+      evidence:
+        - path: docs/superpowers/specs/2026-07-28-lore-design.md
+          revision: febd06c201868fe16c0ffed3866b5cbf92c37abc
+      id: finding.generated-prose-is-not-authority
+      kind: finding
+      payload: {}
+      provenance:
+        producer: ChatGPT GPT-5.6 Sol
+        source: proposal
+        transaction: tx-16c5e178bfa8eb5ea4e63d4d
+      revision: 1
+      schema_version: 1
+      scope:
+        components: []
+        repository: lore
+      status: active
+      summary: Human-readable Markdown is a generated view and cannot be the authoritative representation of accepted repository meaning.
+      supersedes: null
+      title: Generated prose is not authority
+    reference: lore://lore/finding/finding.generated-prose-is-not-authority@1
+    score: 34
+  - reasons:
+      - audience match
+      - active finding
+      - record weight
+    record:
+      disclosure:
+        audiences:
+          - maintainer
+        tags:
+          - causal-history
+          - finding
+        weight: 90
+      evidence:
+        - path: docs/superpowers/specs/2026-07-28-lore-design.md
+          revision: febd06c201868fe16c0ffed3866b5cbf92c37abc
+      id: finding.git-history-is-not-semantic-knowledge
+      kind: finding
+      payload: {}
+      provenance:
+        producer: ChatGPT GPT-5.6 Sol
+        source: proposal
+        transaction: tx-16c5e178bfa8eb5ea4e63d4d
+      revision: 1
+      schema_version: 1
+      scope:
+        components: []
+        repository: lore
+      status: active
+      summary: Git provides durable review and reconstruction, but accepted semantic records are still required to preserve architectural interpretation explicitly.
+      supersedes: null
+      title: Git history is not semantic knowledge
+    reference: lore://lore/finding/finding.git-history-is-not-semantic-knowledge@1
+    score: 34
+  - reasons:
+      - audience match
+      - record weight
+    record:
+      disclosure:
+        audiences:
+          - maintainer
+        tags:
+          - causal-history
+          - constraint
+        weight: 90
+      evidence:
+        - path: docs/superpowers/specs/2026-07-28-lore-design.md
+          revision: febd06c201868fe16c0ffed3866b5cbf92c37abc
+      id: constraint.durable-repository-knowledge
+      kind: constraint
+      payload: {}
+      provenance:
+        producer: ChatGPT GPT-5.6 Sol
+        source: proposal
+        transaction: tx-16c5e178bfa8eb5ea4e63d4d
+      revision: 1
+      schema_version: 1
+      scope:
+        components: []
+        repository: lore
+      status: active
+      summary: Repository knowledge must persist as reviewable, versioned Git state and remain usable by arbitrary maintainers.
+      supersedes: null
+      title: Durable repository knowledge
+    reference: lore://lore/constraint/constraint.durable-repository-knowledge@1
+    score: 24
+  - reasons:
+      - audience match
+      - record weight
+    record:
+      disclosure:
+        audiences:
+          - maintainer
+        tags:
+          - causal-history
+          - constraint
+        weight: 90
+      evidence:
+        - path: docs/superpowers/specs/2026-07-28-lore-design.md
+          revision: febd06c201868fe16c0ffed3866b5cbf92c37abc
+      id: constraint.separate-facts-meaning-and-views
+      kind: constraint
+      payload: {}
+      provenance:
+        producer: ChatGPT GPT-5.6 Sol
+        source: proposal
+        transaction: tx-16c5e178bfa8eb5ea4e63d4d
+      revision: 1
+      schema_version: 1
+      scope:
+        components: []
+        repository: lore
+      status: active
+      summary: Deterministic observations, reviewed semantic meaning, and generated views must remain distinct authority layers.
+      supersedes: null
+      title: Separate facts, meaning, and views
+    reference: lore://lore/constraint/constraint.separate-facts-meaning-and-views@1
+    score: 24
+  - reasons:
+      - audience match
+      - record weight
+    record:
+      disclosure:
+        audiences:
+          - maintainer
+        tags:
+          - causal-history
+          - relationship
+        weight: 90
+      evidence:
+        - path: docs/superpowers/specs/2026-07-28-lore-design.md
+          revision: febd06c201868fe16c0ffed3866b5cbf92c37abc
+      id: relationship.bootstrap-exposes-hand-authored-kernel
+      kind: relationship
+      payload:
+        from: lore://lore/procedure/procedure.bootstrap-repository@1
+        rationale: Self-hosting begins from an explicit hand-authored bootstrap kernel that must be reviewed before generated self-description can be trusted.
+        relation: leads_to
+        to: lore://lore/finding/finding.bootstrap-kernel-is-hand-authored@1
+      provenance:
+        producer: ChatGPT GPT-5.6 Sol
+        source: proposal
+        transaction: tx-16c5e178bfa8eb5ea4e63d4d
+      revision: 1
+      schema_version: 1
+      scope:
+        components: []
+        repository: lore
+      status: active
+      summary: Self-hosting begins from an explicit hand-authored bootstrap kernel that must be reviewed before generated self-description can be trusted.
+      supersedes: null
+      title: Bootstrap Exposes Hand Authored Kernel
+    reference: lore://lore/relationship/relationship.bootstrap-exposes-hand-authored-kernel@1
+    score: 24
+  - reasons:
+      - audience match
+      - record weight
+    record:
+      disclosure:
+        audiences:
+          - maintainer
+        tags:
+          - causal-history
+          - relationship
+        weight: 90
+      evidence:
+        - path: docs/superpowers/specs/2026-07-28-lore-design.md
+          revision: febd06c201868fe16c0ffed3866b5cbf92c37abc
+      id: relationship.collapse-finding-to-layer-decision
+      kind: relationship
+      payload:
+        from: lore://lore/finding/finding.collapsed-document-authority-is-insufficient@1
+        rationale: The inability of one document layer to preserve distinct authority semantics motivates separate validated layers.
+        relation: leads_to
+        to: lore://lore/decision/decision.separate-authority-layers@1
+      provenance:
+        producer: ChatGPT GPT-5.6 Sol
+        source: proposal
+        transaction: tx-16c5e178bfa8eb5ea4e63d4d
+      revision: 1
+      schema_version: 1
+      scope:
+        components: []
+        repository: lore
+      status: active
+      summary: The inability of one document layer to preserve distinct authority semantics motivates separate validated layers.
+      supersedes: null
+      title: Collapse Finding To Layer Decision
+    reference: lore://lore/relationship/relationship.collapse-finding-to-layer-decision@1
+    score: 24
+  - reasons:
+      - audience match
+      - record weight
+    record:
+      disclosure:
+        audiences:
+          - maintainer
+        tags:
+          - causal-history
+          - relationship
+        weight: 90
+      evidence:
+        - path: docs/superpowers/specs/2026-07-28-lore-design.md
+          revision: febd06c201868fe16c0ffed3866b5cbf92c37abc
+      id: relationship.durability-to-git-history-finding
+      kind: relationship
+      payload:
+        from: lore://lore/constraint/constraint.durable-repository-knowledge@1
+        rationale: Requiring durable repository knowledge exposes the need to represent accepted meaning explicitly rather than rely on Git history alone.
+        relation: leads_to
+        to: lore://lore/finding/finding.git-history-is-not-semantic-knowledge@1
+      provenance:
+        producer: ChatGPT GPT-5.6 Sol
+        source: proposal
+        transaction: tx-16c5e178bfa8eb5ea4e63d4d
+      revision: 1
+      schema_version: 1
+      scope:
+        components: []
+        repository: lore
+      status: active
+      summary: Requiring durable repository knowledge exposes the need to represent accepted meaning explicitly rather than rely on Git history alone.
+      supersedes: null
+      title: Durability To Git History Finding
+    reference: lore://lore/relationship/relationship.durability-to-git-history-finding@1
+    score: 24
 task:
   audiences:
     - maintainer

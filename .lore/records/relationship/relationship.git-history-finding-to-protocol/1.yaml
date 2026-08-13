@@ -1,0 +1,30 @@
+disclosure:
+  audiences:
+    - maintainer
+  tags:
+    - causal-history
+    - relationship
+  weight: 90
+evidence:
+  - path: docs/superpowers/specs/2026-07-28-lore-design.md
+    revision: febd06c201868fe16c0ffed3866b5cbf92c37abc
+id: relationship.git-history-finding-to-protocol
+kind: relationship
+payload:
+  from: lore://lore/finding/finding.git-history-is-not-semantic-knowledge@1
+  rationale: The gap between Git history and explicit accepted meaning motivates a repository-local semantic knowledge protocol.
+  relation: leads_to
+  to: lore://lore/decision/decision.repository-local-knowledge-protocol@1
+provenance:
+  producer: ChatGPT GPT-5.6 Sol
+  source: proposal
+  transaction: tx-16c5e178bfa8eb5ea4e63d4d
+revision: 1
+schema_version: 1
+scope:
+  components: []
+  repository: lore
+status: active
+summary: The gap between Git history and explicit accepted meaning motivates a repository-local semantic knowledge protocol.
+supersedes: null
+title: Git History Finding To Protocol
