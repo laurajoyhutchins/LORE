@@ -19,13 +19,20 @@ LORE assumes repository paths, documents, source files, Git revisions, historica
 
 - **Agent-neutral maintainer contract:** Maintainers communicate through public context and proposal protocols. Evidence: `docs/superpowers/specs/2026-07-28-lore-design.md` at `f663e319ff85a24b2e67b29d55cf897785ce4dea`.
 - **Git-backed storage:** Git is the durable store for facts, records, transactions, and projections. Evidence: `docs/superpowers/specs/2026-07-28-lore-design.md` at `f663e319ff85a24b2e67b29d55cf897785ce4dea`.
+- **Repository-local knowledge protocol:** LORE stores reviewed semantic knowledge, evidence, transactions, and deterministic views inside the repository under explicit contracts. Evidence: `docs/superpowers/specs/2026-07-28-lore-design.md` at `febd06c201868fe16c0ffed3866b5cbf92c37abc`.
+- **Separate authority layers:** LORE gives extracted facts, semantic records, proposals, transactions, and projections distinct mutation and authority rules. Evidence: `docs/superpowers/specs/2026-07-28-lore-design.md` at `febd06c201868fe16c0ffed3866b5cbf92c37abc`.
 
 ## Active constraints
 
+- **Durable repository knowledge:** Repository knowledge must persist as reviewable, versioned Git state and remain usable by arbitrary maintainers. Evidence: `docs/superpowers/specs/2026-07-28-lore-design.md` at `febd06c201868fe16c0ffed3866b5cbf92c37abc`.
 - **No direct mutation:** Maintainers cannot directly alter accepted history or generated outputs. Evidence: `docs/superpowers/specs/2026-07-28-lore-design.md` at `f663e319ff85a24b2e67b29d55cf897785ce4dea`.
+- **Separate facts, meaning, and views:** Deterministic observations, reviewed semantic meaning, and generated views must remain distinct authority layers. Evidence: `docs/superpowers/specs/2026-07-28-lore-design.md` at `febd06c201868fe16c0ffed3866b5cbf92c37abc`.
 
 ## Known trust limitations
 
+- **Collapsed document authority is insufficient:** A single prose document cannot safely distinguish replaceable extracted facts from append-only reviewed semantic meaning. Evidence: `docs/superpowers/specs/2026-07-28-lore-design.md` at `febd06c201868fe16c0ffed3866b5cbf92c37abc`.
+- **Generated prose is not authority:** Human-readable Markdown is a generated view and cannot be the authoritative representation of accepted repository meaning. Evidence: `docs/superpowers/specs/2026-07-28-lore-design.md` at `febd06c201868fe16c0ffed3866b5cbf92c37abc`.
+- **Git history is not semantic knowledge:** Git provides durable review and reconstruction, but accepted semantic records are still required to preserve architectural interpretation explicitly. Evidence: `docs/superpowers/specs/2026-07-28-lore-design.md` at `febd06c201868fe16c0ffed3866b5cbf92c37abc`.
 - **Hand-authored kernel:** The initial trust root must be reviewed before self-hosting begins. Evidence: `docs/superpowers/specs/2026-07-28-lore-design.md` at `f663e319ff85a24b2e67b29d55cf897785ce4dea`.
 
 ## Verification

@@ -12,3 +12,15 @@ Evidence: `docs/superpowers/specs/2026-07-28-lore-design.md` at `f663e319ff85a24
 Git is the durable store for facts, records, transactions, and projections.
 
 Evidence: `docs/superpowers/specs/2026-07-28-lore-design.md` at `f663e319ff85a24b2e67b29d55cf897785ce4dea`.
+
+## Repository-local knowledge protocol
+
+LORE stores reviewed semantic knowledge, evidence, transactions, and deterministic views inside the repository under explicit contracts.
+
+Evidence: `docs/superpowers/specs/2026-07-28-lore-design.md` at `febd06c201868fe16c0ffed3866b5cbf92c37abc`.
+
+## Separate authority layers
+
+LORE gives extracted facts, semantic records, proposals, transactions, and projections distinct mutation and authority rules.
+
+Evidence: `docs/superpowers/specs/2026-07-28-lore-design.md` at `febd06c201868fe16c0ffed3866b5cbf92c37abc`.

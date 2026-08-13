@@ -26,7 +26,9 @@ Do not continue if the base revision, referenced skill digest, schema, evidence,
 
 ## Active repository constraints
 
+- **Durable repository knowledge:** Repository knowledge must persist as reviewable, versioned Git state and remain usable by arbitrary maintainers. Evidence: `docs/superpowers/specs/2026-07-28-lore-design.md` at `febd06c201868fe16c0ffed3866b5cbf92c37abc`.
 - **No direct mutation:** Maintainers cannot directly alter accepted history or generated outputs. Evidence: `docs/superpowers/specs/2026-07-28-lore-design.md` at `f663e319ff85a24b2e67b29d55cf897785ce4dea`.
+- **Separate facts, meaning, and views:** Deterministic observations, reviewed semantic meaning, and generated views must remain distinct authority layers. Evidence: `docs/superpowers/specs/2026-07-28-lore-design.md` at `febd06c201868fe16c0ffed3866b5cbf92c37abc`.
 
 ## Apply only after review
 
