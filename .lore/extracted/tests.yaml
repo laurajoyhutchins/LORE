@@ -148,6 +148,18 @@ tests:
   - file: tests/unit/projection/templates.test.ts
     kind: it
     name: projects product documentation from accepted records and repository contracts
+  - file: tests/unit/records/validate-records.test.ts
+    kind: it
+    name: accepts an acyclic causal relationship chain
+  - file: tests/unit/records/validate-records.test.ts
+    kind: it
+    name: rejects a causal relationship from a record to itself
+  - file: tests/unit/records/validate-records.test.ts
+    kind: it
+    name: rejects a causal relationship whose endpoint is missing
+  - file: tests/unit/records/validate-records.test.ts
+    kind: it
+    name: rejects a cycle in active causal relationships
   - file: tests/unit/schemas/schema-registry.test.ts
     kind: it
     name: compiles strict schemas and validates the repository manifest and task fixture

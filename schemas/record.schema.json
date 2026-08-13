@@ -71,5 +71,28 @@
     },
     "supersedes": { "type": ["string", "null"] },
     "payload": { "type": "object" }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "kind": { "const": "relationship" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["from", "to", "relation", "rationale"],
+            "properties": {
+              "from": { "type": "string", "minLength": 1 },
+              "to": { "type": "string", "minLength": 1 },
+              "relation": { "enum": ["leads_to", "requires", "enables", "chosen", "rejected"] },
+              "rationale": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      }
+    }
+  ]
 }

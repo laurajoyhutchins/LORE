@@ -1,11 +1,44 @@
 import { ERROR_CODES, fail, ok } from "../domain/errors.js";
-import { recordReference } from "../domain/references.js";
+import { parseRecordReference, recordReference } from "../domain/references.js";
 import type {
+  CausalRelation,
   RecordStatus,
+  RelationshipPayload,
   SemanticRecord,
   ValidationProblem,
   ValidationResult,
 } from "../domain/types.js";
+
+const CAUSAL_RELATIONS = new Set<CausalRelation>([
+  "leads_to",
+  "requires",
+  "enables",
+  "chosen",
+  "rejected",
+]);
+
+function readRelationshipPayload(
+  record: SemanticRecord,
+  problems: ValidationProblem[],
+): RelationshipPayload | null {
+  const { from, to, relation, rationale } = record.payload;
+  if (
+    typeof from !== "string" ||
+    typeof to !== "string" ||
+    typeof relation !== "string" ||
+    !CAUSAL_RELATIONS.has(relation as CausalRelation) ||
+    typeof rationale !== "string" ||
+    rationale.length === 0
+  ) {
+    problems.push({
+      code: ERROR_CODES.SEMANTIC_INVARIANT_FAILED,
+      message: `Invalid relationship payload for ${record.id}`,
+      record: record.id,
+    });
+    return null;
+  }
+  return { from, to, relation: relation as CausalRelation, rationale };
+}
 
 export function validateRecordSet(
   records: SemanticRecord[],
@@ -115,6 +148,89 @@ export function validateRecordSet(
   const supersededReferences = new Set(
     records.map(({ supersedes }) => supersedes).filter((value): value is string => value !== null),
   );
+  const causalEdges = new Map<string, string[]>();
+  for (const relationship of records.filter(({ kind }) => kind === "relationship")) {
+    const payload = readRelationshipPayload(relationship, problems);
+    if (!payload) continue;
+
+    let parsedFrom;
+    let parsedTo;
+    try {
+      parsedFrom = parseRecordReference(payload.from);
+      parsedTo = parseRecordReference(payload.to);
+    } catch {
+      problems.push({
+        code: ERROR_CODES.SEMANTIC_INVARIANT_FAILED,
+        message: `Invalid relationship endpoint for ${relationship.id}`,
+        record: relationship.id,
+      });
+      continue;
+    }
+
+    if (parsedFrom.repositoryId !== repositoryId || parsedTo.repositoryId !== repositoryId) {
+      problems.push({
+        code: ERROR_CODES.SEMANTIC_INVARIANT_FAILED,
+        message: `Relationship endpoint outside repository ${repositoryId}`,
+        record: relationship.id,
+      });
+      continue;
+    }
+    if (parsedFrom.kind === "relationship" || parsedTo.kind === "relationship") {
+      problems.push({
+        code: ERROR_CODES.SEMANTIC_INVARIANT_FAILED,
+        message: "Relationship endpoints must reference semantic records, not relationship records",
+        record: relationship.id,
+      });
+      continue;
+    }
+    if (payload.from === payload.to) {
+      problems.push({
+        code: ERROR_CODES.SEMANTIC_INVARIANT_FAILED,
+        message: "Relationship may not link a record to itself",
+        record: relationship.id,
+      });
+      continue;
+    }
+
+    const missing = [payload.from, payload.to].filter((reference) => !byReference.has(reference));
+    if (missing.length > 0) {
+      for (const reference of missing) {
+        problems.push({
+          code: ERROR_CODES.SEMANTIC_INVARIANT_FAILED,
+          message: `Missing relationship endpoint ${reference}`,
+          record: relationship.id,
+        });
+      }
+      continue;
+    }
+
+    const relationshipReference = recordReference(repositoryId, relationship);
+    if (relationship.status === "active" && !supersededReferences.has(relationshipReference)) {
+      const targets = causalEdges.get(payload.from) ?? [];
+      targets.push(payload.to);
+      causalEdges.set(payload.from, targets);
+    }
+  }
+
+  const causalVisiting = new Set<string>();
+  const causalComplete = new Set<string>();
+  const visitCausal = (reference: string): void => {
+    if (causalVisiting.has(reference)) {
+      problems.push({
+        code: ERROR_CODES.SEMANTIC_INVARIANT_FAILED,
+        message: `Causal relationship cycle at ${reference}`,
+        record: reference,
+      });
+      return;
+    }
+    if (causalComplete.has(reference)) return;
+    causalVisiting.add(reference);
+    for (const target of causalEdges.get(reference) ?? []) visitCausal(target);
+    causalVisiting.delete(reference);
+    causalComplete.add(reference);
+  };
+  for (const reference of causalEdges.keys()) visitCausal(reference);
+
   const activeDecisions = records.filter(
     (record) =>
       record.kind === "decision" &&
