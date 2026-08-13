@@ -1,0 +1,96 @@
+name: Materialize causal projections v3
+
+on:
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    if: github.event.pull_request.number == 20 && github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22.14.0
+          package-manager-cache: false
+      - name: Register causal projections
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          p = Path("schemas/manifest.schema.json")
+          s = p.read_text()
+          if '"why-this-repository"' not in s:
+              s = s.replace('              "data-model-reference"\n', '              "data-model-reference",\n              "why-this-repository",\n              "deciduous-compat"\n', 1)
+              p.write_text(s)
+
+          p = Path("lore.yaml")
+          s = p.read_text()
+          if "- id: why-this-repository" not in s:
+              anchor = "- id: data-model-reference\n  output: docs/generated/reference/data-model.md\n"
+              s = s.replace(anchor, anchor + "- id: why-this-repository\n  output: docs/generated/why-this-repository.md\n- id: deciduous-compat\n  output: docs/generated/compatibility/deciduous.json\n", 1)
+              p.write_text(s)
+
+          p = Path("src/projection/project.ts")
+          s = p.read_text()
+          if 'from "./causal.js"' not in s:
+              s = s.replace('import {\n  renderArchitecture,', 'import { renderDeciduousCompatibility, renderWhyThisRepository } from "./causal.js";\nimport {\n  renderArchitecture,', 1)
+          if '"why-this-repository": renderWhyThisRepository' not in s:
+              s = s.replace('      "data-model-reference": renderDataModelReference,\n', '      "data-model-reference": renderDataModelReference,\n      "why-this-repository": renderWhyThisRepository,\n      "deciduous-compat": renderDeciduousCompatibility,\n', 1)
+          p.write_text(s)
+
+          p = Path("src/projection/templates.ts")
+          s = p.read_text()
+          if 'renderDeciduousCompatibility, renderWhyThisRepository' not in s:
+              s = s.rstrip() + '\nexport { renderDeciduousCompatibility, renderWhyThisRepository } from "./causal.js";\n'
+          if "docs/generated/why-this-repository.md" not in s:
+              anchor = "- [Data model reference](docs/generated/reference/data-model.md)\n"
+              s = s.replace(anchor, anchor + "- [Why this repository](docs/generated/why-this-repository.md)\n- [Deciduous compatibility projection](docs/generated/compatibility/deciduous.json)\n", 1)
+          p.write_text(s)
+
+          Path("tests/unit/projection/causal-projections.test.ts").write_text('''import { expect, it } from "vitest";
+          import type { SemanticRecord, ValidatedRepository } from "../../../src/domain/types.js";
+          import { renderDeciduousCompatibility, renderWhyThisRepository } from "../../../src/projection/templates.js";
+          const sha = "0123456789abcdef0123456789abcdef01234567";
+          const make = (kind: SemanticRecord["kind"], id: string): SemanticRecord => ({ schema_version:1, id, kind, revision:1, status:"active", title:id, summary:id, scope:{repository:"example",components:[]}, evidence:[{revision:sha,path:"docs/design.md"}], disclosure:{audiences:[],tags:[],weight:1}, provenance:{source:"bootstrap",transaction:null,producer:"test"}, supersedes:null, payload:{} });
+          it("renders native causality and a Deciduous-compatible projection", () => {
+            const source = make("finding", "finding.source");
+            const target = make("decision", "decision.target");
+            const rel = make("relationship", "relationship.source-target");
+            const from = "lore://example/finding/finding.source@1";
+            const to = "lore://example/decision/decision.target@1";
+            rel.payload = { from, to, relation:"leads_to", rationale:"Observed evidence led to the decision." };
+            const repository = { root:".", revision:sha, records:[source,target,rel], effectiveStatus:new Map(), extracted:{}, manifest:{schema_version:1,repository:{id:"example",name:"Example",root:"."},paths:{extracted:".lore/extracted",records:".lore/records",proposals:".lore/proposals",transactions:".lore/transactions",generated_docs:"docs/generated",skills:"skills"},extractors:[],projections:[],maintenance:{skill:"skills/x",proposal_schema:"schemas/x"},hydration:{max_records:20,max_characters:40000}} } as ValidatedRepository;
+            expect(renderWhyThisRepository(repository)).toContain("Observed evidence led to the decision.");
+            const compat = renderDeciduousCompatibility(repository);
+            expect(compat).toContain('"schema": "lore-deciduous-compat/v1"');
+            expect(compat).toContain('"type": "leads_to"');
+            expect(compat).toContain(from);
+            expect(compat).toContain(to);
+          });
+          ''')
+          PY
+      - name: Commit implementation
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add schemas/manifest.schema.json lore.yaml src/projection/project.ts src/projection/templates.ts tests/unit/projection/causal-projections.test.ts
+          git diff --cached --check
+          git commit -m "feat: register native causal projections"
+      - run: node scripts/public-release-gate.mjs --refresh-generated
+      - name: Commit generated state and remove harnesses
+        run: |
+          rm .github/workflows/materialize-causal-projections.yml .github/workflows/materialize-causal-projections-v2.yml .github/workflows/materialize-causal-projections-v3.yml
+          git add -A
+          git diff --cached --check
+          git commit -m "chore: reconcile causal projection generated state"
+          node scripts/public-release-gate.mjs
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
