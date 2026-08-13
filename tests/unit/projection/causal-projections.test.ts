@@ -15,6 +15,16 @@ it("renders native causality and a Deciduous-compatible projection", () => {
   const compat = renderDeciduousCompatibility(repository);
   expect(compat).toContain('"schema": "lore-deciduous-compat/v1"');
   expect(compat).toContain('"type": "leads_to"');
+  expect(compat).toContain('"type": "observation"');
+expect(compat).not.toContain('"type": "finding"');
+expect(compat).toContain('"from": "lore.finding.finding.source.r1"');
+expect(compat).toContain('"to": "lore.decision.decision.target.r1"');
+expect(compat).toContain(`"commit:${sha}#docs/design.md"`);
+expect(compat).toContain(`"lore_ref": "${from}"`);
+expect(compat).toContain('"lifecycle_status": "active"');
+expect(compat).toContain('"current": true');
+expect(compat).toContain('"node_types"');
+expect(compat).toContain('"edge_types"');
   expect(compat).toContain(from);
   expect(compat).toContain(to);
 });

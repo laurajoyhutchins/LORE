@@ -120,6 +120,7 @@ components:
       - GENERATED_MARKER
     path: src/init/templates.ts
   - exports:
+      - deciduousNodeType
       - renderDeciduousCompatibility
       - renderWhyThisRepository
     path: src/projection/causal.ts
