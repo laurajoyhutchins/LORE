@@ -1,437 +1,467 @@
 {
   "schema": "lore-deciduous-compat/v1",
   "repository": "lore",
+  "native_contract": {
+    "node_types": [
+      "goal",
+      "option",
+      "decision",
+      "action",
+      "outcome",
+      "observation",
+      "revisit"
+    ],
+    "statuses": [
+      "pending",
+      "active",
+      "completed",
+      "rejected",
+      "superseded",
+      "abandoned"
+    ],
+    "edge_types": [
+      "leads_to",
+      "chosen",
+      "rejected",
+      "requires",
+      "blocks",
+      "enables",
+      "supersedes"
+    ]
+  },
   "nodes": [
     {
-      "id": "lore://lore/component/component.cli@1",
-      "type": "component",
+      "id": "lore.component.component.cli.r1",
+      "type": "outcome",
       "status": "active",
+      "lifecycle_status": "active",
+      "current": true,
       "title": "CLI",
       "description": "Command dispatcher for LORE workflows.",
       "evidence": [
-        {
-          "revision": "f663e319ff85a24b2e67b29d55cf897785ce4dea",
-          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
-        }
-      ]
+        "commit:f663e319ff85a24b2e67b29d55cf897785ce4dea#docs/superpowers/specs/2026-07-28-lore-design.md"
+      ],
+      "lore_ref": "lore://lore/component/component.cli@1",
+      "lore_kind": "component",
+      "lore_status": "active"
     },
     {
-      "id": "lore://lore/component/component.extraction@1",
-      "type": "component",
+      "id": "lore.component.component.extraction.r1",
+      "type": "outcome",
       "status": "active",
+      "lifecycle_status": "active",
+      "current": true,
       "title": "Extraction",
       "description": "Deterministic repository fact extraction.",
       "evidence": [
-        {
-          "revision": "f663e319ff85a24b2e67b29d55cf897785ce4dea",
-          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
-        }
-      ]
+        "commit:f663e319ff85a24b2e67b29d55cf897785ce4dea#docs/superpowers/specs/2026-07-28-lore-design.md"
+      ],
+      "lore_ref": "lore://lore/component/component.extraction@1",
+      "lore_kind": "component",
+      "lore_status": "active"
     },
     {
-      "id": "lore://lore/component/component.transactions@1",
-      "type": "component",
+      "id": "lore.component.component.transactions.r1",
+      "type": "outcome",
       "status": "active",
+      "lifecycle_status": "active",
+      "current": true,
       "title": "Transactions",
       "description": "Append-only proposal planning and transactional application.",
       "evidence": [
-        {
-          "revision": "f663e319ff85a24b2e67b29d55cf897785ce4dea",
-          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
-        }
-      ]
+        "commit:f663e319ff85a24b2e67b29d55cf897785ce4dea#docs/superpowers/specs/2026-07-28-lore-design.md"
+      ],
+      "lore_ref": "lore://lore/component/component.transactions@1",
+      "lore_kind": "component",
+      "lore_status": "active"
     },
     {
-      "id": "lore://lore/component/component.validation@1",
-      "type": "component",
+      "id": "lore.component.component.validation.r1",
+      "type": "outcome",
       "status": "active",
+      "lifecycle_status": "active",
+      "current": true,
       "title": "Validation",
       "description": "Repository, record, evidence, and schema validation.",
       "evidence": [
-        {
-          "revision": "f663e319ff85a24b2e67b29d55cf897785ce4dea",
-          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
-        }
-      ]
+        "commit:f663e319ff85a24b2e67b29d55cf897785ce4dea#docs/superpowers/specs/2026-07-28-lore-design.md"
+      ],
+      "lore_ref": "lore://lore/component/component.validation@1",
+      "lore_kind": "component",
+      "lore_status": "active"
     },
     {
-      "id": "lore://lore/constraint/constraint.durable-repository-knowledge@1",
-      "type": "constraint",
+      "id": "lore.constraint.constraint.durable-repository-knowledge.r1",
+      "type": "goal",
       "status": "active",
+      "lifecycle_status": "active",
+      "current": true,
       "title": "Durable repository knowledge",
       "description": "Repository knowledge must persist as reviewable, versioned Git state and remain usable by arbitrary maintainers.",
       "evidence": [
-        {
-          "revision": "febd06c201868fe16c0ffed3866b5cbf92c37abc",
-          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
-        }
-      ]
+        "commit:febd06c201868fe16c0ffed3866b5cbf92c37abc#docs/superpowers/specs/2026-07-28-lore-design.md"
+      ],
+      "lore_ref": "lore://lore/constraint/constraint.durable-repository-knowledge@1",
+      "lore_kind": "constraint",
+      "lore_status": "active"
     },
     {
-      "id": "lore://lore/constraint/constraint.no-agent-direct-mutation@1",
-      "type": "constraint",
+      "id": "lore.constraint.constraint.no-agent-direct-mutation.r1",
+      "type": "goal",
       "status": "active",
+      "lifecycle_status": "active",
+      "current": true,
       "title": "No direct mutation",
       "description": "Maintainers cannot directly alter accepted history or generated outputs.",
       "evidence": [
-        {
-          "revision": "f663e319ff85a24b2e67b29d55cf897785ce4dea",
-          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
-        }
-      ]
+        "commit:f663e319ff85a24b2e67b29d55cf897785ce4dea#docs/superpowers/specs/2026-07-28-lore-design.md"
+      ],
+      "lore_ref": "lore://lore/constraint/constraint.no-agent-direct-mutation@1",
+      "lore_kind": "constraint",
+      "lore_status": "active"
     },
     {
-      "id": "lore://lore/constraint/constraint.separate-facts-meaning-and-views@1",
-      "type": "constraint",
+      "id": "lore.constraint.constraint.separate-facts-meaning-and-views.r1",
+      "type": "goal",
       "status": "active",
+      "lifecycle_status": "active",
+      "current": true,
       "title": "Separate facts, meaning, and views",
       "description": "Deterministic observations, reviewed semantic meaning, and generated views must remain distinct authority layers.",
       "evidence": [
-        {
-          "revision": "febd06c201868fe16c0ffed3866b5cbf92c37abc",
-          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
-        }
-      ]
+        "commit:febd06c201868fe16c0ffed3866b5cbf92c37abc#docs/superpowers/specs/2026-07-28-lore-design.md"
+      ],
+      "lore_ref": "lore://lore/constraint/constraint.separate-facts-meaning-and-views@1",
+      "lore_kind": "constraint",
+      "lore_status": "active"
     },
     {
-      "id": "lore://lore/decision/decision.agent-neutral-maintainer-contract@1",
+      "id": "lore.decision.decision.agent-neutral-maintainer-contract.r1",
       "type": "decision",
       "status": "active",
+      "lifecycle_status": "active",
+      "current": true,
       "title": "Agent-neutral maintainer contract",
       "description": "Maintainers communicate through public context and proposal protocols.",
       "evidence": [
-        {
-          "revision": "f663e319ff85a24b2e67b29d55cf897785ce4dea",
-          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
-        }
-      ]
+        "commit:f663e319ff85a24b2e67b29d55cf897785ce4dea#docs/superpowers/specs/2026-07-28-lore-design.md"
+      ],
+      "lore_ref": "lore://lore/decision/decision.agent-neutral-maintainer-contract@1",
+      "lore_kind": "decision",
+      "lore_status": "active"
     },
     {
-      "id": "lore://lore/decision/decision.git-backed-storage@1",
+      "id": "lore.decision.decision.git-backed-storage.r1",
       "type": "decision",
       "status": "active",
+      "lifecycle_status": "active",
+      "current": true,
       "title": "Git-backed storage",
       "description": "Git is the durable store for facts, records, transactions, and projections.",
       "evidence": [
-        {
-          "revision": "f663e319ff85a24b2e67b29d55cf897785ce4dea",
-          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
-        }
-      ]
+        "commit:f663e319ff85a24b2e67b29d55cf897785ce4dea#docs/superpowers/specs/2026-07-28-lore-design.md"
+      ],
+      "lore_ref": "lore://lore/decision/decision.git-backed-storage@1",
+      "lore_kind": "decision",
+      "lore_status": "active"
     },
     {
-      "id": "lore://lore/decision/decision.repository-local-knowledge-protocol@1",
+      "id": "lore.decision.decision.repository-local-knowledge-protocol.r1",
       "type": "decision",
       "status": "active",
+      "lifecycle_status": "active",
+      "current": true,
       "title": "Repository-local knowledge protocol",
       "description": "LORE stores reviewed semantic knowledge, evidence, transactions, and deterministic views inside the repository under explicit contracts.",
       "evidence": [
-        {
-          "revision": "febd06c201868fe16c0ffed3866b5cbf92c37abc",
-          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
-        }
-      ]
+        "commit:febd06c201868fe16c0ffed3866b5cbf92c37abc#docs/superpowers/specs/2026-07-28-lore-design.md"
+      ],
+      "lore_ref": "lore://lore/decision/decision.repository-local-knowledge-protocol@1",
+      "lore_kind": "decision",
+      "lore_status": "active"
     },
     {
-      "id": "lore://lore/decision/decision.separate-authority-layers@1",
+      "id": "lore.decision.decision.separate-authority-layers.r1",
       "type": "decision",
       "status": "active",
+      "lifecycle_status": "active",
+      "current": true,
       "title": "Separate authority layers",
       "description": "LORE gives extracted facts, semantic records, proposals, transactions, and projections distinct mutation and authority rules.",
       "evidence": [
-        {
-          "revision": "febd06c201868fe16c0ffed3866b5cbf92c37abc",
-          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
-        }
-      ]
+        "commit:febd06c201868fe16c0ffed3866b5cbf92c37abc#docs/superpowers/specs/2026-07-28-lore-design.md"
+      ],
+      "lore_ref": "lore://lore/decision/decision.separate-authority-layers@1",
+      "lore_kind": "decision",
+      "lore_status": "active"
     },
     {
-      "id": "lore://lore/finding/finding.bootstrap-kernel-is-hand-authored@1",
-      "type": "finding",
+      "id": "lore.finding.finding.bootstrap-kernel-is-hand-authored.r1",
+      "type": "observation",
       "status": "active",
+      "lifecycle_status": "active",
+      "current": true,
       "title": "Hand-authored kernel",
       "description": "The initial trust root must be reviewed before self-hosting begins.",
       "evidence": [
-        {
-          "revision": "f663e319ff85a24b2e67b29d55cf897785ce4dea",
-          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
-        }
-      ]
+        "commit:f663e319ff85a24b2e67b29d55cf897785ce4dea#docs/superpowers/specs/2026-07-28-lore-design.md"
+      ],
+      "lore_ref": "lore://lore/finding/finding.bootstrap-kernel-is-hand-authored@1",
+      "lore_kind": "finding",
+      "lore_status": "active"
     },
     {
-      "id": "lore://lore/finding/finding.collapsed-document-authority-is-insufficient@1",
-      "type": "finding",
+      "id": "lore.finding.finding.collapsed-document-authority-is-insufficient.r1",
+      "type": "observation",
       "status": "active",
+      "lifecycle_status": "active",
+      "current": true,
       "title": "Collapsed document authority is insufficient",
       "description": "A single prose document cannot safely distinguish replaceable extracted facts from append-only reviewed semantic meaning.",
       "evidence": [
-        {
-          "revision": "febd06c201868fe16c0ffed3866b5cbf92c37abc",
-          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
-        }
-      ]
+        "commit:febd06c201868fe16c0ffed3866b5cbf92c37abc#docs/superpowers/specs/2026-07-28-lore-design.md"
+      ],
+      "lore_ref": "lore://lore/finding/finding.collapsed-document-authority-is-insufficient@1",
+      "lore_kind": "finding",
+      "lore_status": "active"
     },
     {
-      "id": "lore://lore/finding/finding.generated-prose-is-not-authority@1",
-      "type": "finding",
+      "id": "lore.finding.finding.generated-prose-is-not-authority.r1",
+      "type": "observation",
       "status": "active",
+      "lifecycle_status": "active",
+      "current": true,
       "title": "Generated prose is not authority",
       "description": "Human-readable Markdown is a generated view and cannot be the authoritative representation of accepted repository meaning.",
       "evidence": [
-        {
-          "revision": "febd06c201868fe16c0ffed3866b5cbf92c37abc",
-          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
-        }
-      ]
+        "commit:febd06c201868fe16c0ffed3866b5cbf92c37abc#docs/superpowers/specs/2026-07-28-lore-design.md"
+      ],
+      "lore_ref": "lore://lore/finding/finding.generated-prose-is-not-authority@1",
+      "lore_kind": "finding",
+      "lore_status": "active"
     },
     {
-      "id": "lore://lore/finding/finding.git-history-is-not-semantic-knowledge@1",
-      "type": "finding",
+      "id": "lore.finding.finding.git-history-is-not-semantic-knowledge.r1",
+      "type": "observation",
       "status": "active",
+      "lifecycle_status": "active",
+      "current": true,
       "title": "Git history is not semantic knowledge",
       "description": "Git provides durable review and reconstruction, but accepted semantic records are still required to preserve architectural interpretation explicitly.",
       "evidence": [
-        {
-          "revision": "febd06c201868fe16c0ffed3866b5cbf92c37abc",
-          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
-        }
-      ]
+        "commit:febd06c201868fe16c0ffed3866b5cbf92c37abc#docs/superpowers/specs/2026-07-28-lore-design.md"
+      ],
+      "lore_ref": "lore://lore/finding/finding.git-history-is-not-semantic-knowledge@1",
+      "lore_kind": "finding",
+      "lore_status": "active"
     },
     {
-      "id": "lore://lore/procedure/procedure.bootstrap-repository@1",
-      "type": "procedure",
+      "id": "lore.procedure.procedure.bootstrap-repository.r1",
+      "type": "action",
       "status": "active",
+      "lifecycle_status": "active",
+      "current": true,
       "title": "Bootstrap repository",
       "description": "Use lore init, extract, validate, project, and verify-self.",
       "evidence": [
-        {
-          "revision": "f663e319ff85a24b2e67b29d55cf897785ce4dea",
-          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
-        }
-      ]
+        "commit:f663e319ff85a24b2e67b29d55cf897785ce4dea#docs/superpowers/specs/2026-07-28-lore-design.md"
+      ],
+      "lore_ref": "lore://lore/procedure/procedure.bootstrap-repository@1",
+      "lore_kind": "procedure",
+      "lore_status": "active"
     },
     {
-      "id": "lore://lore/repository/repository.lore@1",
-      "type": "repository",
+      "id": "lore.repository.repository.lore.r1",
+      "type": "outcome",
       "status": "active",
+      "lifecycle_status": "active",
+      "current": true,
       "title": "LORE",
       "description": "Agent-neutral Git-backed repository documentation system.",
       "evidence": [
-        {
-          "revision": "f663e319ff85a24b2e67b29d55cf897785ce4dea",
-          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
-        }
-      ]
+        "commit:f663e319ff85a24b2e67b29d55cf897785ce4dea#docs/superpowers/specs/2026-07-28-lore-design.md"
+      ],
+      "lore_ref": "lore://lore/repository/repository.lore@1",
+      "lore_kind": "repository",
+      "lore_status": "active"
     }
   ],
   "edges": [
     {
-      "id": "lore://lore/relationship/relationship.bootstrap-exposes-hand-authored-kernel@1",
-      "from": "lore://lore/procedure/procedure.bootstrap-repository@1",
-      "to": "lore://lore/finding/finding.bootstrap-kernel-is-hand-authored@1",
+      "id": "lore.relationship.relationship.bootstrap-exposes-hand-authored-kernel.r1",
+      "from": "lore.procedure.procedure.bootstrap-repository.r1",
+      "to": "lore.finding.finding.bootstrap-kernel-is-hand-authored.r1",
       "type": "leads_to",
       "rationale": "Self-hosting begins from an explicit hand-authored bootstrap kernel that must be reviewed before generated self-description can be trusted.",
       "evidence": [
-        {
-          "revision": "febd06c201868fe16c0ffed3866b5cbf92c37abc",
-          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
-        }
-      ]
+        "commit:febd06c201868fe16c0ffed3866b5cbf92c37abc#docs/superpowers/specs/2026-07-28-lore-design.md"
+      ],
+      "lore_ref": "lore://lore/relationship/relationship.bootstrap-exposes-hand-authored-kernel@1"
     },
     {
-      "id": "lore://lore/relationship/relationship.collapse-finding-to-layer-decision@1",
-      "from": "lore://lore/finding/finding.collapsed-document-authority-is-insufficient@1",
-      "to": "lore://lore/decision/decision.separate-authority-layers@1",
+      "id": "lore.relationship.relationship.collapse-finding-to-layer-decision.r1",
+      "from": "lore.finding.finding.collapsed-document-authority-is-insufficient.r1",
+      "to": "lore.decision.decision.separate-authority-layers.r1",
       "type": "leads_to",
       "rationale": "The inability of one document layer to preserve distinct authority semantics motivates separate validated layers.",
       "evidence": [
-        {
-          "revision": "febd06c201868fe16c0ffed3866b5cbf92c37abc",
-          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
-        }
-      ]
+        "commit:febd06c201868fe16c0ffed3866b5cbf92c37abc#docs/superpowers/specs/2026-07-28-lore-design.md"
+      ],
+      "lore_ref": "lore://lore/relationship/relationship.collapse-finding-to-layer-decision@1"
     },
     {
-      "id": "lore://lore/relationship/relationship.durability-to-git-history-finding@1",
-      "from": "lore://lore/constraint/constraint.durable-repository-knowledge@1",
-      "to": "lore://lore/finding/finding.git-history-is-not-semantic-knowledge@1",
+      "id": "lore.relationship.relationship.durability-to-git-history-finding.r1",
+      "from": "lore.constraint.constraint.durable-repository-knowledge.r1",
+      "to": "lore.finding.finding.git-history-is-not-semantic-knowledge.r1",
       "type": "leads_to",
       "rationale": "Requiring durable repository knowledge exposes the need to represent accepted meaning explicitly rather than rely on Git history alone.",
       "evidence": [
-        {
-          "revision": "febd06c201868fe16c0ffed3866b5cbf92c37abc",
-          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
-        }
-      ]
+        "commit:febd06c201868fe16c0ffed3866b5cbf92c37abc#docs/superpowers/specs/2026-07-28-lore-design.md"
+      ],
+      "lore_ref": "lore://lore/relationship/relationship.durability-to-git-history-finding@1"
     },
     {
-      "id": "lore://lore/relationship/relationship.durability-to-prose-finding@1",
-      "from": "lore://lore/constraint/constraint.durable-repository-knowledge@1",
-      "to": "lore://lore/finding/finding.generated-prose-is-not-authority@1",
+      "id": "lore.relationship.relationship.durability-to-prose-finding.r1",
+      "from": "lore.constraint.constraint.durable-repository-knowledge.r1",
+      "to": "lore.finding.finding.generated-prose-is-not-authority.r1",
       "type": "leads_to",
       "rationale": "Requiring durable repository knowledge exposes generated prose as a view rather than an authority store.",
       "evidence": [
-        {
-          "revision": "febd06c201868fe16c0ffed3866b5cbf92c37abc",
-          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
-        }
-      ]
+        "commit:febd06c201868fe16c0ffed3866b5cbf92c37abc#docs/superpowers/specs/2026-07-28-lore-design.md"
+      ],
+      "lore_ref": "lore://lore/relationship/relationship.durability-to-prose-finding@1"
     },
     {
-      "id": "lore://lore/relationship/relationship.git-history-finding-to-protocol@1",
-      "from": "lore://lore/finding/finding.git-history-is-not-semantic-knowledge@1",
-      "to": "lore://lore/decision/decision.repository-local-knowledge-protocol@1",
+      "id": "lore.relationship.relationship.git-history-finding-to-protocol.r1",
+      "from": "lore.finding.finding.git-history-is-not-semantic-knowledge.r1",
+      "to": "lore.decision.decision.repository-local-knowledge-protocol.r1",
       "type": "leads_to",
       "rationale": "The gap between Git history and explicit accepted meaning motivates a repository-local semantic knowledge protocol.",
       "evidence": [
-        {
-          "revision": "febd06c201868fe16c0ffed3866b5cbf92c37abc",
-          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
-        }
-      ]
+        "commit:febd06c201868fe16c0ffed3866b5cbf92c37abc#docs/superpowers/specs/2026-07-28-lore-design.md"
+      ],
+      "lore_ref": "lore://lore/relationship/relationship.git-history-finding-to-protocol@1"
     },
     {
-      "id": "lore://lore/relationship/relationship.layers-require-extraction@1",
-      "from": "lore://lore/decision/decision.separate-authority-layers@1",
-      "to": "lore://lore/component/component.extraction@1",
+      "id": "lore.relationship.relationship.layers-require-extraction.r1",
+      "from": "lore.decision.decision.separate-authority-layers.r1",
+      "to": "lore.component.component.extraction.r1",
       "type": "requires",
       "rationale": "Separate authority layers require a deterministic extraction layer for replaceable repository observations.",
       "evidence": [
-        {
-          "revision": "febd06c201868fe16c0ffed3866b5cbf92c37abc",
-          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
-        }
-      ]
+        "commit:febd06c201868fe16c0ffed3866b5cbf92c37abc#docs/superpowers/specs/2026-07-28-lore-design.md"
+      ],
+      "lore_ref": "lore://lore/relationship/relationship.layers-require-extraction@1"
     },
     {
-      "id": "lore://lore/relationship/relationship.layers-require-no-direct-mutation@1",
-      "from": "lore://lore/decision/decision.separate-authority-layers@1",
-      "to": "lore://lore/constraint/constraint.no-agent-direct-mutation@1",
+      "id": "lore.relationship.relationship.layers-require-no-direct-mutation.r1",
+      "from": "lore.decision.decision.separate-authority-layers.r1",
+      "to": "lore.constraint.constraint.no-agent-direct-mutation.r1",
       "type": "requires",
       "rationale": "Append-only accepted meaning and generated views require maintainers to propose changes rather than mutate accepted history directly.",
       "evidence": [
-        {
-          "revision": "febd06c201868fe16c0ffed3866b5cbf92c37abc",
-          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
-        }
-      ]
+        "commit:febd06c201868fe16c0ffed3866b5cbf92c37abc#docs/superpowers/specs/2026-07-28-lore-design.md"
+      ],
+      "lore_ref": "lore://lore/relationship/relationship.layers-require-no-direct-mutation@1"
     },
     {
-      "id": "lore://lore/relationship/relationship.layers-require-transactions@1",
-      "from": "lore://lore/decision/decision.separate-authority-layers@1",
-      "to": "lore://lore/component/component.transactions@1",
+      "id": "lore.relationship.relationship.layers-require-transactions.r1",
+      "from": "lore.decision.decision.separate-authority-layers.r1",
+      "to": "lore.component.component.transactions.r1",
       "type": "requires",
       "rationale": "Separate authority layers require transactional application so accepted semantic history changes through a validated boundary.",
       "evidence": [
-        {
-          "revision": "febd06c201868fe16c0ffed3866b5cbf92c37abc",
-          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
-        }
-      ]
+        "commit:febd06c201868fe16c0ffed3866b5cbf92c37abc#docs/superpowers/specs/2026-07-28-lore-design.md"
+      ],
+      "lore_ref": "lore://lore/relationship/relationship.layers-require-transactions@1"
     },
     {
-      "id": "lore://lore/relationship/relationship.layers-require-validation@1",
-      "from": "lore://lore/decision/decision.separate-authority-layers@1",
-      "to": "lore://lore/component/component.validation@1",
+      "id": "lore.relationship.relationship.layers-require-validation.r1",
+      "from": "lore.decision.decision.separate-authority-layers.r1",
+      "to": "lore.component.component.validation.r1",
       "type": "requires",
       "rationale": "Separate authority layers require validation of schemas, evidence, records, and repository invariants.",
       "evidence": [
-        {
-          "revision": "febd06c201868fe16c0ffed3866b5cbf92c37abc",
-          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
-        }
-      ]
+        "commit:febd06c201868fe16c0ffed3866b5cbf92c37abc#docs/superpowers/specs/2026-07-28-lore-design.md"
+      ],
+      "lore_ref": "lore://lore/relationship/relationship.layers-require-validation@1"
     },
     {
-      "id": "lore://lore/relationship/relationship.prose-finding-to-protocol@1",
-      "from": "lore://lore/finding/finding.generated-prose-is-not-authority@1",
-      "to": "lore://lore/decision/decision.repository-local-knowledge-protocol@1",
+      "id": "lore.relationship.relationship.prose-finding-to-protocol.r1",
+      "from": "lore.finding.finding.generated-prose-is-not-authority.r1",
+      "to": "lore.decision.decision.repository-local-knowledge-protocol.r1",
       "type": "leads_to",
       "rationale": "Keeping generated prose non-authoritative requires a repository-local semantic knowledge protocol beneath the views.",
       "evidence": [
-        {
-          "revision": "febd06c201868fe16c0ffed3866b5cbf92c37abc",
-          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
-        }
-      ]
+        "commit:febd06c201868fe16c0ffed3866b5cbf92c37abc#docs/superpowers/specs/2026-07-28-lore-design.md"
+      ],
+      "lore_ref": "lore://lore/relationship/relationship.prose-finding-to-protocol@1"
     },
     {
-      "id": "lore://lore/relationship/relationship.protocol-enables-lore@1",
-      "from": "lore://lore/decision/decision.repository-local-knowledge-protocol@1",
-      "to": "lore://lore/repository/repository.lore@1",
+      "id": "lore.relationship.relationship.protocol-enables-lore.r1",
+      "from": "lore.decision.decision.repository-local-knowledge-protocol.r1",
+      "to": "lore.repository.repository.lore.r1",
       "type": "enables",
       "rationale": "The repository-local protocol is the accepted design that LORE implements and self-hosts.",
       "evidence": [
-        {
-          "revision": "febd06c201868fe16c0ffed3866b5cbf92c37abc",
-          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
-        }
-      ]
+        "commit:febd06c201868fe16c0ffed3866b5cbf92c37abc#docs/superpowers/specs/2026-07-28-lore-design.md"
+      ],
+      "lore_ref": "lore://lore/relationship/relationship.protocol-enables-lore@1"
     },
     {
-      "id": "lore://lore/relationship/relationship.protocol-requires-agent-neutral-contract@1",
-      "from": "lore://lore/decision/decision.repository-local-knowledge-protocol@1",
-      "to": "lore://lore/decision/decision.agent-neutral-maintainer-contract@1",
+      "id": "lore.relationship.relationship.protocol-requires-agent-neutral-contract.r1",
+      "from": "lore.decision.decision.repository-local-knowledge-protocol.r1",
+      "to": "lore.decision.decision.agent-neutral-maintainer-contract.r1",
       "type": "requires",
       "rationale": "The protocol must remain usable by arbitrary maintainers, so maintenance is defined by public context and proposal contracts rather than agent identity.",
       "evidence": [
-        {
-          "revision": "febd06c201868fe16c0ffed3866b5cbf92c37abc",
-          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
-        }
-      ]
+        "commit:febd06c201868fe16c0ffed3866b5cbf92c37abc#docs/superpowers/specs/2026-07-28-lore-design.md"
+      ],
+      "lore_ref": "lore://lore/relationship/relationship.protocol-requires-agent-neutral-contract@1"
     },
     {
-      "id": "lore://lore/relationship/relationship.protocol-requires-bootstrap@1",
-      "from": "lore://lore/decision/decision.repository-local-knowledge-protocol@1",
-      "to": "lore://lore/procedure/procedure.bootstrap-repository@1",
+      "id": "lore.relationship.relationship.protocol-requires-bootstrap.r1",
+      "from": "lore.decision.decision.repository-local-knowledge-protocol.r1",
+      "to": "lore.procedure.procedure.bootstrap-repository.r1",
       "type": "requires",
       "rationale": "A repository-local self-describing protocol requires an explicit bootstrap procedure to establish and verify its trust root.",
       "evidence": [
-        {
-          "revision": "febd06c201868fe16c0ffed3866b5cbf92c37abc",
-          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
-        }
-      ]
+        "commit:febd06c201868fe16c0ffed3866b5cbf92c37abc#docs/superpowers/specs/2026-07-28-lore-design.md"
+      ],
+      "lore_ref": "lore://lore/relationship/relationship.protocol-requires-bootstrap@1"
     },
     {
-      "id": "lore://lore/relationship/relationship.protocol-requires-cli@1",
-      "from": "lore://lore/decision/decision.repository-local-knowledge-protocol@1",
-      "to": "lore://lore/component/component.cli@1",
+      "id": "lore.relationship.relationship.protocol-requires-cli.r1",
+      "from": "lore.decision.decision.repository-local-knowledge-protocol.r1",
+      "to": "lore.component.component.cli.r1",
       "type": "requires",
       "rationale": "The repository-local protocol requires an executable public command surface for extraction, validation, context, proposals, transactions, and verification.",
       "evidence": [
-        {
-          "revision": "febd06c201868fe16c0ffed3866b5cbf92c37abc",
-          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
-        }
-      ]
+        "commit:febd06c201868fe16c0ffed3866b5cbf92c37abc#docs/superpowers/specs/2026-07-28-lore-design.md"
+      ],
+      "lore_ref": "lore://lore/relationship/relationship.protocol-requires-cli@1"
     },
     {
-      "id": "lore://lore/relationship/relationship.protocol-requires-git-storage@1",
-      "from": "lore://lore/decision/decision.repository-local-knowledge-protocol@1",
-      "to": "lore://lore/decision/decision.git-backed-storage@1",
+      "id": "lore.relationship.relationship.protocol-requires-git-storage.r1",
+      "from": "lore.decision.decision.repository-local-knowledge-protocol.r1",
+      "to": "lore.decision.decision.git-backed-storage.r1",
       "type": "requires",
       "rationale": "A repository-local accepted-knowledge protocol requires durable versioned storage, review, and reconstruction in Git.",
       "evidence": [
-        {
-          "revision": "febd06c201868fe16c0ffed3866b5cbf92c37abc",
-          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
-        }
-      ]
+        "commit:febd06c201868fe16c0ffed3866b5cbf92c37abc#docs/superpowers/specs/2026-07-28-lore-design.md"
+      ],
+      "lore_ref": "lore://lore/relationship/relationship.protocol-requires-git-storage@1"
     },
     {
-      "id": "lore://lore/relationship/relationship.separation-to-collapse-finding@1",
-      "from": "lore://lore/constraint/constraint.separate-facts-meaning-and-views@1",
-      "to": "lore://lore/finding/finding.collapsed-document-authority-is-insufficient@1",
+      "id": "lore.relationship.relationship.separation-to-collapse-finding.r1",
+      "from": "lore.constraint.constraint.separate-facts-meaning-and-views.r1",
+      "to": "lore.finding.finding.collapsed-document-authority-is-insufficient.r1",
       "type": "leads_to",
       "rationale": "The requirement to keep facts, reviewed meaning, and generated views distinct rules out a single collapsed document authority model.",
       "evidence": [
-        {
-          "revision": "febd06c201868fe16c0ffed3866b5cbf92c37abc",
-          "path": "docs/superpowers/specs/2026-07-28-lore-design.md"
-        }
-      ]
+        "commit:febd06c201868fe16c0ffed3866b5cbf92c37abc#docs/superpowers/specs/2026-07-28-lore-design.md"
+      ],
+      "lore_ref": "lore://lore/relationship/relationship.separation-to-collapse-finding@1"
     }
   ]
 }
