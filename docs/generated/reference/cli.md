@@ -67,9 +67,9 @@ Describe semantic and extracted-fact changes between two safely resolved Git rev
 
 ### `explain`
 
-`lore explain <record-ref> [--json]`
+`lore explain <record-ref> [--why] [--json]`
 
-Explain a record, its effective status, lineage, relationships, evidence, and transactions.
+Explain a record, its effective status, lineage, evidence, transactions, and optionally its accepted causal ancestors.
 
 ### `verify-self`
 

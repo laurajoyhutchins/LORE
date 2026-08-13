@@ -1,7 +1,10 @@
 import { fail, ok } from "../domain/errors.js";
 import { parseRecordReference, recordReference } from "../domain/references.js";
 import type {
+  CausalExplanationEdge,
   RecordExplanation,
+  RelationshipPayload,
+  SemanticRecord,
   TransactionReceipt,
   ValidatedRepository,
   ValidationResult,
@@ -23,10 +26,64 @@ function receiptForRecord(
   );
 }
 
+function causalHistory(
+  reference: string,
+  repository: ValidatedRepository,
+): { causal_ancestors: string[]; causal_relationships: CausalExplanationEdge[] } {
+  const activeRelationships = repository.records
+    .filter(
+      (record) =>
+        record.kind === "relationship" &&
+        repository.effectiveStatus.get(
+          recordReference(repository.manifest.repository.id, record),
+        ) !== "superseded",
+    )
+    .sort((left, right) => left.id.localeCompare(right.id));
+  const incoming = new Map<string, SemanticRecord[]>();
+  for (const relationship of activeRelationships) {
+    const payload = relationship.payload as unknown as RelationshipPayload;
+    const edges = incoming.get(payload.to) ?? [];
+    edges.push(relationship);
+    incoming.set(payload.to, edges);
+  }
+
+  const ancestors: string[] = [];
+  const relationships: CausalExplanationEdge[] = [];
+  const seenAncestors = new Set<string>();
+  const seenRelationships = new Set<string>();
+  const visit = (target: string): void => {
+    for (const relationship of incoming.get(target) ?? []) {
+      const payload = relationship.payload as unknown as RelationshipPayload;
+      const relationshipReference = recordReference(
+        repository.manifest.repository.id,
+        relationship,
+      );
+      if (!seenRelationships.has(relationshipReference)) {
+        seenRelationships.add(relationshipReference);
+        relationships.push({
+          relationship: relationshipReference,
+          from: payload.from,
+          to: payload.to,
+          relation: payload.relation,
+          rationale: payload.rationale,
+        });
+      }
+      if (!seenAncestors.has(payload.from)) {
+        seenAncestors.add(payload.from);
+        ancestors.push(payload.from);
+        visit(payload.from);
+      }
+    }
+  };
+  visit(reference);
+  return { causal_ancestors: ancestors, causal_relationships: relationships };
+}
+
 export function explainRecord(
   reference: string,
   repository: ValidatedRepository,
   transactions: TransactionReceipt[],
+  includeWhy = false,
 ): ValidationResult<RecordExplanation> {
   let parsed;
   try {
@@ -102,5 +159,6 @@ export function explainRecord(
     related,
     introducing_transaction: introducingTransaction,
     superseding_transaction: supersedingTransaction,
+    ...(includeWhy ? causalHistory(reference, repository) : {}),
   });
 }

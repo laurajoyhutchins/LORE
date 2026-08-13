@@ -80,7 +80,7 @@ const CLI_REFERENCE = [
   ["validate-proposal", "`lore validate-proposal <proposal.yaml>`", "Treat a proposal as untrusted and validate it without applying changes."],
   ["apply", "`lore apply <proposal.yaml>`", "Plan and transactionally apply a validated proposal, write its receipt, and regenerate affected projections."],
   ["diff", "`lore diff <base> <target> [--json]`", "Describe semantic and extracted-fact changes between two safely resolved Git revisions."],
-  ["explain", "`lore explain <record-ref> [--json]`", "Explain a record, its effective status, lineage, relationships, evidence, and transactions."],
+  ["explain", "`lore explain <record-ref> [--why] [--json]`", "Explain a record, its effective status, lineage, evidence, transactions, and optionally its accepted causal ancestors."],
   ["verify-self", "`lore verify-self`", "Verify LORE's trust root, facts, records, projections, hydration, history, and deterministic outputs."],
   ["demo", "`lore demo`", "Exercise the self-hosting lifecycle in an isolated demonstration repository."],
 ] as const;
