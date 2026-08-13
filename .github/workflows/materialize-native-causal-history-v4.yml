@@ -20,4 +20,9 @@ jobs:
         with:
           node-version: 22.14.0
           package-manager-cache: false
-      - run: bash <(sed 's/^rm /rm -f /' scripts/materialize-native-causal-history.sh)
+      - run: |
+          bash <(sed \
+            -e 's/^rm /rm -f /' \
+            -e '/^rm \.lore\/proposals\/native-causal-history-migration.yaml$/a corepack pnpm tsx scripts/refresh-hydration-snapshots.ts' \
+            -e '/^rm scripts\/materialize-native-causal-history.sh$/a rm -f scripts/refresh-hydration-snapshots.ts' \
+            scripts/materialize-native-causal-history.sh)
