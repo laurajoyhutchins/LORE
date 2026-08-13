@@ -89,6 +89,8 @@ Generated prose is useful but non-authoritative. Authority is explicit by concer
 - [Review a proposal](docs/generated/how-to/review-a-proposal.md)
 - [CLI reference](docs/generated/reference/cli.md)
 - [Data model reference](docs/generated/reference/data-model.md)
+- [Why this repository](docs/generated/why-this-repository.md)
+- [Deciduous compatibility projection](docs/generated/compatibility/deciduous.json)
 - [Trust model](docs/generated/explanation/trust-model.md)
 - [Authority and file ownership](docs/generated/explanation/authority-and-file-ownership.md)
 - [Bootstrap trust root](BOOTSTRAP.md)

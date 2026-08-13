@@ -136,6 +136,9 @@ tests:
   - file: tests/unit/package/package-metadata.test.ts
     kind: it
     name: defines the CLI-only bootstrap package
+  - file: tests/unit/projection/causal-projections.test.ts
+    kind: it
+    name: renders native causality and a Deciduous-compatible projection
   - file: tests/unit/projection/templates.test.ts
     kind: it
     name: documents the installed CLI-only package
