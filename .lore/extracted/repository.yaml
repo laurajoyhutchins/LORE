@@ -6,5 +6,5 @@ repository:
     - Markdown
     - TypeScript
   name: LORE
-  package_manager: npm
+  package_manager: pnpm
 schema_version: 1
