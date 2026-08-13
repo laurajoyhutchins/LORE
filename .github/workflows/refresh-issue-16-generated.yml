@@ -1,0 +1,36 @@
+name: Refresh issue 16 generated state
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22.14.0
+          package-manager-cache: false
+      - run: node scripts/public-release-gate.mjs --refresh-generated
+      - name: Emit generated state
+        shell: bash
+        run: |
+          git status --short
+          for file in .lore/extracted/*.yaml README.md docs/generated/**/*.md docs/generated/*.md; do
+            if [ -f "$file" ] && ! git diff --quiet -- "$file"; then
+              echo "LORE_GENERATED_FILE_BEGIN $file"
+              base64 -w0 "$file"
+              echo
+              echo "LORE_GENERATED_FILE_END $file"
+            fi
+          done
