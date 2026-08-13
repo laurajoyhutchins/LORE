@@ -20,4 +20,6 @@ jobs:
         with:
           node-version: 22.14.0
           package-manager-cache: false
-      - run: bash scripts/materialize-native-causal-history.sh
+      - run: |
+          sed -i 's/^rm /rm -f /' scripts/materialize-native-causal-history.sh
+          bash scripts/materialize-native-causal-history.sh
