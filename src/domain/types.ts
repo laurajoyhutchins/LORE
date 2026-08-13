@@ -18,5 +18,6 @@ export interface TransactionReceipt { schema_version:1; transaction_id:string; p
 export interface ExtractedFacts { repository?:unknown; scripts?:Record<string,string>; components?:unknown[]; relationships?:unknown[]; tests?:unknown[] }
 export interface ValidatedRepository { root:string; manifest:LoreManifest; revision:string; records:SemanticRecord[]; effectiveStatus:Map<string,RecordStatus>; extracted:ExtractedFacts }
 export interface LoreMaintainerContext { protocol:'lore-maintainer-context/v1'; task:LoreTask; packet:HydrationPacket; skill_path:string; output_schema_path:string; proposal_destination:string }
-export interface RecordExplanation { reference:string; record:SemanticRecord; current_status:RecordStatus; predecessors:string[]; successors:string[]; related:string[]; introducing_transaction:string|null; superseding_transaction:string|null }
+export interface CausalExplanationEdge { relationship:string; from:string; to:string; relation:CausalRelation; rationale:string }
+export interface RecordExplanation { reference:string; record:SemanticRecord; current_status:RecordStatus; predecessors:string[]; successors:string[]; related:string[]; introducing_transaction:string|null; superseding_transaction:string|null; causal_ancestors?:string[]; causal_relationships?:CausalExplanationEdge[] }
 export interface DemoReport { steps:string[]; clean:boolean }
