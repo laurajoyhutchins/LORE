@@ -180,6 +180,9 @@ components:
       - validateRepository
     path: src/validation/validate-repository.ts
   - exports:
+      - verifyCausalCoverage
+    path: src/verification/causal-coverage.ts
+  - exports:
       - SelfVerificationReport
       - verifySelf
     path: src/verification/verify-self.ts
@@ -211,6 +214,8 @@ components:
     path: tests/unit/records/validate-records.test.ts
   - exports: []
     path: tests/unit/schemas/schema-registry.test.ts
+  - exports: []
+    path: tests/unit/verification/causal-coverage.test.ts
   - exports: []
     path: vitest.config.ts
 extractor: typescript-modules

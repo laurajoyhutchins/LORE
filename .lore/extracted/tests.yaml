@@ -172,3 +172,9 @@ tests:
   - file: tests/unit/schemas/schema-registry.test.ts
     kind: it
     name: rejects a manifest with a null extractor list
+  - file: tests/unit/verification/causal-coverage.test.ts
+    kind: it
+    name: fails for an active semantic record outside every configured root graph
+  - file: tests/unit/verification/causal-coverage.test.ts
+    kind: it
+    name: passes when every active record is reachable from a configured root
