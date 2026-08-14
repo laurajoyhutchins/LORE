@@ -13,15 +13,30 @@
     "hydration"
   ],
   "properties": {
-    "schema_version": { "const": 1 },
+    "schema_version": {
+      "const": 1
+    },
     "repository": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "name", "root"],
+      "required": [
+        "id",
+        "name",
+        "root"
+      ],
       "properties": {
-        "id": { "type": "string", "minLength": 1 },
-        "name": { "type": "string", "minLength": 1 },
-        "root": { "type": "string", "minLength": 1 }
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "root": {
+          "type": "string",
+          "minLength": 1
+        }
       }
     },
     "paths": {
@@ -36,12 +51,30 @@
         "skills"
       ],
       "properties": {
-        "extracted": { "type": "string", "minLength": 1 },
-        "records": { "type": "string", "minLength": 1 },
-        "proposals": { "type": "string", "minLength": 1 },
-        "transactions": { "type": "string", "minLength": 1 },
-        "generated_docs": { "type": "string", "minLength": 1 },
-        "skills": { "type": "string", "minLength": 1 }
+        "extracted": {
+          "type": "string",
+          "minLength": 1
+        },
+        "records": {
+          "type": "string",
+          "minLength": 1
+        },
+        "proposals": {
+          "type": "string",
+          "minLength": 1
+        },
+        "transactions": {
+          "type": "string",
+          "minLength": 1
+        },
+        "generated_docs": {
+          "type": "string",
+          "minLength": 1
+        },
+        "skills": {
+          "type": "string",
+          "minLength": 1
+        }
       }
     },
     "extractors": {
@@ -49,10 +82,18 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "enabled"],
+        "required": [
+          "id",
+          "enabled"
+        ],
         "properties": {
-          "id": { "type": "string", "minLength": 1 },
-          "enabled": { "type": "boolean" }
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "enabled": {
+            "type": "boolean"
+          }
         }
       }
     },
@@ -61,7 +102,10 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "output"],
+        "required": [
+          "id",
+          "output"
+        ],
         "properties": {
           "id": {
             "enum": [
@@ -82,26 +126,65 @@
               "deciduous-compat"
             ]
           },
-          "output": { "type": "string", "minLength": 1 }
+          "output": {
+            "type": "string",
+            "minLength": 1
+          }
         }
       }
     },
     "maintenance": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["skill", "proposal_schema"],
+      "required": [
+        "skill",
+        "proposal_schema"
+      ],
       "properties": {
-        "skill": { "type": "string", "minLength": 1 },
-        "proposal_schema": { "type": "string", "minLength": 1 }
+        "skill": {
+          "type": "string",
+          "minLength": 1
+        },
+        "proposal_schema": {
+          "type": "string",
+          "minLength": 1
+        }
       }
     },
     "hydration": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["max_records", "max_characters"],
+      "required": [
+        "max_records",
+        "max_characters"
+      ],
       "properties": {
-        "max_records": { "type": "integer", "minimum": 1 },
-        "max_characters": { "type": "integer", "minimum": 1 }
+        "max_records": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_characters": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "causality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "roots"
+      ],
+      "properties": {
+        "roots": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
       }
     }
   }

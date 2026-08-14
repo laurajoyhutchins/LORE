@@ -21,6 +21,7 @@ import { validateProposal } from "../proposals/validate-proposal.js";
 import { createSchemaRegistry } from "../schemas/schema-registry.js";
 import { parseYamlDocument, stableYaml } from "../serialization/yaml.js";
 import { validateRepository } from "../validation/validate-repository.js";
+import { verifyCausalCoverage } from "./causal-coverage.js";
 
 export interface SelfVerificationReport {
   manifest: "passed";
@@ -33,6 +34,7 @@ export interface SelfVerificationReport {
   hydration: "passed";
   history: "passed";
   determinism: "passed";
+  causality: "passed";
 }
 
 async function readContained(
@@ -97,6 +99,7 @@ export async function verifySelf(
   if (!repositoryResult.ok) return repositoryResult;
   const repository = repositoryResult.value;
   const problems: ValidationProblem[] = [];
+  problems.push(...verifyCausalCoverage(repository));
 
   const extractionA = await extractRepository(root, repository.manifest);
   const extractionB = await extractRepository(root, repository.manifest);
@@ -285,5 +288,6 @@ export async function verifySelf(
     hydration: "passed",
     history: "passed",
     determinism: "passed",
+    causality: "passed",
   });
 }

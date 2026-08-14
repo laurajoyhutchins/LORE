@@ -1,3 +1,7 @@
+causality:
+  roots:
+  - lore://lore/constraint/constraint.durable-repository-knowledge@1
+  - lore://lore/constraint/constraint.separate-facts-meaning-and-views@1
 extractors:
 - enabled: true
   id: repository-metadata
