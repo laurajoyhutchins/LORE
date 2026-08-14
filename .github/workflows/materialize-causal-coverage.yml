@@ -107,7 +107,9 @@ jobs:
           if 'from "./causal-coverage.js"' not in s:
             s = s.replace('import { validateRepository } from "../validation/validate-repository.js";\n', 'import { validateRepository } from "../validation/validate-repository.js";\nimport { verifyCausalCoverage } from "./causal-coverage.js";\n', 1)
           s = s.replace('  determinism: "passed";\n}', '  determinism: "passed";\n  causality: "passed";\n}', 1)
-          s = s.replace('  const problems: ValidationProblem[] = [];\n', '  const problems: ValidationProblem[] = [];\n  problems.push(...verifyCausalCoverage(repository));\n', 1)
+          target = '  const repository = repositoryResult.value;\n  const problems: ValidationProblem[] = [];\n'
+          assert target in s
+          s = s.replace(target, target + '  problems.push(...verifyCausalCoverage(repository));\n', 1)
           s = s.replace('    determinism: "passed",\n  });', '    determinism: "passed",\n    causality: "passed",\n  });', 1)
           p.write_text(s)
 
