@@ -280,7 +280,7 @@ export async function projectDocumentation(root: string, options: { check?: bool
     'decisions.md': renderRecords('Decisions and constraints', records.filter((record) => record.kind === 'decision' || record.kind === 'constraint')),
     'guidance.md': renderRecords('Maintainer and agent guidance', records.filter((record) => record.kind === 'procedure' || record.kind === 'note')),
   };
-  const generatedDir = await safeContained(root, config.generated_dir);
+  await safeContained(root, config.generated_dir);
   const files: string[] = [];
   for (const name of Object.keys(projections).sort()) {
     const relative = path.join(config.generated_dir, name).split(path.sep).join('/');
