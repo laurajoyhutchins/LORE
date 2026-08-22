@@ -79,8 +79,9 @@ describe('maintenance-mode contract', () => {
     });
     await seedKnowledge(root);
     const records = await loadKnowledge(root);
-    expect(records[1]?.related).toEqual(['repository.example']);
-    expect(records[1]).not.toHaveProperty('causes');
+    const component = records.find((record) => record.id === 'component.engine');
+    expect(component?.related).toEqual(['repository.example']);
+    expect(component).not.toHaveProperty('causes');
   });
 
   it('projects deterministic current documentation without touching README', async () => {
