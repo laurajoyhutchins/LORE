@@ -1,37 +1,29 @@
 ## Problem
 
-Describe the behavior, invariant, or documentation gap this change addresses.
+Describe the concrete consumer or maintenance problem this change addresses.
 
 ## Change
 
-Describe the exact contract or behavior changed. Identify authoritative inputs and any regenerated outputs.
+Describe the smallest contract or behavior change and how it reduces downstream work, bookkeeping, or failure risk.
 
 ## Verification
 
-List the commands run and their results. Include the exact proposed head when reporting verification evidence.
+List the exact commands run and their results. The repository verification contract is:
 
 ```text
-node scripts/restore-verified-lockfile.mjs
 corepack enable
-pnpm install --frozen-lockfile
-pnpm typecheck
-pnpm lint
-pnpm test
-pnpm build
-pnpm lore extract --check
-pnpm lore validate
-pnpm lore project --check
-pnpm lore verify-self
-git diff --exit-code
+pnpm install --no-frozen-lockfile
+pnpm run ci
 ```
 
-## Risk and compatibility
+## Documentation impact
 
-Describe security, compatibility, migration, rollback, performance, or data-integrity implications. State `none identified` only after considering each category.
+- [ ] Reviewed knowledge was updated if repository purpose, architecture, constraints, or procedures changed.
+- [ ] `pnpm lore validate .` passes.
+- [ ] `pnpm lore project . --check` passes when generated projections are committed.
 
-## Generated and durable state
+## Scope check
 
-- [ ] I did not directly edit generated documentation without updating its authoritative source.
-- [ ] Semantic record changes preserve append-only history.
-- [ ] Proposal, transaction, schema, or public CLI changes include appropriate tests and documentation.
+- [ ] This change is justified by a concrete consumer problem and measurable benefit.
+- [ ] It does not reintroduce proposal/apply transactions, semantic-history machinery, causal-graph platform features, compatibility projections, hydration workflows, or generalized orchestration.
 - [ ] No credentials, private repository contents, machine-specific paths, or incompatible third-party material are included.

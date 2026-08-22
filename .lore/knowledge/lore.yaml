@@ -1,0 +1,43 @@
+id: repository.lore
+kind: overview
+title: LORE
+summary: LORE is a maintenance-mode utility for deterministic repository facts, reviewed repository knowledge, concise generated documentation, and bounded task context.
+evidence:
+  - path: README.md
+---
+id: component.core
+kind: component
+title: Documentation core
+summary: The core validates compact reviewed records, extracts deterministic file facts, projects four documentation views, and selects bounded deterministic context.
+evidence:
+  - path: src/core.ts
+related:
+  - repository.lore
+---
+id: decision.git-native-history
+kind: decision
+title: Git-native history
+summary: Reviewed knowledge changes use ordinary Git commits and pull requests; LORE does not maintain proposal, apply, receipt, or semantic transaction history.
+evidence:
+  - path: MAINTENANCE.md
+related:
+  - repository.lore
+---
+id: constraint.maintenance-mode
+kind: constraint
+title: Maintenance mode
+summary: New LORE features require a concrete consumer problem and a measurable reduction in downstream maintenance or reasoning work.
+evidence:
+  - path: MAINTENANCE.md
+---
+id: procedure.consumer-workflow
+kind: procedure
+title: Consumer workflow
+summary: Edit reviewed knowledge, run lore validate, run lore project when projections are committed, and use normal Git review.
+details:
+  - Consumers verify their own configuration, reviewed knowledge, and optional committed projections.
+  - LORE verifies LORE internals in the LORE repository.
+evidence:
+  - path: README.md
+related:
+  - decision.git-native-history

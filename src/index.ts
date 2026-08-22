@@ -1,11 +1,1 @@
-export * from './domain/types.js';
-export * from './domain/errors.js';
-export * from './domain/references.js';
-export * from './validation/validate-repository.js';
-export * from './projection/project.js';
-export * from './hydration/hydrate.js';
-export * from './proposals/validate-proposal.js';
-export * from './transactions/plan-transaction.js';
-export * from './transactions/apply-transaction.js';
-export * from './verification/verify-self.js';
-export { runCli, type CliIo } from './cli/main.js';
+export * from './core.js';
