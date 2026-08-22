@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { createReadStream } from 'node:fs';
-import { mkdir, readFile, readdir, stat, writeFile } from 'node:fs/promises';
+import { lstat, mkdir, readFile, readdir, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { parse, parseAllDocuments } from 'yaml';
 
@@ -92,6 +92,24 @@ function contained(root: string, relative: string): string {
   if (target !== rootPath && !target.startsWith(`${rootPath}${path.sep}`)) throw new Error(`path escapes repository: ${relative}`);
   return target;
 }
+async function lstatIfPresent(file: string): Promise<Awaited<ReturnType<typeof lstat>> | undefined> {
+  try { return await lstat(file); }
+  catch (error) { if ((error as NodeJS.ErrnoException).code === 'ENOENT') return undefined; throw error; }
+}
+async function safeContained(root: string, relative: string): Promise<string> {
+  const rootPath = path.resolve(root);
+  const target = contained(rootPath, relative);
+  const relation = path.relative(rootPath, target);
+  if (relation === '') return target;
+  let current = rootPath;
+  for (const segment of relation.split(path.sep)) {
+    current = path.join(current, segment);
+    const info = await lstatIfPresent(current);
+    if (info === undefined) break;
+    if (info.isSymbolicLink()) throw new Error(`path escapes repository through symlink: ${relative}`);
+  }
+  return target;
+}
 async function exists(file: string): Promise<boolean> {
   try { await stat(file); return true; }
   catch (error) { if ((error as NodeJS.ErrnoException).code === 'ENOENT') return false; throw error; }
@@ -103,7 +121,7 @@ async function writeIfMissing(file: string, content: string): Promise<void> {
 }
 
 export async function loadConfig(root: string): Promise<LoreConfig> {
-  const configPath = path.join(path.resolve(root), 'lore.yaml');
+  const configPath = await safeContained(root, 'lore.yaml');
   if (!(await exists(configPath))) return DEFAULT_CONFIG;
   const value: unknown = parse(await readFile(configPath, 'utf8'));
   if (!isObject(value) || value.version !== 1) throw new Error('invalid lore.yaml: version must be 1');
@@ -111,8 +129,8 @@ export async function loadConfig(root: string): Promise<LoreConfig> {
   if (extra.length > 0) throw new Error(`invalid lore.yaml: unsupported fields: ${extra.sort().join(', ')}`);
   const knowledgeDir = assertString(value.knowledge_dir, 'lore.yaml knowledge_dir');
   const generatedDir = assertString(value.generated_dir, 'lore.yaml generated_dir');
-  contained(root, knowledgeDir);
-  contained(root, generatedDir);
+  await safeContained(root, knowledgeDir);
+  await safeContained(root, generatedDir);
   let maxRecords = DEFAULT_CONFIG.context.max_records;
   let maxBytes = DEFAULT_CONFIG.context.max_bytes;
   if (value.context !== undefined) {
@@ -132,12 +150,15 @@ export async function loadConfig(root: string): Promise<LoreConfig> {
 export async function initializeRepository(root: string): Promise<void> {
   const rootPath = path.resolve(root);
   await mkdir(rootPath, { recursive: true });
-  await writeIfMissing(path.join(rootPath, 'lore.yaml'), DEFAULT_CONFIG_TEXT);
+  const configPath = await safeContained(rootPath, 'lore.yaml');
+  await writeIfMissing(configPath, DEFAULT_CONFIG_TEXT);
   const config = await loadConfig(rootPath);
-  const knowledgeDir = contained(rootPath, config.knowledge_dir);
+  const knowledgeDir = await safeContained(rootPath, config.knowledge_dir);
+  const generatedDir = await safeContained(rootPath, config.generated_dir);
   await mkdir(knowledgeDir, { recursive: true });
-  await mkdir(contained(rootPath, config.generated_dir), { recursive: true });
-  await writeIfMissing(path.join(knowledgeDir, 'README.md'), KNOWLEDGE_README);
+  await mkdir(generatedDir, { recursive: true });
+  const knowledgeReadme = await safeContained(rootPath, path.join(config.knowledge_dir, 'README.md'));
+  await writeIfMissing(knowledgeReadme, KNOWLEDGE_README);
 }
 async function listFiles(directory: string): Promise<string[]> {
   if (!(await exists(directory))) return [];
@@ -157,7 +178,7 @@ async function listFiles(directory: string): Promise<string[]> {
 
 export async function loadKnowledge(root: string): Promise<KnowledgeRecord[]> {
   const config = await loadConfig(root);
-  const knowledgeDir = contained(root, config.knowledge_dir);
+  const knowledgeDir = await safeContained(root, config.knowledge_dir);
   const files = (await listFiles(knowledgeDir)).filter((file) => ['.yaml', '.yml', '.json'].includes(path.extname(file).toLowerCase()));
   const records: KnowledgeRecord[] = [];
   for (const file of files) {
@@ -190,7 +211,7 @@ export async function validateKnowledge(root: string): Promise<{ valid: true; re
   for (const record of records) {
     for (const related of record.related ?? []) if (!ids.has(related)) throw new Error(`invalid knowledge: ${record.id} relates to unknown record ${related}`);
     for (const evidence of record.evidence ?? []) {
-      const evidencePath = contained(root, evidence.path);
+      const evidencePath = await safeContained(root, evidence.path);
       if (!(await exists(evidencePath))) throw new Error(`invalid knowledge: evidence path does not exist: ${evidence.path}`);
     }
   }
@@ -208,7 +229,7 @@ async function sha256(file: string): Promise<string> {
 export async function extractRepository(root: string): Promise<ExtractionSnapshot> {
   const rootPath = path.resolve(root);
   const config = await loadConfig(rootPath);
-  const generatedPath = contained(rootPath, config.generated_dir);
+  const generatedPath = await safeContained(rootPath, config.generated_dir);
   const ignoredNames = new Set(['.git', 'node_modules', 'dist', 'coverage']);
   const files: ExtractedFile[] = [];
   async function visit(current: string): Promise<void> {
@@ -259,11 +280,11 @@ export async function projectDocumentation(root: string, options: { check?: bool
     'decisions.md': renderRecords('Decisions and constraints', records.filter((record) => record.kind === 'decision' || record.kind === 'constraint')),
     'guidance.md': renderRecords('Maintainer and agent guidance', records.filter((record) => record.kind === 'procedure' || record.kind === 'note')),
   };
-  const generatedDir = contained(root, config.generated_dir);
+  const generatedDir = await safeContained(root, config.generated_dir);
   const files: string[] = [];
   for (const name of Object.keys(projections).sort()) {
-    const file = path.join(generatedDir, name);
-    const relative = path.relative(path.resolve(root), file).split(path.sep).join('/');
+    const relative = path.join(config.generated_dir, name).split(path.sep).join('/');
+    const file = await safeContained(root, relative);
     const content = projections[name];
     if (content === undefined) continue;
     files.push(relative);
