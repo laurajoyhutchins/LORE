@@ -21,7 +21,7 @@
     "test:watch": "vitest",
     "lore": "tsx src/cli/main.ts",
     "ci": "pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm lore validate . && pnpm lore project . --check",
-    "prepack": "pnpm ci"
+    "prepack": "pnpm run ci"
   },
   "dependencies": { "yaml": "^2.8.1" },
   "devDependencies": {

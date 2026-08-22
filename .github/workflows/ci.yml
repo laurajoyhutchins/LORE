@@ -27,4 +27,4 @@ jobs:
           package-manager-cache: false
       - run: corepack enable
       - run: pnpm install --no-frozen-lockfile
-      - run: pnpm ci
+      - run: pnpm run ci

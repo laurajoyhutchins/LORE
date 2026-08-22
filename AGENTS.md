@@ -6,4 +6,4 @@ The public contract is `init`, `extract`, `validate`, `project`, and bounded det
 
 When changing LORE, ask what useful consumer failure the mechanism prevents and whether ordinary repository/Git behavior already prevents it. New features require a concrete consumer and measurable reduction in downstream work.
 
-Run `pnpm ci` before merging.
+Run `pnpm run ci` before merging.

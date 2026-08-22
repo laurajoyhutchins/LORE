@@ -9,7 +9,7 @@ Development:
 ```bash
 corepack enable
 pnpm install
-pnpm ci
+pnpm run ci
 ```
 
 Reviewed repository knowledge changes use normal Git commits and pull requests. There is no LORE-specific proposal or apply lifecycle.
