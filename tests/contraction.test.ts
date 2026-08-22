@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -67,6 +67,27 @@ describe('maintenance-mode contract', () => {
     await initializeRepository(root);
     await writeFile(path.join(root, '.lore/knowledge/bad.yaml'), 'id: bad\nkind: platform\nsummary: nope\n');
     await expect(validateKnowledge(root)).rejects.toThrow(/invalid knowledge/i);
+  });
+
+  it('rejects evidence paths that escape through repository symlinks', async () => {
+    const root = await repo();
+    const outside = await repo();
+    await initializeRepository(root);
+    await writeFile(path.join(outside, 'secret.txt'), 'outside\n');
+    await symlink(outside, path.join(root, 'linked-outside'), 'dir');
+    await writeFile(
+      path.join(root, '.lore/knowledge/escaped.yaml'),
+      [
+        'id: note.escaped',
+        'kind: note',
+        'title: Escaped evidence',
+        'summary: This record must be rejected.',
+        'evidence:',
+        '  - path: linked-outside/secret.txt',
+        '',
+      ].join('\n'),
+    );
+    await expect(validateKnowledge(root)).rejects.toThrow(/escapes repository/i);
   });
 
   it('loads compact relationships without requiring a causal graph', async () => {
